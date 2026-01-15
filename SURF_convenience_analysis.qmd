@@ -95,8 +95,9 @@ if (!file.exists(gitignore_path)) {
 
 ```
 
-
 ```{r}
+#| label: data-import
+#| include: false
 
 # ----------------------------
 # 1) Datenimport
@@ -111,6 +112,60 @@ daten <- readr::read_delim(
 
 daten <- janitor::clean_names(daten)
 
+cat(
+  paste0(
+    sprintf(
+      "%-30s | %-20s | missing: %-6s | unique: %-6s",
+      names(daten),
+      vapply(daten, function(x) paste(class(x), collapse = ", "), character(1)),
+      vapply(daten, function(x) sum(is.na(x)), integer(1)),
+      vapply(daten, function(x) length(unique(x)), integer(1))
+    ),
+    collapse = "\n"
+  )
+)
 
 ```
+
+```{r}
+#| label: clean-variables
+
+# Alle Variablen, die NUR technische Metadaten sind
+drop_patterns <- c(
+  "^id$",
+  "^submitdate$",
+  "^lastpage$",
+  "^startlanguage$",
+  "^seed$",
+  "^rand_freq$",
+  "^video_info$",
+  "^immersion$",
+  "^control_info$",
+  "^cheap_talk_script$",
+  "^restrictions_year$",
+  "^redirect_info_end$",
+  "^survey_feedback$",
+  "^interviewtime$",
+  "^group_time",
+  "_time$"
+)
+
+drop_vars <- names(daten)[
+  stringr::str_detect(names(daten), paste(drop_patterns, collapse = "|"))
+]
+
+# Datensatz bereinigen
+daten_clean <- daten |> 
+  dplyr::select(-dplyr::all_of(drop_vars))
+
+# Übersicht
+cat("Entfernte Variablen:\n")
+cat(paste(drop_vars, collapse = ", "))
+cat("\n\nDimensionen vorher: ", paste(dim(daten), collapse = " x "))
+cat("\nDimensionen nachher: ", paste(dim(daten_clean), collapse = " x "))
+
+readr::write_csv(daten_clean, here::here("data", "processed", "surf_clean.csv"))
+
+```
+
 
