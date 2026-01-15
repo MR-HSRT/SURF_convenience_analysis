@@ -51,7 +51,7 @@ TABLES_DIR <- here::here("outputs", "tables")
 
 ```
 
-```{r}
+```{r eval=F}
 
 #| label: create-gitignore
 #| include: false
