@@ -12,43 +12,50 @@ execute:
   cache: false
 ---
 
-```{r eval=F}
-
+```{r}
 #| label: setup
 #| include: false
 
-# Pakete (pacman)
-if (!require("pacman", quietly = TRUE)) install.packages("pacman")
-pacman::p_load(
-  here,
-  readr,
-  dplyr,
-  tidyr,
-  stringr,
-  janitor,
-  labelled,
-  psych,
-  gtsummary,
-  flextable,
-  ggplot2,
-  scales,
-  broom,
-  knitr
+# ----------------------------
+# 1) Pakete prüfen und laden
+# ----------------------------
+required_pkgs <- c(
+  "here","readr","dplyr","tidyr","stringr","janitor","labelled",
+  "psych","gtsummary","flextable","ggplot2","scales","broom","knitr"
 )
 
-# Ordnerstruktur erstellen
-dir.create(here::here("data", "raw"), recursive = TRUE, showWarnings = FALSE)
-dir.create(here::here("data", "processed"), recursive = TRUE, showWarnings = FALSE)
-dir.create(here::here("outputs", "plots"), recursive = TRUE, showWarnings = FALSE)
-dir.create(here::here("outputs", "tables"), recursive = TRUE, showWarnings = FALSE)
+missing_pkgs <- required_pkgs[!vapply(required_pkgs, requireNamespace, logical(1), quietly = TRUE)]
+if (length(missing_pkgs) > 0) {
+  stop(
+    "Fehlende Pakete: ", paste(missing_pkgs, collapse = ", "),
+    "\nBitte einmalig installieren (nicht im Quarto-Renderprozess), z.B.:",
+    "\ninstall.packages(c(\"", paste(missing_pkgs, collapse = "\", \""), "\"))"
+  )
+}
 
-# Reproduzierbarkeit
+invisible(lapply(required_pkgs, function(pkg) {
+  suppressPackageStartupMessages(library(pkg, character.only = TRUE))
+}))
+
+# ----------------------------
+# 2) Ordnerstruktur erstellen
+# ----------------------------
+dir.create(here::here("data", "raw"),        recursive = TRUE, showWarnings = FALSE)
+dir.create(here::here("data", "processed"),  recursive = TRUE, showWarnings = FALSE)
+dir.create(here::here("outputs", "plots"),   recursive = TRUE, showWarnings = FALSE)
+dir.create(here::here("outputs", "tables"),  recursive = TRUE, showWarnings = FALSE)
+
+# ----------------------------
+# 3) Reproduzierbarkeit
+# ----------------------------
 set.seed(1234)
 
-# Hilfsobjekte: Ausgabe-Pfade
 PLOTS_DIR  <- here::here("outputs", "plots")
 TABLES_DIR <- here::here("outputs", "tables")
 
+# ----------------------------
+# 4) .gitignore sicherstellen
+# ----------------------------
 gitignore_path <- here::here(".gitignore")
 
 gitignore_content <- c(
@@ -57,6 +64,8 @@ gitignore_content <- c(
   ".Rhistory",
   ".RData",
   ".Ruserdata",
+  "",
+  "# --- Data files ---",
   "*.csv",
   "",
   "# --- Quarto ---",
@@ -71,42 +80,37 @@ gitignore_content <- c(
   ".env"
 )
 
-# nur erstellen, wenn noch keine .gitignore existiert
 if (!file.exists(gitignore_path)) {
   writeLines(gitignore_content, gitignore_path)
+} else {
+  existing_raw  <- readLines(gitignore_path, warn = FALSE)
+  existing_trim <- trimws(existing_raw)
+
+  to_add <- gitignore_content[!gitignore_content %in% existing_trim]
+
+  if (length(to_add) > 0) {
+    writeLines(c(existing_raw, to_add), gitignore_path)
+  }
 }
 
 ```
 
 
-```{r eval=F}
+```{r}
 
-#| label: create-gitignore
-#| include: false
+# ----------------------------
+# 1) Datenimport
+# ----------------------------
 
-gitignore_path <- here::here(".gitignore")
-
-gitignore_content <- c(
-  "# --- R / RStudio ---",
-  ".Rproj.user/",
-  ".Rhistory",
-  ".RData",
-  ".Ruserdata",
-  "",
-  "# --- Quarto ---",
-  "*_cache/",
-  "*_files/",
-  "",
-  "# --- Private data (NEVER commit) ---",
-  "data/raw/",
-  "data/processed/",
-  "",
-  "# --- Local secrets ---",
-  ".env"
+daten <- readr::read_delim(
+  here::here("data", "raw", "results-survey739381.csv"),
+  delim = ";",
+  locale = readr::locale(encoding = "UTF-8", decimal_mark = ","),
+  na = c("", "NA")
 )
 
-# nur erstellen, wenn noch keine .gitignore existiert
-if (!file.exists(gitignore_path)) {
-  writeLines(gitignore_content, gitignore_path)
-}
+daten <- janitor::clean_names(daten)
+
+
+```
 
