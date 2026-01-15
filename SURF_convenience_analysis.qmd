@@ -17,25 +17,47 @@ execute:
 #| include: false
 
 # ----------------------------
-# 1) Pakete prüfen und laden
+# 1) Pakete installieren, prüfen und laden
 # ----------------------------
+
+# Stabiler CRAN-Mirror (wichtig, falls RStudio alte Repos nutzt)
+options(repos = c(CRAN = "https://cloud.r-project.org"))
+
 required_pkgs <- c(
   "here","readr","dplyr","tidyr","stringr","janitor","labelled",
-  "psych","gtsummary","flextable","ggplot2","scales","broom","knitr"
+  "psych","gtsummary","flextable","ggplot2","scales","broom","knitr",
+  "readxl"
 )
 
+# Fehlende Pakete ermitteln
 missing_pkgs <- required_pkgs[!vapply(required_pkgs, requireNamespace, logical(1), quietly = TRUE)]
+
+# Fehlende Pakete installieren (ohne Stop; mit klarer Meldung)
 if (length(missing_pkgs) > 0) {
-  stop(
-    "Fehlende Pakete: ", paste(missing_pkgs, collapse = ", "),
-    "\nBitte einmalig installieren (nicht im Quarto-Renderprozess), z.B.:",
-    "\ninstall.packages(c(\"", paste(missing_pkgs, collapse = "\", \""), "\"))"
+  message("Installiere fehlende Pakete: ", paste(missing_pkgs, collapse = ", "))
+  tryCatch(
+    {
+      install.packages(missing_pkgs, dependencies = TRUE)
+    },
+    error = function(e) {
+      message("Paketinstallation fehlgeschlagen: ", conditionMessage(e))
+      message("Hinweis: Bitte R/RStudio neu starten und erneut ausführen. ",
+              "Falls weiterhin Probleme: R als Admin starten oder Schreibrechte für die Library prüfen.")
+    }
   )
 }
 
-invisible(lapply(required_pkgs, function(pkg) {
-  suppressPackageStartupMessages(library(pkg, character.only = TRUE))
-}))
+# Pakete laden (leise; ohne Fehlermeldungsflut)
+loaded <- vapply(required_pkgs, function(pkg) {
+  suppressWarnings(suppressPackageStartupMessages(require(pkg, character.only = TRUE)))
+}, logical(1))
+
+# Wenn etwas trotz Install-Versuch nicht ladbar ist: nur eine kompakte Warnung
+if (any(!loaded)) {
+  warning("Folgende Pakete konnten nicht geladen werden: ",
+          paste(required_pkgs[!loaded], collapse = ", "),
+          call. = FALSE)
+}
 
 # ----------------------------
 # 2) Ordnerstruktur erstellen
@@ -67,6 +89,8 @@ gitignore_content <- c(
   "",
   "# --- Data files ---",
   "*.csv",
+  "*.xlsx",
+  "*.json",
   "",
   "# --- Quarto ---",
   "*_cache/",
@@ -96,34 +120,17 @@ if (!file.exists(gitignore_path)) {
 ```
 
 ```{r}
-#| label: data-import
+#| label: import-data
 #| include: false
 
-# ----------------------------
-# 1) Datenimport
-# ----------------------------
+# Pfad zur neuen LimeSurvey-Exceldatei
+xlsx_path <- here::here("data", "raw", "results-survey739381.xlsx")
 
-daten <- readr::read_delim(
-  here::here("data", "raw", "results-survey739381.csv"),
-  delim = ";",
-  locale = readr::locale(encoding = "UTF-8", decimal_mark = ","),
-  na = c("", "NA")
-)
+# Einlesen (Excel)
+daten <- readxl::read_xlsx(xlsx_path)
 
+# Spaltennamen bereinigen (snake_case)
 daten <- janitor::clean_names(daten)
-
-cat(
-  paste0(
-    sprintf(
-      "%-30s | %-20s | missing: %-6s | unique: %-6s",
-      names(daten),
-      vapply(daten, function(x) paste(class(x), collapse = ", "), character(1)),
-      vapply(daten, function(x) sum(is.na(x)), integer(1)),
-      vapply(daten, function(x) length(unique(x)), integer(1))
-    ),
-    collapse = "\n"
-  )
-)
 
 ```
 
@@ -139,21 +146,35 @@ sowie in die praktische Entwicklungsarbeit der Umfrage ein.
 
 ## Datenqualität
 
-Aufgrund des convenience-Charakters (hier Fußnote einfügen, die "convenience-Charakter" erklärt) der Umfrage muss ein besonderes Augenmerk auf die Qualität der erhobenen Daten gelegt werden. In diesem Abschnitt werden daher folgende Merkmale der Antwortsqualität geprüft, tabelliert, und visualisiert:
+Aufgrund des convenience-Charakters (hier Fußnote einfügen, die "convenience-Charakter" erklärt) der Umfrage muss ein besonderes Augenmerk auf die Qualität der erhobenen Daten gelegt werden. In diesem Abschnitt werden daher folgende Merkmale der Antwortsqualität geprüft, tabelliert, und visualisiert.
 
-- XXX: [Definiton Datenqualitätsmerkmal]
-- XXX: [Definiton Datenqualitätsmerkmal]
-- XXX: [Definiton Datenqualitätsmerkmal]
-...
+```{r}
+#| label: qc-definition-table
 
-In einem zweiten Schritt werden Fälle entfernt, die Auffälligkeiten im Hinblick auf diese Datenqualitätsmerkmale aufweisen.
-Die 
+qc_definitions <- tibble::tibble(
+  Check = c("Speeding", "Straightlining"),
+  Indikator = c("Interviewdauer", "Standardabweichung innerhalb von Skalenbatterien"),
+  Kriterium = c(
+    "Interviewdauer < 1/3 der Median-Dauer",
+    "SD über alle Skalenitems = 0"
+  ),
+  Interpretation = c(
+    "Sehr schnelle Bearbeitung deutet auf Satisficing / oberflächliche Bearbeitung hin.",
+    "Konstante Antworten über alle Items deuten auf inhaltsloses Durchklicken hin."
+  )
+)
 
-- XXX: [Anzahl ausgeschlossener Fälle]
-- XXX: [Anzahl ausgeschlossener Fälle]
-- XXX: [Anzahl ausgeschlossener Fälle]
+qc_definitions |> 
+  flextable::flextable() |> 
+  flextable::autofit()
 
-In Summe wurden auf diese Weise XXX Fälle von den folgenden Analysen ausgeschlossen.
+```
+
+In einem zweiten Schritt werden Fälle entfernt, die Auffälligkeiten im Hinblick auf diese Datenqualitätsmerkmale aufweisen. In Summe wurden auf diese Weise somit XXX Fälle von den folgenden Analysen ausgeschlossen.
+
+### Verteilungs-Analyse: Bearbeitungszeit
+
+In einem ersten Schritt werden solche Fälle identifiziert, die eine extreme Bearbeitungsdauer der Umfrage aufweisen. Diese Ausreißer der Bearbeitungsdauer können beispielsweise von geöffneten und nicht abgeschlossenen Browser-Fenstern herrühren, wobei die Umfrage zu einem späteren Zeitpunkt abgeschlossen wurde. Insgesamt wurden xxx solcher Fälle identifiziert.
 
 ```{r}
 #| label: create-surf-check
@@ -164,35 +185,292 @@ cat("Dimensionen surf_check:", paste(dim(surf_check), collapse = " x "))
 
 ```
 
-### Speeding
+#### Bearbeitungszeit: Histogramm mit Ausreissern
 
-Speeding bezeichnet ... und wird im Rahmen dieser Befragung formal definiert als ... .
-Im Folgenden wird die Anzahl der so als 'Speeder' definierbaren Fälle aufgeführt und visualisiert.
+Zunächst wird die Bearbeitungsdauer aller Fälle, wie unten dargestellt, inspiziert. Ausreißer können so zunächst visuell und dann formal definiert identifiziert werden, um sie von anschließenden Analysen des Speedings auszuschließen. Verzerrungen durch derartige Ausreißer würden ansonsten das relative Kriterium 
 
 ```{r}
-#| label: qc-speeding
+#| label: qc-time-histogram-all
+
+surf_check <- surf_check |>
+  dplyr::mutate(interview_min = as.numeric(interviewtime) / 60)
+
+q_all <- quantile(surf_check$interview_min,
+                  probs = c(.05, .25, .50, .75, .95),
+                  na.rm = TRUE)
+
+median_min     <- q_all[3]
+cutoff_speeder <- median_min / 3
+
+p_all <- ggplot2::ggplot(surf_check, ggplot2::aes(x = interview_min)) +
+  ggplot2::geom_histogram(bins = 35) +
+  ggplot2::geom_vline(xintercept = as.numeric(q_all), linetype = "dotted") +
+  ggplot2::geom_vline(xintercept = median_min, linetype = "dashed") +
+  ggplot2::geom_vline(xintercept = cutoff_speeder, linetype = "dashed") +
+  ggplot2::labs(
+    title = "Verteilung der Bearbeitungszeit – alle Interviews",
+    x = "Bearbeitungszeit (Minuten)",
+    y = "Anzahl Befragte"
+  ) +
+  ggplot2::annotate(
+    "text",
+    x = Inf, y = Inf,
+    hjust = 1.05, vjust = 1.1, size = 3.2,
+    label = paste0(
+      "Median: ", round(median_min, 2), " min\n",
+      "Cutoff: ", round(cutoff_speeder, 2), " min\n",
+      "Q05: ", round(q_all[1], 2), " | Q25: ", round(q_all[2], 2), "\n",
+      "Q50: ", round(q_all[3], 2), " | Q75: ", round(q_all[4], 2), "\n",
+      "Q95: ", round(q_all[5], 2)
+    )
+  ) +
+  ggplot2::theme_minimal(base_size = 12)
+
+ggplot2::ggsave(
+  filename = file.path(PLOTS_DIR, "qc_bearbeitungszeit_alle_faelle.png"),
+  plot = p_all,
+  width = 8, height = 5, dpi = 300
+)
+
+p_all
+
+```
+**Eingezeichnet:** Quantile Q05, Q25, Q50, Q75 und Q95 (punktierte Linien), Median der Bearbeitungszeit (gestrichelte Linie) sowie das Speeder-Kriterium als gestrichelte Linie bei einem Drittel des Medians.
+
+
+
+
+#### Bearbeitungszeit ohne Ausreisser
+
+```{r}
+#| label: qc-speeding-clean
+
+median_time_clean <- median(
+  surf_check$interview_min[!surf_check$flag_extreme_slow],
+  na.rm = TRUE
+)
+
+cutoff_speeder_clean <- median_time_clean / 3
 
 surf_check <- surf_check |>
   dplyr::mutate(
-    interview_min = interviewtime / 60
+    flag_speeding_clean = interview_min < cutoff_speeder_clean & !flag_extreme_slow
   )
 
-summary(surf_check$interview_min)
-
-# Flag: schneller als 1/3 der Median-Dauer
-median_time <- median(surf_check$interview_min, na.rm = TRUE)
-
-surf_check <- surf_check |>
-  dplyr::mutate(
-    flag_speeding = interview_min < (median_time / 3)
-  )
-
-table(surf_check$flag_speeding)
+table(surf_check$flag_speeding_clean)
+median_time_clean
+cutoff_speeder_clean
 
 ```
 
-# Deskriptive Analyse: SURF Convenience Survey
+```{r}
+#| label: qc-time-plot-without-outliers
 
+surf_plot <- surf_check |> dplyr::filter(!flag_extreme_slow)
+
+p_without <- ggplot(surf_plot, aes(x = interview_min)) +
+  geom_histogram(bins = 30) +
+  geom_vline(xintercept = median_time_clean, linetype = "dashed") +
+  geom_vline(xintercept = cutoff_speeder_clean, linetype = "dashed") +
+  labs(
+    title = "Verteilung der Bearbeitungszeit (ohne extrem langsame Ausreißer)",
+    x = "Bearbeitungszeit (Minuten)",
+    y = "Anzahl Befragte"
+  ) +
+  annotate(
+    "text",
+    x = median_time_clean,
+    y = -3,
+    label = paste0(
+      "**Eingezeichnet:** Median = ", round(median_time_clean, 1),
+      " min | Speeder-Cutoff = ", round(cutoff_speeder_clean, 1), " min"
+    ),
+    vjust = 1.5,
+    hjust = 0.5,
+    size = 3.8,
+    fontface = "bold"
+  ) +
+  theme_minimal() +
+  coord_cartesian(clip = "off")
+
+ggsave(file.path(PLOTS_DIR, "bearbeitungszeit_ohne_ausreisser.png"),
+       p_without, width = 8, height = 5, dpi = 300)
+
+p_without
+
+```
+
+
+#### Bearbeitungszeit mit Ausreissern
+
+```{r}
+#| label: qc-time-distribution
+
+# Bearbeitungszeit in Minuten
+surf_check <- surf_check |>
+  dplyr::mutate(interview_min = interviewtime / 60)
+
+# Kennzahlen
+median_min <- median(surf_check$interview_min, na.rm = TRUE)
+q <- quantile(surf_check$interview_min, probs = c(.05, .25, .50, .75, .95), na.rm = TRUE)
+cutoff_speeder <- median_min / 3
+
+# Plot: Verteilung + Quantile + Median + Speeder-Cutoff + Text-Annotation
+p_time <- ggplot2::ggplot(surf_check, ggplot2::aes(x = interview_min)) +
+  ggplot2::geom_histogram(bins = 30) +
+  ggplot2::geom_vline(xintercept = as.numeric(q), linetype = "dotted") +
+  ggplot2::geom_vline(xintercept = median_min, linetype = "dashed") +
+  ggplot2::geom_vline(xintercept = cutoff_speeder, linetype = "dashed") +
+  ggplot2::labs(
+    title = "Verteilung der Gesamtbearbeitungszeit",
+    subtitle = "Eingezeichnet: Quantile (gepunktet), Median (gestrichelt), Speeder-Kriterium (< 1/3 Median; gestrichelt)",
+    x = "Bearbeitungszeit (Minuten)",
+    y = "Anzahl Befragte"
+  ) +
+  ggplot2::theme_minimal(base_size = 12) +
+  ggplot2::annotate(
+    "text",
+    x = Inf, y = Inf,
+    hjust = 1.05, vjust = 1.15,
+    label = paste0(
+      "Median: ", round(median_min, 2), " min\n",
+      "Cutoff (Speeder): < ", round(cutoff_speeder, 2), " min\n",
+      "Q05: ", round(q[1], 2), " | Q25: ", round(q[2], 2), "\n",
+      "Q50: ", round(q[3], 2), " | Q75: ", round(q[4], 2), "\n",
+      "Q95: ", round(q[5], 2)
+    )
+  )
+
+# Export für PowerPoint/Report
+ggplot2::ggsave(
+  filename = file.path(PLOTS_DIR, "qc_bearbeitungszeit_verteilung_mit_cutoffs.png"),
+  plot = p_time,
+  width = 8, height = 5, dpi = 300
+)
+
+# Ausgabe im HTML
+p_time
+
+```
+
+### Speeding
+
+Speeding bezeichnet sehr schnelle Umfragebearbeitung und deutet auf Satisficing, bzw. oberflächliche Bearbeitung der Umfrage, oder sogar "Durchklicken" ohne inhaltliche Auseinandersetzung hin und wird im Rahmen dieser Befragung formal definiert als Interviewdauer < 1/3 der Median-Dauer (Median-Dauer = XXX Min., XXX Sek.). Im Folgenden wird die Anzahl der so als 'Speeder' definierbaren Fälle aufgeführt und visualisiert. Zuvor wird die Bearbeitungsdauer des Online-Surveys visualisiert.
+
+```{r}
+#| label: qc-time-histogram-all
+
+surf_check <- surf_check |>
+  dplyr::mutate(interview_min = as.numeric(interviewtime) / 60)
+
+q_all <- quantile(surf_check$interview_min,
+                  probs = c(.05, .25, .50, .75, .95),
+                  na.rm = TRUE)
+
+median_min     <- q_all[3]
+cutoff_speeder <- median_min / 3
+
+p_all <- ggplot2::ggplot(surf_check, ggplot2::aes(x = interview_min)) +
+  ggplot2::geom_histogram(bins = 35) +
+  ggplot2::geom_vline(xintercept = as.numeric(q_all), linetype = "dotted") +
+  ggplot2::geom_vline(xintercept = median_min, linetype = "dashed") +
+  ggplot2::geom_vline(xintercept = cutoff_speeder, linetype = "dashed") +
+  ggplot2::labs(
+    title = "Verteilung der Bearbeitungszeit – alle Interviews",
+    x = "Bearbeitungszeit (Minuten)",
+    y = "Anzahl Befragte"
+  ) +
+  ggplot2::annotate(
+    "text",
+    x = Inf, y = Inf,
+    hjust = 1.05, vjust = 1.1, size = 3.2,
+    label = paste0(
+      "Median: ", round(median_min, 2), " min\n",
+      "Cutoff: ", round(cutoff_speeder, 2), " min\n",
+      "Q05: ", round(q_all[1], 2), " | Q25: ", round(q_all[2], 2), "\n",
+      "Q50: ", round(q_all[3], 2), " | Q75: ", round(q_all[4], 2), "\n",
+      "Q95: ", round(q_all[5], 2)
+    )
+  ) +
+  ggplot2::theme_minimal(base_size = 12)
+
+ggplot2::ggsave(
+  filename = file.path(PLOTS_DIR, "qc_bearbeitungszeit_alle_faelle.png"),
+  plot = p_all,
+  width = 8, height = 5, dpi = 300
+)
+
+p_all
+
+```
+**Eingezeichnet:** Quantile Q05, Q25, Q50, Q75 und Q95 (punktierte Linien), Median der Bearbeitungszeit (gestrichelte Linie) sowie das Speeder-Kriterium als gestrichelte Linie bei einem Drittel des Medians.
+
+Diese Analyse verdeutlicht, dass eine Reihe von Fällen eine besonders hohe Bearbeitungsdauer aufweisen. Diese rühren vermutlich von Unterbrechnungen während der Bearbeitung des Surveys her. Da diese Fälle sich mit einme Maximum von `r round(max(surf_check$interview_min, na.rm = TRUE), 2)` jedoch im Rahmen annehmbarer Werte bewegen, werden Sie weiterhin in die Analyse eingeschlossen. Gleichzeitig wird eine Reihen von Fällen identifiziert, die eine besonders niedriger Bearbeitungsdauer aufweisen, und potenziell als 'Speeder' gelten können. Der eingezeichnete Cutoff von `r round(median(surf_check$interview_min, na.rm = TRUE) / 3, 1)`, was einem Drittel des Medians von `r round(median(surf_check$interview_min, na.rm = TRUE))` entspricht, verdeutlicht jedoch, dass keine Fälle im Sample unter diese Grenze fallen. Die Daten sind damit, gemäß der hier genutzten Definition, nicht von Speeding betroffen.
+
+### Straightlining
+
+Straightlining bezeichnet Antwortmuster mit weitgehend konstanten Angaben innerhalb von Likert-Batterien (z.B. durchgängig dieselbe Ausprägung) und kann auf geringe Sorgfalt beim Ausfüllen hindeuten. In dieser Analyse wird Straightlining als Standardabweichung (SD) = 0 über die ausgewählten Likert-Items operationalisiert, wobei zusätzlich vorausgesetzt wird, dass mindestens ein definierter Anteil der Items tatsächlich beantwortet wurde. Im Folgenden werden Häufigkeit und Verteilung der so identifizierten Fälle berichtet.
+
+
+XXXX --> hier weiter mit GPT
+
+
+```{r}
+#| label: qc-straightlining
+
+scale_vars <- names(surf_check)[
+stringr::str_detect(names(surf_check), "^(flex_|config_|info_content_|info_form_)")
+]
+
+min_answered <- max(5, ceiling(length(scale_vars) * 0.6))
+
+surf_check <- surf_check |>
+dplyr::mutate(
+n_answered_scales = rowSums(!is.na(dplyr::across(dplyr::all_of(scale_vars)))),
+straightline_sd   = apply(dplyr::select(., dplyr::all_of(scale_vars)), 1, sd, na.rm = TRUE),
+flag_straightline = (n_answered_scales >= min_answered) & (straightline_sd == 0)
+)
+
+```
+
+```{r}
+
+#| label: qc-straightlining-table
+
+surf_check |> 
+  dplyr::mutate(Straightlining = ifelse(flag_straightline, "Straightliner", "Keine Straightliner")) |>
+  dplyr::count(Straightlining) |>
+  dplyr::mutate(Anteil = round(n / sum(n) * 100, 1)) |>
+  flextable::flextable() |>
+  flextable::autofit()
+
+```
+
+```{r eval=F}
+
+#| label: qc-straightlining-plot
+
+p_sl <- surf_check |>
+  dplyr::mutate(Straightlining = ifelse(flag_straightline, "Straightliner", "Keine Straightliner")) |>
+  ggplot(aes(x = Straightlining)) +
+  geom_bar() +
+  labs(
+    title = "Straightlining in der Stichprobe",
+    y = "Anzahl Befragte",
+    x = ""
+  ) +
+  theme_minimal()
+
+ggsave(filename = file.path(PLOTS_DIR, "straightlining_distribution.png"),
+       plot = p_sl, width = 6, height = 4)
+
+p_sl
+
+```
+
+Gemäß der hier angewendenten Qualitätsstandards für die erhobenen Daten, können somit alle Befragten im Datensatz in die folgenden Analysen einbezogen werden.
+
+# Deskriptive Analyse: SURF Convenience Survey
 
 ```{r}
 #| label: clean-variables
@@ -235,4 +513,6 @@ readr::write_csv(daten_clean, here::here("data", "processed", "surf_clean.csv"))
 
 ```
 
+
+# Insights: SURF Convenience Survey
 

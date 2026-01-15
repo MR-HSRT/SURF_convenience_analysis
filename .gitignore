@@ -16,3 +16,5 @@ data/processed/
 # --- Local secrets ---
 .env
 # --- Data files ---
+*.xlsx
+*.json
