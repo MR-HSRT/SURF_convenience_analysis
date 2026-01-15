@@ -127,6 +127,73 @@ cat(
 
 ```
 
+# Datenreport: SURF Convenience Survey
+
+Vom XXX bis zum 28.02.2026 wird das SURF Convenience-Survey von den SURF Projektpartnern digital über unterschiedliche Kanäle gestreut.
+Zu diesem Zweck wurde die Online-Umfrage über interne und externe Newsletter, Social Media Plattformen, und Online-Foren gestreut.
+Ziel dieser ersten Umfrage ist es, eine erste Erhebung der Akzeptanz von und Präferenzen für die digitale SURF-Plattform zu erheben,
+und einen umfangreichen Test der Umfrage durchzuführen. Die so erhobenen Ergebnisse fliessen in die Weiterentwicklung der Umfrage und andere Projektbestandteile,
+sowie in die praktische Entwicklungsarbeit der Umfrage ein.
+
+## Aufbau und Inhalte der Umfrage
+
+## Datenqualität
+
+Aufgrund des convenience-Charakters (hier Fußnote einfügen, die "convenience-Charakter" erklärt) der Umfrage muss ein besonderes Augenmerk auf die Qualität der erhobenen Daten gelegt werden. In diesem Abschnitt werden daher folgende Merkmale der Antwortsqualität geprüft, tabelliert, und visualisiert:
+
+- XXX: [Definiton Datenqualitätsmerkmal]
+- XXX: [Definiton Datenqualitätsmerkmal]
+- XXX: [Definiton Datenqualitätsmerkmal]
+...
+
+In einem zweiten Schritt werden Fälle entfernt, die Auffälligkeiten im Hinblick auf diese Datenqualitätsmerkmale aufweisen.
+Die 
+
+- XXX: [Anzahl ausgeschlossener Fälle]
+- XXX: [Anzahl ausgeschlossener Fälle]
+- XXX: [Anzahl ausgeschlossener Fälle]
+
+In Summe wurden auf diese Weise XXX Fälle von den folgenden Analysen ausgeschlossen.
+
+```{r}
+#| label: create-surf-check
+
+surf_check <- daten
+
+cat("Dimensionen surf_check:", paste(dim(surf_check), collapse = " x "))
+
+```
+
+### Speeding
+
+Speeding bezeichnet ... und wird im Rahmen dieser Befragung formal definiert als ... .
+Im Folgenden wird die Anzahl der so als 'Speeder' definierbaren Fälle aufgeführt und visualisiert.
+
+```{r}
+#| label: qc-speeding
+
+surf_check <- surf_check |>
+  dplyr::mutate(
+    interview_min = interviewtime / 60
+  )
+
+summary(surf_check$interview_min)
+
+# Flag: schneller als 1/3 der Median-Dauer
+median_time <- median(surf_check$interview_min, na.rm = TRUE)
+
+surf_check <- surf_check |>
+  dplyr::mutate(
+    flag_speeding = interview_min < (median_time / 3)
+  )
+
+table(surf_check$flag_speeding)
+
+```
+
+# Deskriptive Analyse: SURF Convenience Survey
+
+
 ```{r}
 #| label: clean-variables
 
