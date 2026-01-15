@@ -1,4 +1,17 @@
-.Rproj.user
+# --- R / RStudio ---
+.Rproj.user/
 .Rhistory
 .RData
 .Ruserdata
+*.csv
+
+# --- Quarto ---
+*_cache/
+*_files/
+
+# --- Private data (NEVER commit) ---
+data/raw/
+data/processed/
+
+# --- Local secrets ---
+.env

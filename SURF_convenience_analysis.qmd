@@ -49,7 +49,35 @@ set.seed(1234)
 PLOTS_DIR  <- here::here("outputs", "plots")
 TABLES_DIR <- here::here("outputs", "tables")
 
+gitignore_path <- here::here(".gitignore")
+
+gitignore_content <- c(
+  "# --- R / RStudio ---",
+  ".Rproj.user/",
+  ".Rhistory",
+  ".RData",
+  ".Ruserdata",
+  "*.csv",
+  "",
+  "# --- Quarto ---",
+  "*_cache/",
+  "*_files/",
+  "",
+  "# --- Private data (NEVER commit) ---",
+  "data/raw/",
+  "data/processed/",
+  "",
+  "# --- Local secrets ---",
+  ".env"
+)
+
+# nur erstellen, wenn noch keine .gitignore existiert
+if (!file.exists(gitignore_path)) {
+  writeLines(gitignore_content, gitignore_path)
+}
+
 ```
+
 
 ```{r eval=F}
 
