@@ -144,6 +144,8 @@ sowie in die praktische Entwicklungsarbeit der Umfrage ein.
 
 ## Aufbau und Inhalte der Umfrage
 
+XXXX
+
 ## Datenqualität
 
 Aufgrund des convenience-Charakters (hier Fußnote einfügen, die "convenience-Charakter" erklärt) der Umfrage muss ein besonderes Augenmerk auf die Qualität der erhobenen Daten gelegt werden. In diesem Abschnitt werden daher folgende Merkmale der Antwortsqualität geprüft, tabelliert, und visualisiert.
@@ -170,192 +172,18 @@ qc_definitions |>
 
 ```
 
-In einem zweiten Schritt werden Fälle entfernt, die Auffälligkeiten im Hinblick auf diese Datenqualitätsmerkmale aufweisen. In Summe wurden auf diese Weise somit XXX Fälle von den folgenden Analysen ausgeschlossen.
+In einem zweiten Schritt werden üblicherweise Fälle entfernt, die Auffälligkeiten im Hinblick auf diese Datenqualitätsmerkmale aufweisen. Da die erhobene Daten jedoch keine derartigen Fälle aufweisen, können sie vollständig in die folgenden Analysen einbezogen werden.
 
-### Verteilungs-Analyse: Bearbeitungszeit
+### Speeding
 
-In einem ersten Schritt werden solche Fälle identifiziert, die eine extreme Bearbeitungsdauer der Umfrage aufweisen. Diese Ausreißer der Bearbeitungsdauer können beispielsweise von geöffneten und nicht abgeschlossenen Browser-Fenstern herrühren, wobei die Umfrage zu einem späteren Zeitpunkt abgeschlossen wurde. Insgesamt wurden xxx solcher Fälle identifiziert.
+Speeding bezeichnet sehr schnelle Umfragebearbeitung und deutet auf Satisficing, bzw. oberflächliche Bearbeitung der Umfrage, oder sogar "Durchklicken" ohne inhaltliche Auseinandersetzung hin und wird im Rahmen dieser Befragung formal definiert als Interviewdauer < 1/3 der Median-Dauer (Median-Dauer = XXX Min., XXX Sek.). Im Folgenden wird die Anzahl der so als 'Speeder' definierbaren Fälle aufgeführt und visualisiert. Zuvor wird die Bearbeitungsdauer des Online-Surveys visualisiert.
 
 ```{r}
 #| label: create-surf-check
 
 surf_check <- daten
 
-cat("Dimensionen surf_check:", paste(dim(surf_check), collapse = " x "))
-
 ```
-
-#### Bearbeitungszeit: Histogramm mit Ausreissern
-
-Zunächst wird die Bearbeitungsdauer aller Fälle, wie unten dargestellt, inspiziert. Ausreißer können so zunächst visuell und dann formal definiert identifiziert werden, um sie von anschließenden Analysen des Speedings auszuschließen. Verzerrungen durch derartige Ausreißer würden ansonsten das relative Kriterium 
-
-```{r}
-#| label: qc-time-histogram-all
-
-surf_check <- surf_check |>
-  dplyr::mutate(interview_min = as.numeric(interviewtime) / 60)
-
-q_all <- quantile(surf_check$interview_min,
-                  probs = c(.05, .25, .50, .75, .95),
-                  na.rm = TRUE)
-
-median_min     <- q_all[3]
-cutoff_speeder <- median_min / 3
-
-p_all <- ggplot2::ggplot(surf_check, ggplot2::aes(x = interview_min)) +
-  ggplot2::geom_histogram(bins = 35) +
-  ggplot2::geom_vline(xintercept = as.numeric(q_all), linetype = "dotted") +
-  ggplot2::geom_vline(xintercept = median_min, linetype = "dashed") +
-  ggplot2::geom_vline(xintercept = cutoff_speeder, linetype = "dashed") +
-  ggplot2::labs(
-    title = "Verteilung der Bearbeitungszeit – alle Interviews",
-    x = "Bearbeitungszeit (Minuten)",
-    y = "Anzahl Befragte"
-  ) +
-  ggplot2::annotate(
-    "text",
-    x = Inf, y = Inf,
-    hjust = 1.05, vjust = 1.1, size = 3.2,
-    label = paste0(
-      "Median: ", round(median_min, 2), " min\n",
-      "Cutoff: ", round(cutoff_speeder, 2), " min\n",
-      "Q05: ", round(q_all[1], 2), " | Q25: ", round(q_all[2], 2), "\n",
-      "Q50: ", round(q_all[3], 2), " | Q75: ", round(q_all[4], 2), "\n",
-      "Q95: ", round(q_all[5], 2)
-    )
-  ) +
-  ggplot2::theme_minimal(base_size = 12)
-
-ggplot2::ggsave(
-  filename = file.path(PLOTS_DIR, "qc_bearbeitungszeit_alle_faelle.png"),
-  plot = p_all,
-  width = 8, height = 5, dpi = 300
-)
-
-p_all
-
-```
-**Eingezeichnet:** Quantile Q05, Q25, Q50, Q75 und Q95 (punktierte Linien), Median der Bearbeitungszeit (gestrichelte Linie) sowie das Speeder-Kriterium als gestrichelte Linie bei einem Drittel des Medians.
-
-
-
-
-#### Bearbeitungszeit ohne Ausreisser
-
-```{r}
-#| label: qc-speeding-clean
-
-median_time_clean <- median(
-  surf_check$interview_min[!surf_check$flag_extreme_slow],
-  na.rm = TRUE
-)
-
-cutoff_speeder_clean <- median_time_clean / 3
-
-surf_check <- surf_check |>
-  dplyr::mutate(
-    flag_speeding_clean = interview_min < cutoff_speeder_clean & !flag_extreme_slow
-  )
-
-table(surf_check$flag_speeding_clean)
-median_time_clean
-cutoff_speeder_clean
-
-```
-
-```{r}
-#| label: qc-time-plot-without-outliers
-
-surf_plot <- surf_check |> dplyr::filter(!flag_extreme_slow)
-
-p_without <- ggplot(surf_plot, aes(x = interview_min)) +
-  geom_histogram(bins = 30) +
-  geom_vline(xintercept = median_time_clean, linetype = "dashed") +
-  geom_vline(xintercept = cutoff_speeder_clean, linetype = "dashed") +
-  labs(
-    title = "Verteilung der Bearbeitungszeit (ohne extrem langsame Ausreißer)",
-    x = "Bearbeitungszeit (Minuten)",
-    y = "Anzahl Befragte"
-  ) +
-  annotate(
-    "text",
-    x = median_time_clean,
-    y = -3,
-    label = paste0(
-      "**Eingezeichnet:** Median = ", round(median_time_clean, 1),
-      " min | Speeder-Cutoff = ", round(cutoff_speeder_clean, 1), " min"
-    ),
-    vjust = 1.5,
-    hjust = 0.5,
-    size = 3.8,
-    fontface = "bold"
-  ) +
-  theme_minimal() +
-  coord_cartesian(clip = "off")
-
-ggsave(file.path(PLOTS_DIR, "bearbeitungszeit_ohne_ausreisser.png"),
-       p_without, width = 8, height = 5, dpi = 300)
-
-p_without
-
-```
-
-
-#### Bearbeitungszeit mit Ausreissern
-
-```{r}
-#| label: qc-time-distribution
-
-# Bearbeitungszeit in Minuten
-surf_check <- surf_check |>
-  dplyr::mutate(interview_min = interviewtime / 60)
-
-# Kennzahlen
-median_min <- median(surf_check$interview_min, na.rm = TRUE)
-q <- quantile(surf_check$interview_min, probs = c(.05, .25, .50, .75, .95), na.rm = TRUE)
-cutoff_speeder <- median_min / 3
-
-# Plot: Verteilung + Quantile + Median + Speeder-Cutoff + Text-Annotation
-p_time <- ggplot2::ggplot(surf_check, ggplot2::aes(x = interview_min)) +
-  ggplot2::geom_histogram(bins = 30) +
-  ggplot2::geom_vline(xintercept = as.numeric(q), linetype = "dotted") +
-  ggplot2::geom_vline(xintercept = median_min, linetype = "dashed") +
-  ggplot2::geom_vline(xintercept = cutoff_speeder, linetype = "dashed") +
-  ggplot2::labs(
-    title = "Verteilung der Gesamtbearbeitungszeit",
-    subtitle = "Eingezeichnet: Quantile (gepunktet), Median (gestrichelt), Speeder-Kriterium (< 1/3 Median; gestrichelt)",
-    x = "Bearbeitungszeit (Minuten)",
-    y = "Anzahl Befragte"
-  ) +
-  ggplot2::theme_minimal(base_size = 12) +
-  ggplot2::annotate(
-    "text",
-    x = Inf, y = Inf,
-    hjust = 1.05, vjust = 1.15,
-    label = paste0(
-      "Median: ", round(median_min, 2), " min\n",
-      "Cutoff (Speeder): < ", round(cutoff_speeder, 2), " min\n",
-      "Q05: ", round(q[1], 2), " | Q25: ", round(q[2], 2), "\n",
-      "Q50: ", round(q[3], 2), " | Q75: ", round(q[4], 2), "\n",
-      "Q95: ", round(q[5], 2)
-    )
-  )
-
-# Export für PowerPoint/Report
-ggplot2::ggsave(
-  filename = file.path(PLOTS_DIR, "qc_bearbeitungszeit_verteilung_mit_cutoffs.png"),
-  plot = p_time,
-  width = 8, height = 5, dpi = 300
-)
-
-# Ausgabe im HTML
-p_time
-
-```
-
-### Speeding
-
-Speeding bezeichnet sehr schnelle Umfragebearbeitung und deutet auf Satisficing, bzw. oberflächliche Bearbeitung der Umfrage, oder sogar "Durchklicken" ohne inhaltliche Auseinandersetzung hin und wird im Rahmen dieser Befragung formal definiert als Interviewdauer < 1/3 der Median-Dauer (Median-Dauer = XXX Min., XXX Sek.). Im Folgenden wird die Anzahl der so als 'Speeder' definierbaren Fälle aufgeführt und visualisiert. Zuvor wird die Bearbeitungsdauer des Online-Surveys visualisiert.
 
 ```{r}
 #| label: qc-time-histogram-all
@@ -409,10 +237,7 @@ Diese Analyse verdeutlicht, dass eine Reihe von Fällen eine besonders hohe Bear
 
 ### Straightlining
 
-Straightlining bezeichnet Antwortmuster mit weitgehend konstanten Angaben innerhalb von Likert-Batterien (z.B. durchgängig dieselbe Ausprägung) und kann auf geringe Sorgfalt beim Ausfüllen hindeuten. In dieser Analyse wird Straightlining als Standardabweichung (SD) = 0 über die ausgewählten Likert-Items operationalisiert, wobei zusätzlich vorausgesetzt wird, dass mindestens ein definierter Anteil der Items tatsächlich beantwortet wurde. Im Folgenden werden Häufigkeit und Verteilung der so identifizierten Fälle berichtet.
-
-
-XXXX --> hier weiter mit GPT
+Straightlining wurde als konstantes Antwortmuster über Itembatterien hinweg definiert. Für jede von vier zentralen Skalenbatterien wurde pro Fall die Standardabweichung der Antworten berechnet. Ein Fall wurde als Straightliner klassifiziert, wenn mindestens 60 % der Items einer Batterie beantwortet wurden und die Standardabweichung innerhalb dieser Batterie gleich Null war. Zusätzlich wurde ein Gesamtindikator gebildet, der Straightlining in mindestens einer Batterie abbildet.
 
 
 ```{r}
@@ -425,11 +250,14 @@ stringr::str_detect(names(surf_check), "^(flex_|config_|info_content_|info_form_
 min_answered <- max(5, ceiling(length(scale_vars) * 0.6))
 
 surf_check <- surf_check |>
+dplyr::rowwise() |>
 dplyr::mutate(
-n_answered_scales = rowSums(!is.na(dplyr::across(dplyr::all_of(scale_vars)))),
-straightline_sd   = apply(dplyr::select(., dplyr::all_of(scale_vars)), 1, sd, na.rm = TRUE),
+n_answered_scales = sum(!is.na(dplyr::c_across(dplyr::all_of(scale_vars)))),
+straightline_sd   = sd(dplyr::c_across(dplyr::all_of(scale_vars)), na.rm = TRUE),
 flag_straightline = (n_answered_scales >= min_answered) & (straightline_sd == 0)
-)
+) |>
+dplyr::ungroup()
+
 
 ```
 
@@ -437,38 +265,24 @@ flag_straightline = (n_answered_scales >= min_answered) & (straightline_sd == 0)
 
 #| label: qc-straightlining-table
 
-surf_check |> 
-  dplyr::mutate(Straightlining = ifelse(flag_straightline, "Straightliner", "Keine Straightliner")) |>
-  dplyr::count(Straightlining) |>
-  dplyr::mutate(Anteil = round(n / sum(n) * 100, 1)) |>
-  flextable::flextable() |>
-  flextable::autofit()
+sl_tab <- surf_check |>
+dplyr::mutate(Straightlining = ifelse(flag_straightline, "Straightliner", "Keine Straightliner")) |>
+dplyr::count(Straightlining) |>
+dplyr::mutate(Anteil = round(n / sum(n) * 100, 1))
+
+flextable::flextable(sl_tab) |>
+flextable::set_header_labels(
+Straightlining = "Kategorie",
+n = "Anzahl",
+Anteil = "Anteil (%)"
+) |>
+flextable::autofit()
+
 
 ```
+Auf Basis dieses Qualitätsstandards können ebenfalls keine problematischen Fälle in den erhobenen Daten identifiziert werden.
 
-```{r eval=F}
-
-#| label: qc-straightlining-plot
-
-p_sl <- surf_check |>
-  dplyr::mutate(Straightlining = ifelse(flag_straightline, "Straightliner", "Keine Straightliner")) |>
-  ggplot(aes(x = Straightlining)) +
-  geom_bar() +
-  labs(
-    title = "Straightlining in der Stichprobe",
-    y = "Anzahl Befragte",
-    x = ""
-  ) +
-  theme_minimal()
-
-ggsave(filename = file.path(PLOTS_DIR, "straightlining_distribution.png"),
-       plot = p_sl, width = 6, height = 4)
-
-p_sl
-
-```
-
-Gemäß der hier angewendenten Qualitätsstandards für die erhobenen Daten, können somit alle Befragten im Datensatz in die folgenden Analysen einbezogen werden.
+Weder auf Basis der Bearbeitungsdauer (Speeding) noch hinsichtlich konstanter Antwortmuster (Straightlining) können somit systematisch problematische Fälle identifiziert werden. Die Verteilungen der Bearbeitungszeiten sowie die batterie-spezifischen Straightlining-Indikatoren zeigten keine auffälligen Muster, sodass alle Fälle in die weitere Analyse einbezogen wurden.
 
 # Deskriptive Analyse: SURF Convenience Survey
 
