@@ -876,7 +876,7 @@ daten_analysis <- daten |>
 Der erste Analyseblock dient der Beschreibung der Stichprobe anhand der Ausstattung der Haushalte mit steuerbaren Geräten. Die Geräteausstattung ist sowohl ein zentrales inhaltliches Merkmal der Befragung als auch eine wichtige Grundlage für die Interpretation nachfolgender Ergebnisse, da sie maßgeblich die potenziellen Nutzungsmöglichkeiten der SURF-Plattform bestimmt.
 
 ```{r}
-#| label: block01-devices-overview
+#| label: block01-devices-overview-table
 #| warning: false
 #| message: false
 
@@ -959,40 +959,11 @@ knitr::kable(
   caption = "Geräteausstattung der Stichprobe: Besitz und geplante Anschaffung steuerbarer Geräte."
 )
 
-# 6) Plot (100%-Stacked), SURF-Style, Logo, Export
-plot_df <- device_table |>
-  dplyr::mutate(Anteil_prop = Anteil / 100)
-
-p_b01 <- ggplot2::ggplot(
-  plot_df,
-  ggplot2::aes(y = device_label, x = Anteil_prop, fill = status)
-) +
-  ggplot2::geom_col(width = 0.75, colour = "white", linewidth = 0.2) +
-  ggplot2::scale_x_continuous(labels = scales::percent_format(accuracy = 1)) +
-  ggplot2::labs(
-    title = "Geräteausstattung der Stichprobe",
-    subtitle = "Besitz und geplante Anschaffung steuerbarer Geräte (Anteile je Gerät)",
-    x = "Anteil der Befragten",
-    y = NULL,
-    fill = NULL
-  ) +
-  theme_surf(base_size = 12) +
-  ggplot2::theme(
-    legend.position = "bottom",
-    legend.box = "vertical",
-    legend.text = ggplot2::element_text(colour = SURF_TEXT)
-  )
-
-p_b01_branded <- brand_plot_surf(p_b01)
-
-save_plot(plot = p_b01_branded, block = 1, sub = 1, slug = "devices_overview")
-
-p_b01_branded
 
 ```
 
 ```{r}
-#| label: plot-01-01-devices-overview
+#| label: plot-01-devices-overview-plot
 #| warning: false
 #| message: false
 
@@ -1032,56 +1003,6 @@ p_b01_branded
 
 
 ```
-
-```{r}
-
-p_b01_branded <- brand_plot_surf(p_b01)
-save_plot(plot = p_b01_branded, block = 1, sub = 1, slug = "devices_overview")
-p_b01_branded
-
-```
-
-```{r}
-#| label: plot-01-02-devices-overview
-#| warning: false
-#| message: false
-
-# plot_df muss enthalten: device_label, status, Anteil_prop
-# (aus deinem Block-01-Übersichts-Code)
-
-p_b01 <- ggplot2::ggplot(
-  plot_df,
-  ggplot2::aes(y = device_label, x = Anteil_prop, fill = status)
-) +
-  ggplot2::geom_col(width = 0.75, colour = "white", linewidth = 0.2) +
-  ggplot2::scale_x_continuous(labels = scales::percent_format(accuracy = 1)) +
-  ggplot2::scale_fill_manual(
-    values = c(
-      "Besitze ich"                                   = SURF_PURPLE,
-      "Plane ich in den nächsten 12 Monaten"          = SURF_PINK,
-      "Plane ich langfristig"                         = SURF_MAG,
-      "Besitze ich nicht und plane keine Anschaffung" = SURF_GRID,
-      "Keine Angabe"                                  = SURF_GRID
-    )
-  ) +
-  ggplot2::labs(
-    title = "Geräteausstattung der Stichprobe",
-    subtitle = "Besitz und geplante Anschaffung steuerbarer Geräte (Anteile je Gerät)",
-    x = "Anteil der Befragten",
-    y = NULL,
-    fill = NULL
-  ) +
-  theme_surf(base_size = 12) +
-  surf_legend_bottom(nrow = 2, text_size = 9) +
-  add_stack_labels(size = 3.0, acc = 0, min_pct = 0.06, colour = "white")
-
-p_b01_branded <- brand_plot_surf(p_b01)
-
-save_plot(plot = p_b01_branded, block = 1, sub = 1, slug = "devices_overview")
-p_b01_branded
-
-```
-
 
 ### 011 SVE Gruppen
 
@@ -1126,7 +1047,7 @@ device_group_flags <- devices_long_hh |>
 device_groups <- device_group_flags |>
   dplyr::mutate(
     device_group = dplyr::case_when(
-      has_device ~ "Aktive Flexibilitätsnutzer",
+      has_device ~ "Gerätebesitzer",
       !has_device & plans_shortterm ~ "Kurzfristige Adopter",
       !has_device & !plans_shortterm & plans_longterm ~ "Langfristig Interessierte",
       TRUE ~ "Nicht-Adopter"
@@ -1134,7 +1055,7 @@ device_groups <- device_group_flags |>
     device_group = factor(
       device_group,
       levels = c(
-        "Aktive Flexibilitätsnutzer",
+        "Gerätebesitzer",
         "Kurzfristige Adopter",
         "Langfristig Interessierte",
         "Nicht-Adopter"
