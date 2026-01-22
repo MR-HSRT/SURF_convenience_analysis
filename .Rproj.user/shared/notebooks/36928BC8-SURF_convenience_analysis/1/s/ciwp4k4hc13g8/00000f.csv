@@ -1,0 +1,6 @@
+"0","#| label: qc-straightlining-by-battery-ids"
+"0",""
+"0","surf_check |>"
+"0","dplyr::select(id, dplyr::all_of(flag_cols), flag_straightline_any) |>"
+"0","dplyr::filter(flag_straightline_any) |>"
+"0","dplyr::arrange(id)"

@@ -1,0 +1,33 @@
+"0","#| label: plot-01-02-device-groups"
+"0","#| warning: false"
+"0","#| message: false"
+"0",""
+"0","device_group_plot <- daten_analysis |>"
+"0","  dplyr::count(device_group, name = ""Anzahl"") |>"
+"0","  dplyr::mutate(Anteil = Anzahl / sum(Anzahl))"
+"0",""
+"0","p_groups <- ggplot2::ggplot("
+"0","  device_group_plot,"
+"0","  ggplot2::aes(x = device_group, y = Anteil)"
+"0",") +"
+"0","  ggplot2::geom_col(fill = SURF_PURPLE, width = 0.65) +"
+"0","  ggplot2::scale_y_continuous(labels = scales::percent_format(accuracy = 1),"
+"0","                              expand = ggplot2::expansion(mult = c(0, 0.12))) +"
+"0","  ggplot2::labs("
+"0","    title = ""Gerätebesitz- und Anschaffungsgruppen in der Stichprobe"","
+"0","    subtitle = ""Haushaltsbezogene Einteilung auf Basis von Besitz und Anschaffungsintention"","
+"0","    x = NULL,"
+"0","    y = ""Anteil der Befragten"""
+"0","  ) +"
+"0","  theme_surf(base_size = 12) +"
+"0","  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 15, hjust = 1)) +"
+"0","  add_bar_labels_v(acc = 1, size = 3.2)"
+"0",""
+"0","p_groups_branded <- brand_plot_surf(p_groups)"
+"1","[1m[33mError[39m in `ggplot2::geom_text()`:[22m
+[1m[22m[33m![39m Problem while computing aesthetics.
+[36mℹ[39m Error occurred in the 2nd layer.
+[1mCaused by error:[22m
+[33m![39m Objekt 'y' nicht gefunden
+[90mRun `]8;;x-r-run:rlang::last_trace()rlang::last_trace()]8;;` to see where the error occurred.[39m
+"
