@@ -35,7 +35,7 @@ options(repos = c(CRAN = "https://cloud.r-project.org"))
 required_pkgs <- c(
   "here","readr","dplyr","tidyr","stringr","janitor","labelled",
   "psych","gtsummary","flextable","ggplot2","scales","broom","knitr",
-  "readxl"
+  "readxl", "webshot2"
 )
 
 # Fehlende Pakete ermitteln
@@ -302,18 +302,125 @@ save_plot <- function(plot, block, sub, slug,
   invisible(path)
 }
 
-# Mean and CI
-mean_ci <- function(x) {
+# Mean + SD + SE + 95%-CI + n
+mean_ci_n <- function(x) {
   x <- x[!is.na(x)]
   n <- length(x)
+
+  # Falls n < 2: CI nicht sinnvoll -> NA
   m <- mean(x)
-  se <- sd(x) / sqrt(n)
-  ci <- qt(0.975, df = n - 1) * se
+  s <- if (n >= 2) stats::sd(x) else NA_real_
+  se <- if (!is.na(s)) s / sqrt(n) else NA_real_
+  ci <- if (!is.na(se) && n >= 2) stats::qt(0.975, df = n - 1) * se else NA_real_
+
   tibble::tibble(
+    n = n,
     mean = m,
-    ymin = m - ci,
-    ymax = m + ci
+    sd = s,
+    se = se,
+    ymin = if (!is.na(ci)) m - ci else NA_real_,
+    ymax = if (!is.na(ci)) m + ci else NA_real_
   )
+}
+
+# ---- Flextable Theme (SURF Look) ----
+theme_ft_surf <- function(ft,
+                          font_size = 10,
+                          header_bg = "#F5F5F5",
+                          line_col = "#D9D9D9",
+                          line_w_header = 1,
+                          line_w_body = 0.7,
+                          padding = 4) {
+
+  if (!requireNamespace("officer", quietly = TRUE)) install.packages("officer")
+
+  ft |>
+    flextable::autofit() |>
+    flextable::fontsize(size = font_size, part = "all") |>
+    flextable::padding(padding = padding, part = "all") |>
+    flextable::bold(part = "header") |>
+    flextable::bg(bg = header_bg, part = "header") |>
+    flextable::border_remove() |>
+    flextable::hline_top(
+      border = officer::fp_border(color = line_col, width = line_w_header),
+      part = "all"
+    ) |>
+    flextable::hline_bottom(
+      border = officer::fp_border(color = line_col, width = line_w_header),
+      part = "all"
+    ) |>
+    flextable::hline(
+      border = officer::fp_border(color = line_col, width = line_w_body),
+      part = "body"
+    )
+}
+
+# ---- Convenience: make SURF flextable from data ----
+make_ft_surf <- function(data,
+                         caption = NULL,
+                         align_left_cols = NULL,
+                         align_right_cols = NULL,
+                         font_size = 10) {
+
+  ft <- flextable::flextable(data)
+
+  if (!is.null(align_left_cols)) {
+    ft <- flextable::align(ft, j = align_left_cols, align = "left", part = "all")
+  }
+  if (!is.null(align_right_cols)) {
+    ft <- flextable::align(ft, j = align_right_cols, align = "right", part = "all")
+  }
+
+  ft <- theme_ft_surf(ft, font_size = font_size)
+
+  if (!is.null(caption)) {
+    ft <- flextable::set_caption(ft, caption = caption)
+  }
+
+  ft
+}
+
+# ---- PNG Export (tight, PPT-friendly) ----
+export_flextable_png <- function(ft,
+                                 filename_base,
+                                 tables_dir = TABLES_DIR,
+                                 res = 300,
+                                 overwrite = TRUE) {
+
+  # flextable image export needs either "magick" or "ragg" (depending on setup).
+  # We try to install what is needed.
+  if (!requireNamespace("flextable", quietly = TRUE)) install.packages("flextable")
+  if (!requireNamespace("magick", quietly = TRUE)) {
+    # magick is best for tight cropping; if install fails, save_as_image may still work via other devices
+    try(install.packages("magick"), silent = TRUE)
+  }
+
+  dir.create(tables_dir, recursive = TRUE, showWarnings = FALSE)
+
+  png_file <- file.path(tables_dir, paste0(filename_base, ".png"))
+
+  if (!overwrite && file.exists(png_file)) {
+    stop("Export abgebrochen, da overwrite = FALSE und Datei bereits existiert: ", png_file)
+  }
+
+  # This usually creates a tightly-cropped image of the table
+  flextable::save_as_image(
+    x = ft,
+    path = png_file,
+    res = res
+  )
+
+  invisible(png_file)
+}
+
+
+force_rand_freq_order <- function(x) {
+  x <- as.character(x)
+  x <- stringr::str_trim(x)
+  x <- stringr::str_replace_all(x, "–", "-")      # En-Dash -> Minus
+  x <- stringr::str_replace_all(x, "\\s+", "")    # alle Leerzeichen raus (z.B. "3 - 5" -> "3-5")
+
+  factor(x, levels = c("3-5", "10-15", "20-30"))
 }
 
 ```
@@ -515,7 +622,6 @@ Diese Analyse verdeutlicht, dass eine Reihe von Fällen eine besonders hohe Bear
 Straightlining wurde als konstantes Antwortmuster über Itembatterien hinweg definiert. Für jede von vier zentralen Skalenbatterien wurde pro Fall die Standardabweichung der Antworten berechnet. Ein Fall wurde als Straightliner klassifiziert, wenn mindestens 60 % der Items einer Batterie beantwortet wurden und die Standardabweichung innerhalb dieser Batterie gleich Null war. Zusätzlich wurde ein Gesamtindikator gebildet, der Straightlining in mindestens einer Batterie abbildet.
 
 ```{r}
-
 #| label: qc-straightlining-batterywise
 #| message: false
 #| warning: false
@@ -871,7 +977,64 @@ daten_analysis <- daten |>
 
 ```
 
-## 01 SVE
+```{r}
+#| label: recode-missing-likert-after-step1
+#| include: false
+#| warning: false
+#| message: false
+
+# ------------------------------------------------------------
+# FINAL nach data cleaning (daten_analysis ist final):
+# (A) 98/99 -> NA
+# (B) Likert 1–5 -> 0–4 (idempotent)
+# ------------------------------------------------------------
+
+# A) Missing Codes 98/99 -> NA (nur in daten_analysis)
+daten_analysis <- daten_analysis |>
+  dplyr::mutate(
+    dplyr::across(
+      .cols = where(is.numeric),
+      .fns  = ~ dplyr::na_if(dplyr::na_if(.x, 98), 99)
+    )
+  )
+
+# B) Likert-Variablen identifizieren
+likert_regex <- c(
+  "^acc_(pre|post)$",
+  "^part_(pre|post)_(real|hypo)$",
+  "^flex_",
+  "^config_",
+  "^info_content",
+  "^info_form",
+  "^auto_trust",
+  "^info_trust"
+)
+
+likert_vars <- names(daten_analysis)[
+  stringr::str_detect(names(daten_analysis), paste(likert_regex, collapse = "|"))
+]
+
+# Idempotent recode:
+# - Nur dann recoden, wenn Werte > 4 vorkommen (typisch: 5 im 1–5-System)
+# - Bereits recodierte 0–4 bleiben unverändert
+daten_analysis <- daten_analysis |>
+  dplyr::mutate(
+    dplyr::across(
+      .cols = dplyr::all_of(likert_vars),
+      .fns  = ~ {
+        x <- suppressWarnings(as.numeric(.x))
+        if (any(x > 4, na.rm = TRUE)) {
+          dplyr::if_else(x %in% 1:5, x - 1, x)
+        } else {
+          x
+        }
+      }
+    )
+  )
+
+```
+
+## SVE
 
 Der erste Analyseblock dient der Beschreibung der Stichprobe anhand der Ausstattung der Haushalte mit steuerbaren Geräten. Die Geräteausstattung ist sowohl ein zentrales inhaltliches Merkmal der Befragung als auch eine wichtige Grundlage für die Interpretation nachfolgender Ergebnisse, da sie maßgeblich die potenziellen Nutzungsmöglichkeiten der SURF-Plattform bestimmt.
 
@@ -886,15 +1049,6 @@ Der erste Analyseblock dient der Beschreibung der Stichprobe anhand der Ausstatt
 # - ein Übersichtsplot für alle Geräte
 # - Export: outputs/plots/01_01_devices_overview.png
 # ============================================================
-
-# Save-Plot Engine (einfach, robust)
-save_plot <- function(plot, block, sub, slug,
-                      width = 8, height = 5, dpi = 300) {
-  filename <- sprintf("%02d_%02d_%s.png", block, sub, slug)
-  path <- file.path(PLOTS_DIR, filename)
-  ggplot2::ggsave(filename = path, plot = plot, width = width, height = height, dpi = dpi)
-  invisible(path)
-}
 
 # 1) Gerätevariablen: nur dev_-Inhalte (time ist bereits aus daten_analysis raus)
 device_vars <- names(daten_analysis)[stringr::str_detect(names(daten_analysis), "^dev_")]
@@ -959,7 +1113,6 @@ knitr::kable(
   caption = "Geräteausstattung der Stichprobe: Besitz und geplante Anschaffung steuerbarer Geräte."
 )
 
-
 ```
 
 ```{r}
@@ -969,6 +1122,13 @@ knitr::kable(
 
 # plot_df muss enthalten: device_label, status, Anteil_prop
 # (aus deinem Block-01-Übersichts-Code)
+plot_df <- devices_long |>
+  dplyr::count(device_label, status, name = "Anzahl") |>
+  dplyr::group_by(device_label) |>
+  dplyr::mutate(
+    Anteil_prop = Anzahl / sum(Anzahl)
+  ) |>
+  dplyr::ungroup()
 
 p_b01 <- ggplot2::ggplot(
   plot_df,
@@ -1004,7 +1164,7 @@ p_b01_branded
 
 ```
 
-### 011 SVE Gruppen
+### SVE Gruppen
 
 Auf Basis der Geräteausstattung und der angegebenen Anschaffungsabsichten lassen sich vier Haushaltsgruppen unterscheiden. Ein Teil der Stichprobe verfügt bereits über mindestens ein steuerbares Gerät und wird als aktive Flexibilitätsnutzer eingeordnet. Weitere Haushalte planen die Anschaffung entsprechender Geräte kurzfristig oder langfristig, während ein verbleibender Anteil weder Geräte besitzt noch Anschaffungsabsichten angibt. Diese Gruppierung bildet eine zentrale Grundlage für die Interpretation der nachfolgenden Analysen.
 
@@ -1120,29 +1280,119 @@ p_groups_branded
 
 ```
 
-## 02 Akzeptanz
+## Akzeptanz
 
-### 021 Akzeptanz zu Beginn
+### Akzeptanz zu Beginn
 
 ```{r}
-#| label: plot-02-01-acc-pre-groups
+#| label: table-02-01-acc-pre-groups
+#| warning: false
+#| message: false
+
+# ------------------------------------------------------------
+# Akzeptanz PRE – Tabelle (PNG only, PPT-tauglich)
+# ------------------------------------------------------------
+
+acc_pre_groups_table <- daten_analysis |>
+  dplyr::select(device_group, acc_pre) |>
+  dplyr::bind_rows(
+    daten_analysis |>
+      dplyr::transmute(device_group = "Gesamtstichprobe", acc_pre = acc_pre)
+  ) |>
+  dplyr::group_by(device_group) |>
+  dplyr::summarise(mean_ci_n(acc_pre), .groups = "drop") |>
+  dplyr::mutate(
+    device_group = factor(
+      device_group,
+      levels = c(
+        "Gesamtstichprobe",
+        "Gerätebesitzer",
+        "Kurzfristige Adopter",
+        "Langfristig Interessierte",
+        "Nicht-Adopter"
+      )
+    )
+  ) |>
+  dplyr::arrange(device_group) |>
+  dplyr::transmute(
+    Gruppe = as.character(device_group),
+    `n (gültig)` = n,
+    Mittelwert = round(mean, 2),
+    SD = round(sd, 2),
+    SE = round(se, 2),
+    `95%-KI (unten)` = round(ymin, 2),
+    `95%-KI (oben)`  = round(ymax, 2)
+  )
+
+ft_acc_pre <- make_ft_surf(
+  data = acc_pre_groups_table,
+  caption = "Akzeptanz der SURF-Plattform vor dem Szenario (Mittelwerte mit 95%-KI).",
+  align_left_cols  = "Gruppe",
+  align_right_cols = setdiff(names(acc_pre_groups_table), "Gruppe"),
+  font_size = 10
+)
+
+# Im Report anzeigen
+ft_acc_pre
+
+# PNG speichern (tight)
+export_flextable_png(
+  ft = ft_acc_pre,
+  filename_base = "02_01_acceptance_pre_groups_table",
+  tables_dir = TABLES_DIR,
+  res = 300
+)
+
+```
+
+```{r}
+#| label: plot-02-01-acc-pre-groups1
 #| warning: false
 #| message: false
 
 acc_pre_groups <- daten_analysis |>
   dplyr::bind_rows(daten_analysis |> dplyr::mutate(device_group = "Gesamtstichprobe")) |>
+  dplyr::mutate(
+    device_group = factor(
+      device_group,
+      levels = c(
+        "Gesamtstichprobe",
+        "Gerätebesitzer",
+        "Kurzfristige Adopter",
+        "Langfristig Interessierte",
+        "Nicht-Adopter"
+      )
+    )
+  ) |>
   dplyr::group_by(device_group) |>
-  dplyr::summarise(mean_ci(acc_pre), .groups = "drop")
+  dplyr::summarise(mean_ci_n(acc_pre), .groups = "drop") |>
+  dplyr::arrange(device_group)
 
 p_acc_pre_groups <- ggplot2::ggplot(acc_pre_groups, ggplot2::aes(x = device_group, y = mean)) +
+  # CI-Strich sicher zeichnen
+  ggplot2::geom_linerange(
+    ggplot2::aes(ymin = ymin, ymax = ymax),
+    colour = SURF_PURPLE,
+    linewidth = 0.6
+  ) +
+  # Endkappen
+  ggplot2::geom_errorbar(
+    ggplot2::aes(ymin = ymin, ymax = ymax),
+    width = 0.15,
+    colour = SURF_PURPLE,
+    linewidth = 0.6
+  ) +
   ggplot2::geom_point(colour = SURF_PURPLE, size = 3) +
-  ggplot2::geom_errorbar(ggplot2::aes(ymin = ymin, ymax = ymax),
-                         width = 0.15, colour = SURF_PURPLE) +
-  add_point_labels(digits = 2, size = 3.1, vjust = -1) +
+  ggplot2::scale_y_continuous(
+    limits = c(0, 4),
+    breaks = 0:4,
+    oob = scales::squish
+  ) +
   ggplot2::labs(
     title = "Akzeptanz der SURF-Plattform (vor Szenario)",
     subtitle = "Durchschnittswerte (mit 95%-Konfidenzintervallen) gesamt und nach Gerätebesitzgruppen",
-    x = NULL, y = "Akzeptanz (Mittelwert)"
+    x = NULL,
+    y = "Akzeptanz (Mittelwert)"
   ) +
   theme_surf(base_size = 12) +
   ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 15, hjust = 1))
@@ -1159,29 +1409,72 @@ p_acc_pre_groups_branded
 #| message: false
 
 acc_pre_exp <- daten_analysis |>
+  dplyr::filter(device_group != "Gesamtstichprobe") |>
+  dplyr::mutate(
+    device_group = factor(
+      device_group,
+      levels = c(
+        "Gerätebesitzer",
+        "Kurzfristige Adopter",
+        "Langfristig Interessierte",
+        "Nicht-Adopter"
+      )
+    ),
+    rand_freq = force_rand_freq_order(rand_freq)
+  ) |>
   dplyr::group_by(device_group, rand_freq) |>
-  dplyr::summarise(mean_ci(acc_pre), .groups = "drop")
+  dplyr::summarise(mean_ci_n(acc_pre), .groups = "drop") |>
+  dplyr::arrange(device_group, rand_freq)
 
-p_acc_pre_exp <- ggplot2::ggplot(acc_pre_exp, ggplot2::aes(x = rand_freq, y = mean)) +
+p_acc_pre_exp <- ggplot2::ggplot(
+  acc_pre_exp,
+  ggplot2::aes(x = rand_freq, y = mean)
+) +
   ggplot2::geom_point(colour = SURF_PURPLE, size = 2.8) +
-  ggplot2::geom_errorbar(ggplot2::aes(ymin = ymin, ymax = ymax),
-                         width = 0.2, colour = SURF_PURPLE) +
-  add_point_labels(digits = 2, size = 2.9, vjust = -1) +
+  ggplot2::geom_linerange(
+    ggplot2::aes(ymin = ymin, ymax = ymax),
+    colour = SURF_PURPLE,
+    linewidth = 0.6
+  ) +
+  ggplot2::geom_errorbar(
+    ggplot2::aes(ymin = ymin, ymax = ymax),
+    width = 0.20,
+    colour = SURF_PURPLE,
+    linewidth = 0.6
+  ) +
+  add_point_labels_left(x_nudge = -0.15, digits = 2, size = 2.9) +
   ggplot2::facet_wrap(~ device_group, nrow = 2) +
+  ggplot2::scale_y_continuous(
+    limits = c(0, 4),
+    breaks = 0:4,
+    oob = scales::squish
+  ) +
+  ggplot2::scale_x_discrete(
+    drop = FALSE,
+    expand = ggplot2::expansion(mult = c(0.16, 0.06))
+  ) +
   ggplot2::labs(
     title = "Akzeptanz (vor Szenario) nach Experimentalbedingung und Gerätebesitzgruppen",
     subtitle = "Mittelwerte mit 95%-Konfidenzintervallen",
-    x = "Experimentalbedingung (Häufigkeit der Steuerung)", y = "Akzeptanz (Mittelwert)"
+    x = "Experimentalbedingung (Häufigkeit der Steuerung)",
+    y = "Akzeptanz (Mittelwert, 0–4)"
   ) +
   theme_surf(base_size = 11)
 
 p_acc_pre_exp_branded <- brand_plot_surf(p_acc_pre_exp)
-save_plot(p_acc_pre_exp_branded, 2, 2, "acceptance_pre_experiment_groups")
+
+save_plot(
+  plot  = p_acc_pre_exp_branded,
+  block = 2,
+  sub   = 2,
+  slug  = "acceptance_pre_experiment_groups"
+)
+
 p_acc_pre_exp_branded
 
 ```
 
-### 022 Akzeptanz am Ende
+### Akzeptanz am Ende
 
 ```{r}
 #| label: plot-02-02-acc-post-groups
@@ -1190,24 +1483,46 @@ p_acc_pre_exp_branded
 
 acc_post_groups <- daten_analysis |>
   dplyr::bind_rows(daten_analysis |> dplyr::mutate(device_group = "Gesamtstichprobe")) |>
+  dplyr::mutate(
+    device_group = factor(
+      device_group,
+      levels = c(
+        "Gesamtstichprobe",
+        "Gerätebesitzer",
+        "Kurzfristige Adopter",
+        "Langfristig Interessierte",
+        "Nicht-Adopter"
+      )
+    )
+  ) |>
   dplyr::group_by(device_group) |>
-  dplyr::summarise(mean_ci(acc_post), .groups = "drop")
+  dplyr::summarise(mean_ci_n(acc_post), .groups = "drop") |>
+  dplyr::arrange(device_group)
 
-p_acc_post_groups <- ggplot2::ggplot(acc_post_groups, ggplot2::aes(x = device_group, y = mean)) +
+p_acc_post_groups <- ggplot2::ggplot(
+  acc_post_groups,
+  ggplot2::aes(x = device_group, y = mean)
+) +
   ggplot2::geom_point(colour = SURF_PURPLE, size = 3) +
-  ggplot2::geom_errorbar(ggplot2::aes(ymin = ymin, ymax = ymax),
-                         width = 0.15, colour = SURF_PURPLE) +
+  ggplot2::geom_errorbar(
+    ggplot2::aes(ymin = ymin, ymax = ymax),
+    width = 0.15,
+    colour = SURF_PURPLE
+  ) +
   add_point_labels(digits = 2, size = 3.1, vjust = -1) +
+  ggplot2::scale_x_discrete(drop = FALSE) +
+  ggplot2::scale_y_continuous(limits = c(0, 4), breaks = 0:4) +
   ggplot2::labs(
     title = "Akzeptanz der SURF-Plattform (nach Szenario)",
     subtitle = "Durchschnittswerte (mit 95%-Konfidenzintervallen) gesamt und nach Gerätebesitzgruppen",
-    x = NULL, y = "Akzeptanz (Mittelwert)"
+    x = NULL,
+    y = "Akzeptanz (Mittelwert, 0–4)"
   ) +
   theme_surf(base_size = 12) +
   ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 15, hjust = 1))
 
 p_acc_post_groups_branded <- brand_plot_surf(p_acc_post_groups)
-save_plot(p_acc_post_groups_branded, 2, 1, "acceptance_post_groups")
+save_plot(p_acc_post_groups_branded, 2, 2, "acceptance_post_groups")
 p_acc_post_groups_branded
 
 ```
@@ -1218,29 +1533,52 @@ p_acc_post_groups_branded
 #| message: false
 
 acc_post_exp <- daten_analysis |>
+  dplyr::mutate(
+    device_group = factor(
+      device_group,
+      levels = c(
+        "Gerätebesitzer",
+        "Kurzfristige Adopter",
+        "Langfristig Interessierte",
+        "Nicht-Adopter"
+      )
+    ),
+    rand_freq = force_rand_freq_order(rand_freq)
+  ) |>
+  dplyr::filter(!is.na(device_group), !is.na(rand_freq)) |>
   dplyr::group_by(device_group, rand_freq) |>
-  dplyr::summarise(mean_ci(acc_post), .groups = "drop")
+  dplyr::summarise(mean_ci_n(acc_post), .groups = "drop") |>
+  dplyr::arrange(device_group, rand_freq)
 
-p_acc_post_exp <- ggplot2::ggplot(acc_post_exp, ggplot2::aes(x = rand_freq, y = mean)) +
+p_acc_post_exp <- ggplot2::ggplot(
+  acc_post_exp,
+  ggplot2::aes(x = rand_freq, y = mean, group = 1)
+) +
   ggplot2::geom_point(colour = SURF_PURPLE, size = 2.8) +
-  ggplot2::geom_errorbar(ggplot2::aes(ymin = ymin, ymax = ymax),
-                         width = 0.2, colour = SURF_PURPLE) +
+  ggplot2::geom_errorbar(
+    ggplot2::aes(ymin = ymin, ymax = ymax),
+    width = 0.2,
+    colour = SURF_PURPLE
+  ) +
   add_point_labels(digits = 2, size = 2.9, vjust = -1) +
   ggplot2::facet_wrap(~ device_group, nrow = 2) +
+  ggplot2::scale_x_discrete(drop = FALSE) +
+  ggplot2::scale_y_continuous(limits = c(0, 4), breaks = 0:4) +
   ggplot2::labs(
     title = "Akzeptanz (nach Szenario) nach Experimentalbedingung und Gerätebesitzgruppen",
     subtitle = "Mittelwerte mit 95%-Konfidenzintervallen",
-    x = "Experimentalbedingung (Häufigkeit der Steuerung)", y = "Akzeptanz (Mittelwert)"
+    x = "Experimentalbedingung (Häufigkeit der Steuerung)",
+    y = "Akzeptanz (Mittelwert, 0–4)"
   ) +
   theme_surf(base_size = 11)
 
 p_acc_post_exp_branded <- brand_plot_surf(p_acc_post_exp)
-save_plot(p_acc_post_exp_branded, 2, 2, "acceptance_post_experiment_groups")
+save_plot(p_acc_post_exp_branded, 2, 3, "acceptance_post_experiment_groups")
 p_acc_post_exp_branded
 
 ```
 
-### 023 Akzeptanz Differenz Beginn-Ende
+### Akzeptanz Differenz Beginn-Ende
 
 ```{r}
 #| label: acc-difference-create
@@ -1262,7 +1600,7 @@ daten_analysis <- daten_analysis |>
 acc_diff_groups <- daten_analysis |>
   dplyr::bind_rows(daten_analysis |> dplyr::mutate(device_group = "Gesamtstichprobe")) |>
   dplyr::group_by(device_group) |>
-  dplyr::summarise(mean_ci(acc_diff), .groups = "drop")
+  dplyr::summarise(mean_ci_n(acc_diff), .groups = "drop")
 
 p_acc_diff_groups <- ggplot2::ggplot(acc_diff_groups, ggplot2::aes(x = device_group, y = mean)) +
   ggplot2::geom_point(colour = SURF_PURPLE, size = 3) +
@@ -1290,7 +1628,7 @@ p_acc_diff_groups_branded
 
 acc_diff_exp <- daten_analysis |>
   dplyr::group_by(device_group, rand_freq) |>
-  dplyr::summarise(mean_ci(acc_diff), .groups = "drop")
+  dplyr::summarise(mean_ci_n(acc_diff), .groups = "drop")
 
 p_acc_diff_exp <- ggplot2::ggplot(acc_diff_exp, ggplot2::aes(x = rand_freq, y = mean)) +
   ggplot2::geom_point(colour = SURF_PURPLE, size = 2.8) +
@@ -1311,7 +1649,7 @@ p_acc_diff_exp_branded
 
 ```
 
-## 03 Partizipationsintention (PI)
+## Partizipationsintention (PI)
 
 ```{r}
 #| label: part-owner-group-create
@@ -1320,21 +1658,34 @@ p_acc_diff_exp_branded
 
 daten_analysis <- daten_analysis |>
   dplyr::mutate(
-    owner_group = dplyr::if_else(
-      device_group == "Aktive Flexibilitätsnutzer",
-      "Gerätebesitzer",
-      "Nicht-Besitzer"
+    # Besitzstatus: nur echte Gerätebesitzer gelten als "Besitzer"
+    owner_group = dplyr::case_when(
+      device_group == "Gerätebesitzer" ~ "Gerätebesitzer",
+      device_group %in% c(
+        "Kurzfristige Adopter",
+        "Langfristig Interessierte",
+        "Nicht-Adopter"
+      ) ~ "Nicht-Besitzer",
+      TRUE ~ NA_character_
     ),
+    
+    # explizite Faktor-Reihenfolge (wichtig für pivot_wider & Plots)
     owner_group = factor(
       owner_group,
       levels = c("Gerätebesitzer", "Nicht-Besitzer")
     ),
-    part_diff = part_post_real - part_pre_real
+    
+    # Differenz der Partizipationsintention (Post – Pre)
+    part_diff = dplyr::if_else(
+      !is.na(part_post_real) & !is.na(part_pre_real),
+      part_post_real - part_pre_real,
+      NA_real_
+    )
   )
 
 ```
 
-### 031 PI zu Beginn
+### PI zu Beginn
 
 ```{r}
 #| label: plot-03-01-part-pre-groups
@@ -1346,7 +1697,7 @@ part_pre_groups <- daten_analysis |>
     daten_analysis |> dplyr::mutate(owner_group = "Gesamtstichprobe")
   ) |>
   dplyr::group_by(owner_group) |>
-  dplyr::summarise(mean_ci(part_pre_real), .groups = "drop")
+  dplyr::summarise(mean_ci_n(part_pre_real), .groups = "drop")
 
 p_part_pre_groups <- ggplot2::ggplot(
   part_pre_groups,
@@ -1386,7 +1737,7 @@ p_part_pre_groups_branded
 
 part_pre_exp <- daten_analysis |>
   dplyr::group_by(owner_group, rand_freq) |>
-  dplyr::summarise(mean_ci(part_pre_real), .groups = "drop")
+  dplyr::summarise(mean_ci_n(part_pre_real), .groups = "drop")
 
 p_part_pre_exp <- ggplot2::ggplot(
   part_pre_exp,
@@ -1420,7 +1771,7 @@ p_part_pre_exp_branded
 
 ```
 
-### 032 PI am Ende
+### PI am Ende
 
 ```{r}
 #| label: plot-03-03-part-post-groups
@@ -1432,7 +1783,7 @@ part_post_groups <- daten_analysis |>
     daten_analysis |> dplyr::mutate(owner_group = "Gesamtstichprobe")
   ) |>
   dplyr::group_by(owner_group) |>
-  dplyr::summarise(mean_ci(part_post_real), .groups = "drop")
+  dplyr::summarise(mean_ci_n(part_post_real), .groups = "drop")
 
 p_part_post_groups <- ggplot2::ggplot(
   part_post_groups,
@@ -1472,7 +1823,7 @@ p_part_post_groups_branded
 
 part_post_exp <- daten_analysis |>
   dplyr::group_by(owner_group, rand_freq) |>
-  dplyr::summarise(mean_ci(part_post_real), .groups = "drop")
+  dplyr::summarise(mean_ci_n(part_post_real), .groups = "drop")
 
 p_part_post_exp <- ggplot2::ggplot(
   part_post_exp,
@@ -1506,7 +1857,7 @@ p_part_post_exp_branded
 
 ```
 
-### 033 PI Differenz Beginn-Ende
+### PI Differenz Beginn-Ende
 
 ```{r}
 #| label: plot-03-05-part-diff-groups
@@ -1518,7 +1869,7 @@ part_diff_groups <- daten_analysis |>
     daten_analysis |> dplyr::mutate(owner_group = "Gesamtstichprobe")
   ) |>
   dplyr::group_by(owner_group) |>
-  dplyr::summarise(mean_ci(part_diff), .groups = "drop")
+  dplyr::summarise(mean_ci_n(part_diff), .groups = "drop")
 
 p_part_diff_groups <- ggplot2::ggplot(
   part_diff_groups,
@@ -1559,7 +1910,7 @@ p_part_diff_groups_branded
 
 part_diff_exp <- daten_analysis |>
   dplyr::group_by(owner_group, rand_freq) |>
-  dplyr::summarise(mean_ci(part_diff), .groups = "drop")
+  dplyr::summarise(mean_ci_n(part_diff), .groups = "drop")
 
 p_part_diff_exp <- ggplot2::ggplot(
   part_diff_exp,
