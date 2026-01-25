@@ -730,6 +730,10 @@ Auf Basis dieses Qualitätsstandards können ebenfalls keine problematischen Fä
 
 Weder auf Basis der Bearbeitungsdauer (Speeding) noch hinsichtlich konstanter Antwortmuster (Straightlining) können somit systematisch problematische Fälle identifiziert werden. Die Verteilungen der Bearbeitungszeiten sowie die batterie-spezifischen Straightlining-Indikatoren zeigten keine auffälligen Muster, sodass alle Fälle in die weitere Analyse einbezogen wurden.
 
+# Deskriptive Analyse: Analysenotizen
+
+- Bei hinreichender Samplegröße: Weitere Differenzierung der Besitz- und Anschaffungsgruppen nach Geräten in Besitz/intendierter Geräteanschaffung: [Forschungsfrage:] Welche Formen des Gerätebesitzes sind besonders sensitiv im Hinblick auf Akzeptanz, Partizipation etc?
+
 # Deskriptive Analyse: SURF Convenience Survey
 
 Im Folgenden wird die SURF-Umfrage anhand einer deskriptiven Analyse ausgewertet. Ziel ist es, die zentralen Merkmale der Stichprobe sowie die Verteilungen der inhaltlichen Variablen systematisch darzustellen. Die Analyse erfolgt entlang der in Tabelle X dargestellten Inhaltsblöcke und orientiert sich an der Struktur des Fragebogens.
@@ -1346,7 +1350,7 @@ export_flextable_png(
 ```
 
 ```{r}
-#| label: plot-02-01-acc-pre-groups1
+#| label: plot-02-01-acc-pre-groups
 #| warning: false
 #| message: false
 
@@ -1434,84 +1438,6 @@ acc_pre_exp <- daten_analysis |>
   ) |>
   dplyr::group_by(device_group, rand_freq) |>
   dplyr::summarise(mean_ci_n(acc_pre), .groups = "drop") |>
-  dplyr::mutate(
-    label   = sprintf("%.2f", mean),
-    # knapp über dem oberen CI-Ende, aber mit Deckel
-    y_label = pmin(ymax + 0.10, 4.28)
-  ) |>
-  dplyr::arrange(device_group, rand_freq)
-
-p_acc_pre_exp <- ggplot2::ggplot(
-  acc_pre_exp,
-  ggplot2::aes(x = rand_freq, y = mean)
-) +
-  ggplot2::geom_linerange(
-    ggplot2::aes(ymin = ymin, ymax = ymax),
-    colour = SURF_PURPLE,
-    linewidth = 0.6
-  ) +
-  ggplot2::geom_errorbar(
-    ggplot2::aes(ymin = ymin, ymax = ymax),
-    width = 0.2,
-    colour = SURF_PURPLE
-  ) +
-  ggplot2::geom_point(
-    colour = SURF_PURPLE,
-    size = 2.8
-  ) +
-  ggplot2::geom_text(
-    ggplot2::aes(y = y_label, label = label),
-    colour = SURF_TEXT,
-    size = 3.1,
-    vjust = 0
-  ) +
-  ggplot2::facet_wrap(~ device_group, nrow = 2) +
-  ggplot2::scale_y_continuous(
-    breaks = 0:4,
-    labels = 0:4
-  ) +
-  # WICHTIG: ylim via coord_cartesian + clip off (gegen Abschneiden)
-  ggplot2::coord_cartesian(ylim = c(0, 4.35), clip = "off") +
-  ggplot2::labs(
-    title = "Akzeptanz (vor Szenario) nach Experimentalbedingung und Gerätebesitzgruppen",
-    subtitle = "Mittelwerte mit 95%-Konfidenzintervallen",
-    x = "Experimentalbedingung (Häufigkeit der Steuerung)",
-    y = "Akzeptanz (0–4)"
-  ) +
-  theme_surf(base_size = 11) +
-  ggplot2::theme(
-    # mehr Platz oberhalb, damit Text außerhalb des Panels auch sichtbar bleibt
-    plot.margin = ggplot2::margin(16, 12, 18, 12)
-  )
-
-p_acc_pre_exp_branded <- brand_plot_surf(p_acc_pre_exp)
-save_plot(p_acc_pre_exp_branded, 2, 2, "acceptance_pre_experiment_groups")
-p_acc_pre_exp_branded
-
-
-```
-
-```{r}
-#| label: plot-02-02-acc-pre-experiment
-#| warning: false
-#| message: false
-
-acc_pre_exp <- daten_analysis |>
-  dplyr::filter(device_group != "Gesamtstichprobe") |>
-  dplyr::mutate(
-    device_group = factor(
-      device_group,
-      levels = c(
-        "Gerätebesitzer",
-        "Kurzfristige Adopter",
-        "Langfristig Interessierte",
-        "Nicht-Adopter"
-      )
-    ),
-    rand_freq = force_rand_freq_order(rand_freq)
-  ) |>
-  dplyr::group_by(device_group, rand_freq) |>
-  dplyr::summarise(mean_ci_n(acc_pre), .groups = "drop") |>
   dplyr::mutate(label_y = ymax + 0.12)
 
 y_top_pre_exp <- max(c(acc_pre_exp$label_y, acc_pre_exp$ymax, 4), na.rm = TRUE) + 0.15
@@ -1547,8 +1473,6 @@ save_plot(p_acc_pre_exp_branded, 2, 2, "acceptance_pre_experiment_groups")
 p_acc_pre_exp_branded
 
 ```
-
-
 
 ### Akzeptanz am Ende
 
@@ -1696,54 +1620,134 @@ daten_analysis <- daten_analysis |>
 #| warning: false
 #| message: false
 
+# Sicherstellen: Diff existiert
+daten_analysis <- daten_analysis |>
+  dplyr::mutate(acc_diff = acc_post - acc_pre)
+
 acc_diff_groups <- daten_analysis |>
-  dplyr::bind_rows(daten_analysis |> dplyr::mutate(device_group = "Gesamtstichprobe")) |>
+  dplyr::mutate(
+    device_group = factor(
+      device_group,
+      levels = c(
+        "Gerätebesitzer",
+        "Kurzfristige Adopter",
+        "Langfristig Interessierte",
+        "Nicht-Adopter"
+      )
+    )
+  ) |>
+  dplyr::bind_rows(
+    daten_analysis |>
+      dplyr::mutate(device_group = "Gesamtstichprobe")
+  ) |>
+  dplyr::mutate(
+    device_group = factor(
+      device_group,
+      levels = c(
+        "Gesamtstichprobe",
+        "Gerätebesitzer",
+        "Kurzfristige Adopter",
+        "Langfristig Interessierte",
+        "Nicht-Adopter"
+      )
+    )
+  ) |>
   dplyr::group_by(device_group) |>
-  dplyr::summarise(mean_ci_n(acc_diff), .groups = "drop")
+  dplyr::summarise(mean_ci_n(acc_diff), .groups = "drop") |>
+  dplyr::mutate(label_y = ymax + 0.12)
+
+# Headroom: CI + Label niemals abschneiden (wie bei POST, nur symmetrisch um 0)
+y_top_diff_groups <- max(c(acc_diff_groups$label_y, acc_diff_groups$ymax), na.rm = TRUE) + 0.15
+y_bot_diff_groups <- min(c(acc_diff_groups$ymin), na.rm = TRUE) - 0.15
+y_abs_diff_groups <- max(abs(c(y_bot_diff_groups, y_top_diff_groups, -1, 1)), na.rm = TRUE)
 
 p_acc_diff_groups <- ggplot2::ggplot(acc_diff_groups, ggplot2::aes(x = device_group, y = mean)) +
+  ggplot2::geom_hline(yintercept = 0, colour = SURF_GRID, linewidth = 0.4) +
   ggplot2::geom_point(colour = SURF_PURPLE, size = 3) +
-  ggplot2::geom_errorbar(ggplot2::aes(ymin = ymin, ymax = ymax),
-                         width = 0.15, colour = SURF_PURPLE) +
-  add_point_labels(digits = 2, size = 3.1, vjust = -1) +
+  ggplot2::geom_errorbar(
+    ggplot2::aes(ymin = ymin, ymax = ymax),
+    width = 0.15,
+    colour = SURF_PURPLE
+  ) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = round(mean, 2)),
+    size = 3.1,
+    vjust = 0
+  ) +
   ggplot2::labs(
-    title = "Akzeptanz der SURF-Plattform (vor Szenario)",
-    subtitle = "Durchschnittswerte (mit 95%-Konfidenzintervallen) gesamt und nach Gerätebesitzgruppen",
-    x = NULL, y = "Akzeptanz (Mittelwert)"
+    title = "Veränderung der Akzeptanz durch das Szenario",
+    subtitle = "POST − PRE (Mittelwerte mit 95%-Konfidenzintervallen) gesamt und nach Gerätebesitzgruppen",
+    x = NULL,
+    y = "Δ Akzeptanz (POST − PRE)"
   ) +
   theme_surf(base_size = 12) +
-  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 15, hjust = 1))
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 15, hjust = 1)) +
+  ggplot2::coord_cartesian(ylim = c(-y_abs_diff_groups, y_abs_diff_groups), clip = "off")
 
 p_acc_diff_groups_branded <- brand_plot_surf(p_acc_diff_groups)
-save_plot(p_acc_diff_groups_branded, 2, 1, "acceptance_diff_groups")
+save_plot(p_acc_diff_groups_branded, 2, 3, "acceptance_diff_groups")
 p_acc_diff_groups_branded
+
 
 ```
 
 ```{r}
-#| label: plot-02-03-acc-diff-experiment
+#| label: plot-02-04-acc-diff-experiment
 #| warning: false
 #| message: false
 
+# Sicherstellen: Diff existiert
+daten_analysis <- daten_analysis |>
+  dplyr::mutate(acc_diff = acc_post - acc_pre)
+
 acc_diff_exp <- daten_analysis |>
+  dplyr::filter(device_group != "Gesamtstichprobe") |>
+  dplyr::mutate(
+    device_group = factor(
+      device_group,
+      levels = c(
+        "Gerätebesitzer",
+        "Kurzfristige Adopter",
+        "Langfristig Interessierte",
+        "Nicht-Adopter"
+      )
+    ),
+    rand_freq = force_rand_freq_order(rand_freq)
+  ) |>
   dplyr::group_by(device_group, rand_freq) |>
-  dplyr::summarise(mean_ci_n(acc_diff), .groups = "drop")
+  dplyr::summarise(mean_ci_n(acc_diff), .groups = "drop") |>
+  dplyr::mutate(label_y = ymax + 0.12)
+
+# Headroom: CI + Label niemals abschneiden (wie bei POST, nur symmetrisch um 0)
+y_top_diff_exp <- max(c(acc_diff_exp$label_y, acc_diff_exp$ymax), na.rm = TRUE) + 0.15
+y_bot_diff_exp <- min(c(acc_diff_exp$ymin), na.rm = TRUE) - 0.15
+y_abs_diff_exp <- max(abs(c(y_bot_diff_exp, y_top_diff_exp, -1, 1)), na.rm = TRUE)
 
 p_acc_diff_exp <- ggplot2::ggplot(acc_diff_exp, ggplot2::aes(x = rand_freq, y = mean)) +
+  ggplot2::geom_hline(yintercept = 0, colour = SURF_GRID, linewidth = 0.4) +
   ggplot2::geom_point(colour = SURF_PURPLE, size = 2.8) +
-  ggplot2::geom_errorbar(ggplot2::aes(ymin = ymin, ymax = ymax),
-                         width = 0.2, colour = SURF_PURPLE) +
-  add_point_labels(digits = 2, size = 2.9, vjust = -1) +
+  ggplot2::geom_errorbar(
+    ggplot2::aes(ymin = ymin, ymax = ymax),
+    width = 0.2,
+    colour = SURF_PURPLE
+  ) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = round(mean, 2)),
+    size = 2.9,
+    vjust = 0
+  ) +
   ggplot2::facet_wrap(~ device_group, nrow = 2) +
   ggplot2::labs(
-    title = "Akzeptanz (vor Szenario) nach Experimentalbedingung und Gerätebesitzgruppen",
-    subtitle = "Mittelwerte mit 95%-Konfidenzintervallen",
-    x = "Experimentalbedingung (Häufigkeit der Steuerung)", y = "Akzeptanz (Mittelwert)"
+    title = "Veränderung der Akzeptanz nach Experimentalbedingung und Gerätebesitzgruppen",
+    subtitle = "POST − PRE (Mittelwerte mit 95%-Konfidenzintervallen)",
+    x = "Experimentalbedingung (Häufigkeit der Steuerung)",
+    y = "Δ Akzeptanz (POST − PRE)"
   ) +
-  theme_surf(base_size = 11)
+  theme_surf(base_size = 11) +
+  ggplot2::coord_cartesian(ylim = c(-y_abs_diff_exp, y_abs_diff_exp), clip = "off")
 
 p_acc_diff_exp_branded <- brand_plot_surf(p_acc_diff_exp)
-save_plot(p_acc_diff_exp_branded, 2, 2, "acceptance_diff_experiment_groups")
+save_plot(p_acc_diff_exp_branded, 2, 4, "acceptance_diff_experiment_groups")
 p_acc_diff_exp_branded
 
 ```
@@ -1757,29 +1761,33 @@ p_acc_diff_exp_branded
 
 daten_analysis <- daten_analysis |>
   dplyr::mutate(
-    # Besitzstatus: nur echte Gerätebesitzer gelten als "Besitzer"
+    # Besitzstatus: Gerätebesitzer vs Nicht-Besitzer
     owner_group = dplyr::case_when(
       device_group == "Gerätebesitzer" ~ "Gerätebesitzer",
-      device_group %in% c(
-        "Kurzfristige Adopter",
-        "Langfristig Interessierte",
-        "Nicht-Adopter"
-      ) ~ "Nicht-Besitzer",
+      device_group %in% c("Kurzfristige Adopter","Langfristig Interessierte","Nicht-Adopter") ~ "Nicht-Besitzer",
       TRUE ~ NA_character_
     ),
-    
-    # explizite Faktor-Reihenfolge (wichtig für pivot_wider & Plots)
-    owner_group = factor(
-      owner_group,
-      levels = c("Gerätebesitzer", "Nicht-Besitzer")
+    owner_group = factor(owner_group, levels = c("Gerätebesitzer", "Nicht-Besitzer")),
+
+    # ------------------------------------------------------------
+    # WICHTIGER FIX:
+    # PI wurde 2x erhoben: real (Besitzer) und hypo (Nicht-Besitzer)
+    # => gemeinsame PRE/POST Variable bauen
+    # (achte darauf, dass die richtigen Spaltennamen existieren)
+    # ------------------------------------------------------------
+    part_pre = dplyr::case_when(
+      owner_group == "Gerätebesitzer" ~ part_pre_real,
+      owner_group == "Nicht-Besitzer" ~ part_pre_hypo,
+      TRUE ~ NA_real_
     ),
-    
-    # Differenz der Partizipationsintention (Post – Pre)
-    part_diff = dplyr::if_else(
-      !is.na(part_post_real) & !is.na(part_pre_real),
-      part_post_real - part_pre_real,
-      NA_real_
-    )
+    part_post = dplyr::case_when(
+      owner_group == "Gerätebesitzer" ~ part_post_real,
+      owner_group == "Nicht-Besitzer" ~ part_post_hypo,
+      TRUE ~ NA_real_
+    ),
+
+    # Differenz (POST – PRE) auf Basis der gemeinsamen Variable
+    part_diff = dplyr::if_else(!is.na(part_post) & !is.na(part_pre), part_post - part_pre, NA_real_)
   )
 
 ```
@@ -1792,11 +1800,20 @@ daten_analysis <- daten_analysis |>
 #| message: false
 
 part_pre_groups <- daten_analysis |>
+  dplyr::filter(!is.na(owner_group)) |>
   dplyr::bind_rows(
-    daten_analysis |> dplyr::mutate(owner_group = "Gesamtstichprobe")
+    daten_analysis |>
+      dplyr::filter(!is.na(owner_group)) |>
+      dplyr::mutate(owner_group = "Gesamtstichprobe")
+  ) |>
+  dplyr::mutate(
+    owner_group = factor(owner_group, levels = c("Gesamtstichprobe", "Gerätebesitzer", "Nicht-Besitzer"))
   ) |>
   dplyr::group_by(owner_group) |>
-  dplyr::summarise(mean_ci_n(part_pre_real), .groups = "drop")
+  dplyr::summarise(mean_ci_n(part_pre), .groups = "drop") |>
+  dplyr::mutate(label_y = ymax + 0.12)
+
+y_top_part_pre_groups <- max(c(part_pre_groups$label_y, part_pre_groups$ymax, 4), na.rm = TRUE) + 0.15
 
 p_part_pre_groups <- ggplot2::ggplot(
   part_pre_groups,
@@ -1808,21 +1825,29 @@ p_part_pre_groups <- ggplot2::ggplot(
     width = 0.15,
     colour = SURF_PURPLE
   ) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = round(mean, 2)),
+    size = 3.1,
+    vjust = 0
+  ) +
   ggplot2::labs(
     title = "Teilnahmebereitschaft vor dem Szenario",
-    subtitle = "Gesamtstichprobe und nach Gerätebesitz",
+    subtitle = "Gemeinsame PI-Skala (REAL bei Besitzern, HYPO bei Nicht-Besitzern) – Mittelwerte mit 95%-KI",
     x = NULL,
-    y = "Teilnahmeintention (Mittelwert)"
+    y = "Teilnahmeintention (0–4)"
   ) +
-  theme_surf(base_size = 12)
+  theme_surf(base_size = 12) +
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 15, hjust = 1)) +
+  ggplot2::scale_y_continuous(breaks = 0:4) +
+  ggplot2::coord_cartesian(ylim = c(0, y_top_part_pre_groups), clip = "off")
 
 p_part_pre_groups_branded <- brand_plot_surf(p_part_pre_groups)
 
 save_plot(
-  plot = p_part_pre_groups_branded,
+  plot  = p_part_pre_groups_branded,
   block = 3,
-  sub = 1,
-  slug = "participation_pre_owner"
+  sub   = 1,
+  slug  = "participation_pre_owner"
 )
 
 p_part_pre_groups_branded
@@ -1830,13 +1855,154 @@ p_part_pre_groups_branded
 ```
 
 ```{r}
+#| label: plot-03-13-part-pre-combined
+#| warning: false
+#| message: false
+
+combined_levels <- c(
+  "Gesamtstichprobe",
+  "Gerätebesitzer",
+  "Nicht-Besitzer (agg.)",
+  "Kurzfristige Adopter",
+  "Langfristig Interessierte",
+  "Nicht-Adopter"
+)
+
+part_pre_combined <- dplyr::bind_rows(
+  daten_analysis |> dplyr::mutate(group_combined = "Gesamtstichprobe"),
+  daten_analysis |> dplyr::filter(device_group == "Gerätebesitzer") |> dplyr::mutate(group_combined = "Gerätebesitzer"),
+  daten_analysis |> dplyr::filter(owner_group == "Nicht-Besitzer") |> dplyr::mutate(group_combined = "Nicht-Besitzer (agg.)"),
+  daten_analysis |>
+    dplyr::filter(device_group %in% c("Kurzfristige Adopter", "Langfristig Interessierte", "Nicht-Adopter")) |>
+    dplyr::mutate(group_combined = device_group)
+) |>
+  dplyr::mutate(group_combined = factor(group_combined, levels = combined_levels)) |>
+  dplyr::group_by(group_combined) |>
+  dplyr::summarise(mean_ci_n(part_pre), .groups = "drop") |>
+  dplyr::mutate(label_y = ymax + 0.12)
+
+# Headroom
+y_top_part_pre_combined <- max(
+  c(part_pre_combined$label_y, part_pre_combined$ymax, 4),
+  na.rm = TRUE
+) + 0.35
+
+# Gemeinsame (hohe) Box-Höhe: minimal näher an den oberen Rand
+annot_y_pre <- y_top_part_pre_combined + 0.3
+
+subtitle_pre <- paste(
+  "Partizipationsintention Real oder Hypothetisch",
+  "Nach Aggregat, Adoption, und Adoptionsintention",
+  sep = "\n"
+)
+
+p_part_pre_combined <- ggplot2::ggplot(
+  part_pre_combined,
+  ggplot2::aes(x = group_combined, y = mean)
+) +
+  # visuelle Trennung (deutlich)
+  ggplot2::geom_vline(
+    xintercept = 3.5,
+    colour = SURF_GRID,
+    linewidth = 1.1
+  ) +
+
+  # Linke Box (Aggregat / Besitz vs. Nicht-Besitz)
+  ggplot2::annotate(
+    "label",
+    x = 2.5,                     # exakt zwischen Kategorie 2 und 3
+    y = annot_y_pre,
+    label = "Besitz vs. Nicht-Besitz",
+    hjust = 0.5,
+    vjust = 1,
+    size = 3.0,
+    colour = SURF_TEXT,
+    fill = "white",
+    label.size = 0.35
+  ) +
+
+  # Rechte Box (Differenzierung Nicht-Besitz)
+  ggplot2::annotate(
+    "label",
+    x = 5.0,
+    y = annot_y_pre,
+    label = "Differenzierung Nicht-Besitz",
+    hjust = 0.5,
+    vjust = 1,
+    size = 3.0,
+    colour = SURF_TEXT,
+    fill = "white",
+    label.size = 0.35
+  ) +
+
+  ggplot2::geom_point(colour = SURF_PURPLE, size = 3) +
+  ggplot2::geom_errorbar(
+    ggplot2::aes(ymin = ymin, ymax = ymax),
+    width = 0.15,
+    colour = SURF_PURPLE
+  ) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = round(mean, 2)),
+    size = 3.1,
+    vjust = 0
+  ) +
+  ggplot2::labs(
+    title = "Teilnahmebereitschaft vor dem Szenario",
+    subtitle = subtitle_pre,
+    x = NULL,
+    y = "Teilnahmeintention (0–4)"
+  ) +
+  theme_surf(base_size = 12) +
+  ggplot2::theme(
+    axis.text.x = ggplot2::element_text(angle = 15, hjust = 1),
+
+    # mehr Abstand zwischen (Unter-)Titel und Panel
+    plot.title.position = "plot",
+    plot.subtitle = ggplot2::element_text(
+      margin = ggplot2::margin(b = 14)
+    ),
+
+    # mehr Luft oben + rechts (Logo + Labels)
+    plot.margin = ggplot2::margin(18, 30, 18, 12)
+  ) +
+  ggplot2::scale_x_discrete(drop = FALSE) +
+  ggplot2::scale_y_continuous(breaks = 0:4) +
+  ggplot2::coord_cartesian(
+    ylim = c(0, y_top_part_pre_combined),
+    clip = "off"
+  )
+
+p_part_pre_combined_branded <- brand_plot_surf(p_part_pre_combined)
+
+save_plot(
+  plot  = p_part_pre_combined_branded,
+  block = 3,
+  sub   = 13,
+  slug  = "participation_pre_combined"
+)
+
+p_part_pre_combined_branded
+
+```
+
+#### Nach Adoptionsstatus
+
+```{r}
 #| label: plot-03-02-part-pre-experiment
 #| warning: false
 #| message: false
 
 part_pre_exp <- daten_analysis |>
+  dplyr::filter(!is.na(owner_group)) |>
+  dplyr::mutate(
+    owner_group = factor(owner_group, levels = c("Gerätebesitzer", "Nicht-Besitzer")),
+    rand_freq   = force_rand_freq_order(rand_freq)
+  ) |>
   dplyr::group_by(owner_group, rand_freq) |>
-  dplyr::summarise(mean_ci_n(part_pre_real), .groups = "drop")
+  dplyr::summarise(mean_ci_n(part_pre), .groups = "drop") |>
+  dplyr::mutate(label_y = ymax + 0.12)
+
+y_top_part_pre_exp <- max(c(part_pre_exp$label_y, part_pre_exp$ymax, 4), na.rm = TRUE) + 0.15
 
 p_part_pre_exp <- ggplot2::ggplot(
   part_pre_exp,
@@ -1848,25 +2014,98 @@ p_part_pre_exp <- ggplot2::ggplot(
     width = 0.2,
     colour = SURF_PURPLE
   ) +
-  ggplot2::facet_wrap(~ owner_group) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = round(mean, 2)),
+    size = 2.9,
+    vjust = 0
+  ) +
+  ggplot2::facet_wrap(~ owner_group, nrow = 1) +
   ggplot2::labs(
     title = "Teilnahmebereitschaft vor dem Szenario nach Experimentalbedingung",
-    subtitle = "Mittelwerte mit 95%-Konfidenzintervallen",
+    subtitle = "Gemeinsame PI-Skala (REAL bei Besitzern, HYPO bei Nicht-Besitzern) – Mittelwerte mit 95%-KI",
     x = "Experimentalbedingung (Häufigkeit der Steuerung)",
-    y = "Teilnahmeintention (Mittelwert)"
+    y = "Teilnahmeintention (0–4)"
   ) +
-  theme_surf(base_size = 11)
+  theme_surf(base_size = 11) +
+  ggplot2::scale_y_continuous(breaks = 0:4) +
+  ggplot2::coord_cartesian(ylim = c(0, y_top_part_pre_exp), clip = "off")
 
 p_part_pre_exp_branded <- brand_plot_surf(p_part_pre_exp)
 
 save_plot(
-  plot = p_part_pre_exp_branded,
+  plot  = p_part_pre_exp_branded,
   block = 3,
-  sub = 2,
-  slug = "participation_pre_experiment_owner"
+  sub   = 2,
+  slug  = "participation_pre_experiment_owner"
 )
 
 p_part_pre_exp_branded
+
+```
+
+#### Nach Adoptionsstatus und -intention
+
+```{r}
+#| label: plot-03-08-part-pre-devicegroups-experiment
+#| warning: false
+#| message: false
+
+part_pre_devicegroups_exp <- daten_analysis |>
+  dplyr::filter(device_group != "Gesamtstichprobe") |>
+  dplyr::mutate(
+    device_group = factor(
+      device_group,
+      levels = c(
+        "Gerätebesitzer",
+        "Kurzfristige Adopter",
+        "Langfristig Interessierte",
+        "Nicht-Adopter"
+      )
+    ),
+    rand_freq = force_rand_freq_order(rand_freq)
+  ) |>
+  dplyr::group_by(device_group, rand_freq) |>
+  dplyr::summarise(mean_ci_n(part_pre), .groups = "drop") |>
+  dplyr::mutate(label_y = ymax + 0.12)
+
+y_top_part_pre_devicegroups_exp <- max(c(part_pre_devicegroups_exp$label_y, part_pre_devicegroups_exp$ymax, 4), na.rm = TRUE) + 0.15
+
+p_part_pre_devicegroups_exp <- ggplot2::ggplot(
+  part_pre_devicegroups_exp,
+  ggplot2::aes(x = rand_freq, y = mean)
+) +
+  ggplot2::geom_point(colour = SURF_PURPLE, size = 2.8) +
+  ggplot2::geom_errorbar(
+    ggplot2::aes(ymin = ymin, ymax = ymax),
+    width = 0.2,
+    colour = SURF_PURPLE
+  ) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = round(mean, 2)),
+    size = 2.9,
+    vjust = 0
+  ) +
+  ggplot2::facet_wrap(~ device_group, nrow = 2) +
+  ggplot2::labs(
+    title = "Teilnahmebereitschaft vor dem Szenario nach Experimentalbedingung",
+    subtitle = "Gemeinsame PI-Skala (REAL/HYPO) – Geräte-Untergruppen (Mittelwerte mit 95%-KI)",
+    x = "Experimentalbedingung (Häufigkeit der Steuerung)",
+    y = "Teilnahmeintention (0–4)"
+  ) +
+  theme_surf(base_size = 11) +
+  ggplot2::scale_y_continuous(breaks = 0:4) +
+  ggplot2::coord_cartesian(ylim = c(0, y_top_part_pre_devicegroups_exp), clip = "off")
+
+p_part_pre_devicegroups_exp_branded <- brand_plot_surf(p_part_pre_devicegroups_exp)
+
+save_plot(
+  plot  = p_part_pre_devicegroups_exp_branded,
+  block = 3,
+  sub   = 8,
+  slug  = "participation_pre_devicegroups_experiment"
+)
+
+p_part_pre_devicegroups_exp_branded
 
 ```
 
@@ -1878,11 +2117,20 @@ p_part_pre_exp_branded
 #| message: false
 
 part_post_groups <- daten_analysis |>
+  dplyr::filter(!is.na(owner_group)) |>
   dplyr::bind_rows(
-    daten_analysis |> dplyr::mutate(owner_group = "Gesamtstichprobe")
+    daten_analysis |>
+      dplyr::filter(!is.na(owner_group)) |>
+      dplyr::mutate(owner_group = "Gesamtstichprobe")
+  ) |>
+  dplyr::mutate(
+    owner_group = factor(owner_group, levels = c("Gesamtstichprobe", "Gerätebesitzer", "Nicht-Besitzer"))
   ) |>
   dplyr::group_by(owner_group) |>
-  dplyr::summarise(mean_ci_n(part_post_real), .groups = "drop")
+  dplyr::summarise(mean_ci_n(part_post), .groups = "drop") |>
+  dplyr::mutate(label_y = ymax + 0.12)
+
+y_top_part_post_groups <- max(c(part_post_groups$label_y, part_post_groups$ymax, 4), na.rm = TRUE) + 0.15
 
 p_part_post_groups <- ggplot2::ggplot(
   part_post_groups,
@@ -1894,21 +2142,29 @@ p_part_post_groups <- ggplot2::ggplot(
     width = 0.15,
     colour = SURF_PURPLE
   ) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = round(mean, 2)),
+    size = 3.1,
+    vjust = 0
+  ) +
   ggplot2::labs(
     title = "Teilnahmebereitschaft nach dem Szenario",
-    subtitle = "Gesamtstichprobe und nach Gerätebesitz",
+    subtitle = "Gemeinsame PI-Skala (REAL bei Besitzern, HYPO bei Nicht-Besitzern) – Mittelwerte mit 95%-KI",
     x = NULL,
-    y = "Teilnahmeintention (Mittelwert)"
+    y = "Teilnahmeintention (0–4)"
   ) +
-  theme_surf(base_size = 12)
+  theme_surf(base_size = 12) +
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 15, hjust = 1)) +
+  ggplot2::scale_y_continuous(breaks = 0:4) +
+  ggplot2::coord_cartesian(ylim = c(0, y_top_part_post_groups), clip = "off")
 
 p_part_post_groups_branded <- brand_plot_surf(p_part_post_groups)
 
 save_plot(
-  plot = p_part_post_groups_branded,
+  plot  = p_part_post_groups_branded,
   block = 3,
-  sub = 3,
-  slug = "participation_post_owner"
+  sub   = 3,
+  slug  = "participation_post_owner"
 )
 
 p_part_post_groups_branded
@@ -1916,13 +2172,232 @@ p_part_post_groups_branded
 ```
 
 ```{r}
+#| label: plot-03-09-part-post-devicegroups
+#| warning: false
+#| message: false
+
+part_post_devicegroups <- daten_analysis |>
+  dplyr::mutate(
+    device_group = factor(
+      device_group,
+      levels = c(
+        "Gerätebesitzer",
+        "Kurzfristige Adopter",
+        "Langfristig Interessierte",
+        "Nicht-Adopter"
+      )
+    )
+  ) |>
+  dplyr::bind_rows(
+    daten_analysis |>
+      dplyr::mutate(device_group = "Gesamtstichprobe")
+  ) |>
+  dplyr::mutate(
+    device_group = factor(
+      device_group,
+      levels = c(
+        "Gesamtstichprobe",
+        "Gerätebesitzer",
+        "Kurzfristige Adopter",
+        "Langfristig Interessierte",
+        "Nicht-Adopter"
+      )
+    )
+  ) |>
+  dplyr::group_by(device_group) |>
+  dplyr::summarise(mean_ci_n(part_post), .groups = "drop") |>
+  dplyr::mutate(label_y = ymax + 0.12)
+
+y_top_part_post_devicegroups <- max(c(part_post_devicegroups$label_y, part_post_devicegroups$ymax, 4), na.rm = TRUE) + 0.15
+
+p_part_post_devicegroups <- ggplot2::ggplot(
+  part_post_devicegroups,
+  ggplot2::aes(x = device_group, y = mean)
+) +
+  ggplot2::geom_point(colour = SURF_PURPLE, size = 3) +
+  ggplot2::geom_errorbar(
+    ggplot2::aes(ymin = ymin, ymax = ymax),
+    width = 0.15,
+    colour = SURF_PURPLE
+  ) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = round(mean, 2)),
+    size = 3.1,
+    vjust = 0
+  ) +
+  ggplot2::labs(
+    title = "Teilnahmebereitschaft nach dem Szenario",
+    subtitle = "Gemeinsame PI-Skala (REAL/HYPO) – Gesamtstichprobe und Geräte-Untergruppen (Mittelwerte mit 95%-KI)",
+    x = NULL,
+    y = "Teilnahmeintention (0–4)"
+  ) +
+  theme_surf(base_size = 12) +
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 15, hjust = 1)) +
+  ggplot2::scale_y_continuous(breaks = 0:4) +
+  ggplot2::coord_cartesian(ylim = c(0, y_top_part_post_devicegroups), clip = "off")
+
+p_part_post_devicegroups_branded <- brand_plot_surf(p_part_post_devicegroups)
+
+save_plot(
+  plot  = p_part_post_devicegroups_branded,
+  block = 3,
+  sub   = 9,
+  slug  = "participation_post_devicegroups"
+)
+
+p_part_post_devicegroups_branded
+
+```
+
+```{r}
+#| label: plot-03-13-part-post-combined
+#| warning: false
+#| message: false
+
+combined_levels <- c(
+  "Gesamtstichprobe",
+  "Gerätebesitzer",
+  "Nicht-Besitzer (agg.)",
+  "Kurzfristige Adopter",
+  "Langfristig Interessierte",
+  "Nicht-Adopter"
+)
+
+part_post_combined <- dplyr::bind_rows(
+  daten_analysis |> dplyr::mutate(group_combined = "Gesamtstichprobe"),
+  daten_analysis |> dplyr::filter(device_group == "Gerätebesitzer") |> dplyr::mutate(group_combined = "Gerätebesitzer"),
+  daten_analysis |> dplyr::filter(owner_group == "Nicht-Besitzer") |> dplyr::mutate(group_combined = "Nicht-Besitzer (agg.)"),
+  daten_analysis |>
+    dplyr::filter(device_group %in% c("Kurzfristige Adopter", "Langfristig Interessierte", "Nicht-Adopter")) |>
+    dplyr::mutate(group_combined = device_group)
+) |>
+  dplyr::mutate(group_combined = factor(group_combined, levels = combined_levels)) |>
+  dplyr::group_by(group_combined) |>
+  dplyr::summarise(mean_ci_n(part_post), .groups = "drop") |>
+  dplyr::mutate(label_y = ymax + 0.12)
+
+# Headroom
+y_top_part_post_combined <- max(
+  c(part_post_combined$label_y, part_post_combined$ymax, 4),
+  na.rm = TRUE
+) + 0.35
+
+# Gemeinsame (hohe) Box-Höhe: minimal näher an den oberen Rand
+annot_y_post <- y_top_part_post_combined + 0.3
+
+subtitle_post <- paste(
+  "Partizipationsintention Real oder Hypothetisch",
+  "Nach Aggregat, Adoption, und Adoptionsintention",
+  sep = "\n"
+)
+
+p_part_post_combined <- ggplot2::ggplot(
+  part_post_combined,
+  ggplot2::aes(x = group_combined, y = mean)
+) +
+  # visuelle Trennung (deutlich)
+  ggplot2::geom_vline(
+    xintercept = 3.5,
+    colour = SURF_GRID,
+    linewidth = 1.1
+  ) +
+
+  # Linke Box (Aggregat / Besitz vs. Nicht-Besitz)
+  ggplot2::annotate(
+    "label",
+    x = 2.5,                     # exakt zwischen Kategorie 2 und 3
+    y = annot_y_post,
+    label = "Besitz vs. Nicht-Besitz",
+    hjust = 0.5,
+    vjust = 1,
+    size = 3.0,
+    colour = SURF_TEXT,
+    fill = "white",
+    label.size = 0.35
+  ) +
+
+  # Rechte Box (Differenzierung Nicht-Besitz)
+  ggplot2::annotate(
+    "label",
+    x = 5.0,
+    y = annot_y_post,
+    label = "Differenzierung Nicht-Besitz",
+    hjust = 0.5,
+    vjust = 1,
+    size = 3.0,
+    colour = SURF_TEXT,
+    fill = "white",
+    label.size = 0.35
+  ) +
+
+  ggplot2::geom_point(colour = SURF_PURPLE, size = 3) +
+  ggplot2::geom_errorbar(
+    ggplot2::aes(ymin = ymin, ymax = ymax),
+    width = 0.15,
+    colour = SURF_PURPLE
+  ) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = round(mean, 2)),
+    size = 3.1,
+    vjust = 0
+  ) +
+  ggplot2::labs(
+    title = "Teilnahmebereitschaft nach dem Szenario",
+    subtitle = subtitle_post,
+    x = NULL,
+    y = "Teilnahmeintention (0–4)"
+  ) +
+  theme_surf(base_size = 12) +
+  ggplot2::theme(
+    axis.text.x = ggplot2::element_text(angle = 15, hjust = 1),
+
+    # mehr Abstand zwischen (Unter-)Titel und Panel
+    plot.title.position = "plot",
+    plot.subtitle = ggplot2::element_text(
+      margin = ggplot2::margin(b = 14)
+    ),
+
+    # mehr Luft oben + rechts (Logo + Labels)
+    plot.margin = ggplot2::margin(18, 30, 18, 12)
+  ) +
+  ggplot2::scale_x_discrete(drop = FALSE) +
+  ggplot2::scale_y_continuous(breaks = 0:4) +
+  ggplot2::coord_cartesian(
+    ylim = c(0, y_top_part_post_combined),
+    clip = "off"
+  )
+
+p_part_post_combined_branded <- brand_plot_surf(p_part_post_combined)
+
+save_plot(
+  plot  = p_part_post_combined_branded,
+  block = 3,
+  sub   = 13,
+  slug  = "participation_post_combined"
+)
+
+p_part_post_combined_branded
+
+```
+
+#### Nach Adoptionsstatus
+
+```{r}
 #| label: plot-03-04-part-post-experiment
 #| warning: false
 #| message: false
 
 part_post_exp <- daten_analysis |>
+  dplyr::filter(!is.na(owner_group)) |>
+  dplyr::mutate(
+    owner_group = factor(owner_group, levels = c("Gerätebesitzer", "Nicht-Besitzer")),
+    rand_freq   = force_rand_freq_order(rand_freq)
+  ) |>
   dplyr::group_by(owner_group, rand_freq) |>
-  dplyr::summarise(mean_ci_n(part_post_real), .groups = "drop")
+  dplyr::summarise(mean_ci_n(part_post), .groups = "drop") |>
+  dplyr::mutate(label_y = ymax + 0.12)
+
+y_top_part_post_exp <- max(c(part_post_exp$label_y, part_post_exp$ymax, 4), na.rm = TRUE) + 0.15
 
 p_part_post_exp <- ggplot2::ggplot(
   part_post_exp,
@@ -1934,25 +2409,98 @@ p_part_post_exp <- ggplot2::ggplot(
     width = 0.2,
     colour = SURF_PURPLE
   ) +
-  ggplot2::facet_wrap(~ owner_group) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = round(mean, 2)),
+    size = 2.9,
+    vjust = 0
+  ) +
+  ggplot2::facet_wrap(~ owner_group, nrow = 1) +
   ggplot2::labs(
     title = "Teilnahmebereitschaft nach dem Szenario nach Experimentalbedingung",
-    subtitle = "Mittelwerte mit 95%-Konfidenzintervallen",
+    subtitle = "Gemeinsame PI-Skala (REAL bei Besitzern, HYPO bei Nicht-Besitzern) – Mittelwerte mit 95%-KI",
     x = "Experimentalbedingung (Häufigkeit der Steuerung)",
-    y = "Teilnahmeintention (Mittelwert)"
+    y = "Teilnahmeintention (0–4)"
   ) +
-  theme_surf(base_size = 11)
+  theme_surf(base_size = 11) +
+  ggplot2::scale_y_continuous(breaks = 0:4) +
+  ggplot2::coord_cartesian(ylim = c(0, y_top_part_post_exp), clip = "off")
 
 p_part_post_exp_branded <- brand_plot_surf(p_part_post_exp)
 
 save_plot(
-  plot = p_part_post_exp_branded,
+  plot  = p_part_post_exp_branded,
   block = 3,
-  sub = 4,
-  slug = "participation_post_experiment_owner"
+  sub   = 4,
+  slug  = "participation_post_experiment_owner"
 )
 
 p_part_post_exp_branded
+
+```
+
+#### Nach Adoptionsstatus und -intention
+
+```{r}
+#| label: plot-03-10-part-post-devicegroups-experiment
+#| warning: false
+#| message: false
+
+part_post_devicegroups_exp <- daten_analysis |>
+  dplyr::filter(device_group != "Gesamtstichprobe") |>
+  dplyr::mutate(
+    device_group = factor(
+      device_group,
+      levels = c(
+        "Gerätebesitzer",
+        "Kurzfristige Adopter",
+        "Langfristig Interessierte",
+        "Nicht-Adopter"
+      )
+    ),
+    rand_freq = force_rand_freq_order(rand_freq)
+  ) |>
+  dplyr::group_by(device_group, rand_freq) |>
+  dplyr::summarise(mean_ci_n(part_post), .groups = "drop") |>
+  dplyr::mutate(label_y = ymax + 0.12)
+
+y_top_part_post_devicegroups_exp <- max(c(part_post_devicegroups_exp$label_y, part_post_devicegroups_exp$ymax, 4), na.rm = TRUE) + 0.15
+
+p_part_post_devicegroups_exp <- ggplot2::ggplot(
+  part_post_devicegroups_exp,
+  ggplot2::aes(x = rand_freq, y = mean)
+) +
+  ggplot2::geom_point(colour = SURF_PURPLE, size = 2.8) +
+  ggplot2::geom_errorbar(
+    ggplot2::aes(ymin = ymin, ymax = ymax),
+    width = 0.2,
+    colour = SURF_PURPLE
+  ) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = round(mean, 2)),
+    size = 2.9,
+    vjust = 0
+  ) +
+  ggplot2::facet_wrap(~ device_group, nrow = 2) +
+  ggplot2::labs(
+    title = "Teilnahmebereitschaft nach dem Szenario nach Experimentalbedingung",
+    subtitle = "Gemeinsame PI-Skala (REAL/HYPO) – Geräte-Untergruppen (Mittelwerte mit 95%-KI)",
+    x = "Experimentalbedingung (Häufigkeit der Steuerung)",
+    y = "Teilnahmeintention (0–4)"
+  ) +
+  theme_surf(base_size = 11) +
+  ggplot2::scale_y_continuous(breaks = 0:4) +
+  ggplot2::coord_cartesian(ylim = c(0, y_top_part_post_devicegroups_exp), clip = "off")
+
+p_part_post_devicegroups_exp_branded <- brand_plot_surf(p_part_post_devicegroups_exp)
+
+save_plot(
+  plot  = p_part_post_devicegroups_exp_branded,
+  block = 3,
+  sub   = 10,
+  slug  = "participation_post_devicegroups_experiment"
+)
+
+p_part_post_devicegroups_exp_branded
 
 ```
 
@@ -1964,11 +2512,22 @@ p_part_post_exp_branded
 #| message: false
 
 part_diff_groups <- daten_analysis |>
+  dplyr::filter(!is.na(owner_group)) |>
   dplyr::bind_rows(
-    daten_analysis |> dplyr::mutate(owner_group = "Gesamtstichprobe")
+    daten_analysis |>
+      dplyr::filter(!is.na(owner_group)) |>
+      dplyr::mutate(owner_group = "Gesamtstichprobe")
+  ) |>
+  dplyr::mutate(
+    owner_group = factor(owner_group, levels = c("Gesamtstichprobe", "Gerätebesitzer", "Nicht-Besitzer"))
   ) |>
   dplyr::group_by(owner_group) |>
-  dplyr::summarise(mean_ci_n(part_diff), .groups = "drop")
+  dplyr::summarise(mean_ci_n(part_diff), .groups = "drop") |>
+  dplyr::mutate(label_y = ymax + 0.12)
+
+y_top_part_diff_groups <- max(c(part_diff_groups$label_y, part_diff_groups$ymax), na.rm = TRUE) + 0.15
+y_bot_part_diff_groups <- min(part_diff_groups$ymin, na.rm = TRUE) - 0.15
+y_abs_part_diff_groups <- max(abs(c(y_bot_part_diff_groups, y_top_part_diff_groups, -1, 1)), na.rm = TRUE)
 
 p_part_diff_groups <- ggplot2::ggplot(
   part_diff_groups,
@@ -1981,21 +2540,28 @@ p_part_diff_groups <- ggplot2::ggplot(
     width = 0.15,
     colour = SURF_PURPLE
   ) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = round(mean, 2)),
+    size = 3.1,
+    vjust = 0
+  ) +
   ggplot2::labs(
     title = "Veränderung der Teilnahmebereitschaft durch das Szenario",
-    subtitle = "Differenz aus Teilnahmeintention nach und vor dem Szenario",
+    subtitle = "POST − PRE (Mittelwerte mit 95%-Konfidenzintervallen)",
     x = NULL,
-    y = "Änderung der Teilnahmeintention"
+    y = "Δ Teilnahmeintention (POST − PRE)"
   ) +
-  theme_surf(base_size = 12)
+  theme_surf(base_size = 12) +
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 15, hjust = 1)) +
+  ggplot2::coord_cartesian(ylim = c(-y_abs_part_diff_groups, y_abs_part_diff_groups), clip = "off")
 
 p_part_diff_groups_branded <- brand_plot_surf(p_part_diff_groups)
 
 save_plot(
-  plot = p_part_diff_groups_branded,
+  plot  = p_part_diff_groups_branded,
   block = 3,
-  sub = 5,
-  slug = "participation_difference_owner"
+  sub   = 5,
+  slug  = "participation_difference_owner"
 )
 
 p_part_diff_groups_branded
@@ -2003,13 +2569,236 @@ p_part_diff_groups_branded
 ```
 
 ```{r}
+#| label: plot-03-11-part-diff-devicegroups
+#| warning: false
+#| message: false
+
+part_diff_devicegroups <- daten_analysis |>
+  dplyr::mutate(
+    device_group = factor(
+      device_group,
+      levels = c(
+        "Gerätebesitzer",
+        "Kurzfristige Adopter",
+        "Langfristig Interessierte",
+        "Nicht-Adopter"
+      )
+    )
+  ) |>
+  dplyr::bind_rows(
+    daten_analysis |>
+      dplyr::mutate(device_group = "Gesamtstichprobe")
+  ) |>
+  dplyr::mutate(
+    device_group = factor(
+      device_group,
+      levels = c(
+        "Gesamtstichprobe",
+        "Gerätebesitzer",
+        "Kurzfristige Adopter",
+        "Langfristig Interessierte",
+        "Nicht-Adopter"
+      )
+    )
+  ) |>
+  dplyr::group_by(device_group) |>
+  dplyr::summarise(mean_ci_n(part_diff), .groups = "drop") |>
+  dplyr::mutate(label_y = ymax + 0.12)
+
+y_top_part_diff_devicegroups <- max(c(part_diff_devicegroups$label_y, part_diff_devicegroups$ymax), na.rm = TRUE) + 0.15
+y_bot_part_diff_devicegroups <- min(part_diff_devicegroups$ymin, na.rm = TRUE) - 0.15
+y_abs_part_diff_devicegroups <- max(abs(c(y_bot_part_diff_devicegroups, y_top_part_diff_devicegroups, -1, 1)), na.rm = TRUE)
+
+p_part_diff_devicegroups <- ggplot2::ggplot(
+  part_diff_devicegroups,
+  ggplot2::aes(x = device_group, y = mean)
+) +
+  ggplot2::geom_hline(yintercept = 0, colour = SURF_GRID, linewidth = 0.4) +
+  ggplot2::geom_point(colour = SURF_PURPLE, size = 3) +
+  ggplot2::geom_errorbar(
+    ggplot2::aes(ymin = ymin, ymax = ymax),
+    width = 0.15,
+    colour = SURF_PURPLE
+  ) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = round(mean, 2)),
+    size = 3.1,
+    vjust = 0
+  ) +
+  ggplot2::labs(
+    title = "Veränderung der Teilnahmebereitschaft durch das Szenario",
+    subtitle = "POST − PRE (Mittelwerte mit 95%-Konfidenzintervallen) – Gesamtstichprobe und Geräte-Untergruppen",
+    x = NULL,
+    y = "Δ Teilnahmeintention (POST − PRE)"
+  ) +
+  theme_surf(base_size = 12) +
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 15, hjust = 1)) +
+  ggplot2::coord_cartesian(ylim = c(-y_abs_part_diff_devicegroups, y_abs_part_diff_devicegroups), clip = "off")
+
+p_part_diff_devicegroups_branded <- brand_plot_surf(p_part_diff_devicegroups)
+
+save_plot(
+  plot  = p_part_diff_devicegroups_branded,
+  block = 3,
+  sub   = 11,
+  slug  = "participation_diff_devicegroups"
+)
+
+p_part_diff_devicegroups_branded
+
+```
+
+```{r}
+#| label: plot-03-15-part-diff-combined
+#| warning: false
+#| message: false
+
+combined_levels <- c(
+  "Gesamtstichprobe",
+  "Gerätebesitzer",
+  "Nicht-Besitzer (agg.)",
+  "Kurzfristige Adopter",
+  "Langfristig Interessierte",
+  "Nicht-Adopter"
+)
+
+part_diff_combined <- dplyr::bind_rows(
+  daten_analysis |> dplyr::mutate(group_combined = "Gesamtstichprobe"),
+  daten_analysis |> dplyr::filter(device_group == "Gerätebesitzer") |> dplyr::mutate(group_combined = "Gerätebesitzer"),
+  daten_analysis |> dplyr::filter(owner_group == "Nicht-Besitzer") |> dplyr::mutate(group_combined = "Nicht-Besitzer (agg.)"),
+  daten_analysis |>
+    dplyr::filter(device_group %in% c("Kurzfristige Adopter", "Langfristig Interessierte", "Nicht-Adopter")) |>
+    dplyr::mutate(group_combined = device_group)
+) |>
+  dplyr::mutate(group_combined = factor(group_combined, levels = combined_levels)) |>
+  dplyr::group_by(group_combined) |>
+  dplyr::summarise(mean_ci_n(part_diff), .groups = "drop") |>
+  dplyr::mutate(label_y = ymax + 0.12)
+
+# Symmetrische Headroom-Logik (Diff-Plot)
+y_top_part_diff_combined <- max(c(part_diff_combined$label_y, part_diff_combined$ymax), na.rm = TRUE) + 0.15
+y_bot_part_diff_combined <- min(part_diff_combined$ymin, na.rm = TRUE) - 0.15
+y_abs_part_diff_combined <- max(abs(c(y_bot_part_diff_combined, y_top_part_diff_combined, -1, 1)), na.rm = TRUE)
+
+# Box-Position oberhalb des Panels (clip = "off")
+annot_y_diff <- y_abs_part_diff_combined + 0.0
+
+subtitle_diff <- paste(
+  "POST − PRE (Mittelwerte mit 95%-Konfidenzintervallen)",
+  "Nach Aggregat, Adoption, und Adoptionsintention",
+  sep = "\n"
+)
+
+p_part_diff_combined <- ggplot2::ggplot(
+  part_diff_combined,
+  ggplot2::aes(x = group_combined, y = mean)
+) +
+  ggplot2::geom_hline(yintercept = 0, colour = SURF_GRID, linewidth = 0.4) +
+
+  # visuelle Trennung (deutlich)
+  ggplot2::geom_vline(
+    xintercept = 3.5,
+    colour = SURF_GRID,
+    linewidth = 1.1
+  ) +
+
+  # Linke Box (Aggregat / Besitz vs. Nicht-Besitz)
+  ggplot2::annotate(
+    "label",
+    x = 2.5,                     # exakt zwischen Kategorie 2 und 3
+    y = annot_y_diff,
+    label = "Besitz vs. Nicht-Besitz",
+    hjust = 0.5,
+    vjust = 1,
+    size = 3.0,
+    colour = SURF_TEXT,
+    fill = "white",
+    label.size = 0.35
+  ) +
+
+  # Rechte Box (Differenzierung Nicht-Besitz)
+  ggplot2::annotate(
+    "label",
+    x = 5.0,
+    y = annot_y_diff,
+    label = "Differenzierung Nicht-Besitz",
+    hjust = 0.5,
+    vjust = 1,
+    size = 3.0,
+    colour = SURF_TEXT,
+    fill = "white",
+    label.size = 0.35
+  ) +
+
+  ggplot2::geom_point(colour = SURF_PURPLE, size = 3) +
+  ggplot2::geom_errorbar(
+    ggplot2::aes(ymin = ymin, ymax = ymax),
+    width = 0.15,
+    colour = SURF_PURPLE
+  ) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = round(mean, 2)),
+    size = 3.1,
+    vjust = 0
+  ) +
+  ggplot2::labs(
+    title = "Veränderung der Teilnahmebereitschaft durch das Szenario",
+    subtitle = subtitle_diff,
+    x = NULL,
+    y = "Δ Teilnahmeintention (POST − PRE)"
+  ) +
+  theme_surf(base_size = 12) +
+  ggplot2::theme(
+    axis.text.x = ggplot2::element_text(angle = 15, hjust = 1),
+
+    # mehr Abstand zwischen (Unter-)Titel und Panel
+    plot.title.position = "plot",
+    plot.subtitle = ggplot2::element_text(
+      margin = ggplot2::margin(b = 14)
+    ),
+
+    # mehr Luft oben + rechts (Logo + Labels)
+    plot.margin = ggplot2::margin(18, 30, 18, 12)
+  ) +
+  ggplot2::scale_x_discrete(drop = FALSE) +
+  ggplot2::coord_cartesian(
+    ylim = c(-y_abs_part_diff_combined, y_abs_part_diff_combined),
+    clip = "off"
+  )
+
+p_part_diff_combined_branded <- brand_plot_surf(p_part_diff_combined)
+
+save_plot(
+  plot  = p_part_diff_combined_branded,
+  block = 3,
+  sub   = 15,
+  slug  = "participation_diff_combined"
+)
+
+p_part_diff_combined_branded
+
+```
+
+#### Nach Adoptionsstatus
+
+```{r}
 #| label: plot-03-06-part-diff-experiment
 #| warning: false
 #| message: false
 
 part_diff_exp <- daten_analysis |>
+  dplyr::filter(!is.na(owner_group)) |>
+  dplyr::mutate(
+    owner_group = factor(owner_group, levels = c("Gerätebesitzer", "Nicht-Besitzer")),
+    rand_freq   = force_rand_freq_order(rand_freq)
+  ) |>
   dplyr::group_by(owner_group, rand_freq) |>
-  dplyr::summarise(mean_ci_n(part_diff), .groups = "drop")
+  dplyr::summarise(mean_ci_n(part_diff), .groups = "drop") |>
+  dplyr::mutate(label_y = ymax + 0.12)
+
+y_top_part_diff_exp <- max(c(part_diff_exp$label_y, part_diff_exp$ymax), na.rm = TRUE) + 0.15
+y_bot_part_diff_exp <- min(part_diff_exp$ymin, na.rm = TRUE) - 0.15
+y_abs_part_diff_exp <- max(abs(c(y_bot_part_diff_exp, y_top_part_diff_exp, -1, 1)), na.rm = TRUE)
 
 p_part_diff_exp <- ggplot2::ggplot(
   part_diff_exp,
@@ -2022,25 +2811,99 @@ p_part_diff_exp <- ggplot2::ggplot(
     width = 0.2,
     colour = SURF_PURPLE
   ) +
-  ggplot2::facet_wrap(~ owner_group) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = round(mean, 2)),
+    size = 2.9,
+    vjust = 0
+  ) +
+  ggplot2::facet_wrap(~ owner_group, nrow = 1) +
   ggplot2::labs(
     title = "Veränderung der Teilnahmebereitschaft nach Experimentalbedingung",
-    subtitle = "POST − PRE, Mittelwerte mit 95%-Konfidenzintervallen",
+    subtitle = "POST − PRE (Mittelwerte mit 95%-Konfidenzintervallen)",
     x = "Experimentalbedingung (Häufigkeit der Steuerung)",
-    y = "Änderung der Teilnahmeintention"
+    y = "Δ Teilnahmeintention (POST − PRE)"
   ) +
-  theme_surf(base_size = 11)
+  theme_surf(base_size = 11) +
+  ggplot2::coord_cartesian(ylim = c(-y_abs_part_diff_exp, y_abs_part_diff_exp), clip = "off")
 
 p_part_diff_exp_branded <- brand_plot_surf(p_part_diff_exp)
 
 save_plot(
-  plot = p_part_diff_exp_branded,
+  plot  = p_part_diff_exp_branded,
   block = 3,
-  sub = 6,
-  slug = "participation_difference_experiment_owner"
+  sub   = 6,
+  slug  = "participation_difference_experiment_owner"
 )
 
 p_part_diff_exp_branded
+
+```
+
+#### Nach Adoptionsstatus und -intention
+
+```{r}
+#| label: plot-03-12-part-diff-devicegroups-experiment
+#| warning: false
+#| message: false
+
+part_diff_devicegroups_exp <- daten_analysis |>
+  dplyr::filter(device_group != "Gesamtstichprobe") |>
+  dplyr::mutate(
+    device_group = factor(
+      device_group,
+      levels = c(
+        "Gerätebesitzer",
+        "Kurzfristige Adopter",
+        "Langfristig Interessierte",
+        "Nicht-Adopter"
+      )
+    ),
+    rand_freq = force_rand_freq_order(rand_freq)
+  ) |>
+  dplyr::group_by(device_group, rand_freq) |>
+  dplyr::summarise(mean_ci_n(part_diff), .groups = "drop") |>
+  dplyr::mutate(label_y = ymax + 0.12)
+
+y_top_part_diff_devicegroups_exp <- max(c(part_diff_devicegroups_exp$label_y, part_diff_devicegroups_exp$ymax), na.rm = TRUE) + 0.15
+y_bot_part_diff_devicegroups_exp <- min(part_diff_devicegroups_exp$ymin, na.rm = TRUE) - 0.15
+y_abs_part_diff_devicegroups_exp <- max(abs(c(y_bot_part_diff_devicegroups_exp, y_top_part_diff_devicegroups_exp, -1, 1)), na.rm = TRUE)
+
+p_part_diff_devicegroups_exp <- ggplot2::ggplot(
+  part_diff_devicegroups_exp,
+  ggplot2::aes(x = rand_freq, y = mean)
+) +
+  ggplot2::geom_hline(yintercept = 0, colour = SURF_GRID, linewidth = 0.4) +
+  ggplot2::geom_point(colour = SURF_PURPLE, size = 2.8) +
+  ggplot2::geom_errorbar(
+    ggplot2::aes(ymin = ymin, ymax = ymax),
+    width = 0.2,
+    colour = SURF_PURPLE
+  ) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = round(mean, 2)),
+    size = 2.9,
+    vjust = 0
+  ) +
+  ggplot2::facet_wrap(~ device_group, nrow = 2) +
+  ggplot2::labs(
+    title = "Veränderung der Teilnahmebereitschaft nach Experimentalbedingung",
+    subtitle = "POST − PRE (Mittelwerte mit 95%-Konfidenzintervallen) – Geräte-Untergruppen",
+    x = "Experimentalbedingung (Häufigkeit der Steuerung)",
+    y = "Δ Teilnahmeintention (POST − PRE)"
+  ) +
+  theme_surf(base_size = 11) +
+  ggplot2::coord_cartesian(ylim = c(-y_abs_part_diff_devicegroups_exp, y_abs_part_diff_devicegroups_exp), clip = "off")
+
+p_part_diff_devicegroups_exp_branded <- brand_plot_surf(p_part_diff_devicegroups_exp)
+
+save_plot(
+  plot  = p_part_diff_devicegroups_exp_branded,
+  block = 3,
+  sub   = 12,
+  slug  = "participation_diff_devicegroups_experiment"
+)
+
+p_part_diff_devicegroups_exp_branded
 
 ```
 
