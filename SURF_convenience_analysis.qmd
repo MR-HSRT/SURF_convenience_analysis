@@ -1351,7 +1351,21 @@ export_flextable_png(
 #| message: false
 
 acc_pre_groups <- daten_analysis |>
-  dplyr::bind_rows(daten_analysis |> dplyr::mutate(device_group = "Gesamtstichprobe")) |>
+  dplyr::mutate(
+    device_group = factor(
+      device_group,
+      levels = c(
+        "Gerätebesitzer",
+        "Kurzfristige Adopter",
+        "Langfristig Interessierte",
+        "Nicht-Adopter"
+      )
+    )
+  ) |>
+  dplyr::bind_rows(
+    daten_analysis |>
+      dplyr::mutate(device_group = "Gesamtstichprobe")
+  ) |>
   dplyr::mutate(
     device_group = factor(
       device_group,
@@ -1366,36 +1380,32 @@ acc_pre_groups <- daten_analysis |>
   ) |>
   dplyr::group_by(device_group) |>
   dplyr::summarise(mean_ci_n(acc_pre), .groups = "drop") |>
-  dplyr::arrange(device_group)
+  dplyr::mutate(label_y = ymax + 0.12)
+
+y_top_pre_groups <- max(c(acc_pre_groups$label_y, acc_pre_groups$ymax, 4), na.rm = TRUE) + 0.15
 
 p_acc_pre_groups <- ggplot2::ggplot(acc_pre_groups, ggplot2::aes(x = device_group, y = mean)) +
-  # CI-Strich sicher zeichnen
-  ggplot2::geom_linerange(
-    ggplot2::aes(ymin = ymin, ymax = ymax),
-    colour = SURF_PURPLE,
-    linewidth = 0.6
-  ) +
-  # Endkappen
+  ggplot2::geom_point(colour = SURF_PURPLE, size = 3) +
   ggplot2::geom_errorbar(
     ggplot2::aes(ymin = ymin, ymax = ymax),
     width = 0.15,
-    colour = SURF_PURPLE,
-    linewidth = 0.6
+    colour = SURF_PURPLE
   ) +
-  ggplot2::geom_point(colour = SURF_PURPLE, size = 3) +
-  ggplot2::scale_y_continuous(
-    limits = c(0, 4),
-    breaks = 0:4,
-    oob = scales::squish
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = round(mean, 2)),
+    size = 3.1,
+    vjust = 0
   ) +
   ggplot2::labs(
     title = "Akzeptanz der SURF-Plattform (vor Szenario)",
     subtitle = "Durchschnittswerte (mit 95%-Konfidenzintervallen) gesamt und nach Gerätebesitzgruppen",
     x = NULL,
-    y = "Akzeptanz (Mittelwert)"
+    y = "Akzeptanz (0–4)"
   ) +
   theme_surf(base_size = 12) +
-  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 15, hjust = 1))
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 15, hjust = 1)) +
+  ggplot2::scale_y_continuous(breaks = 0:4) +
+  ggplot2::coord_cartesian(ylim = c(0, y_top_pre_groups), clip = "off")
 
 p_acc_pre_groups_branded <- brand_plot_surf(p_acc_pre_groups)
 save_plot(p_acc_pre_groups_branded, 2, 1, "acceptance_pre_groups")
@@ -1424,13 +1434,17 @@ acc_pre_exp <- daten_analysis |>
   ) |>
   dplyr::group_by(device_group, rand_freq) |>
   dplyr::summarise(mean_ci_n(acc_pre), .groups = "drop") |>
+  dplyr::mutate(
+    label   = sprintf("%.2f", mean),
+    # knapp über dem oberen CI-Ende, aber mit Deckel
+    y_label = pmin(ymax + 0.10, 4.28)
+  ) |>
   dplyr::arrange(device_group, rand_freq)
 
 p_acc_pre_exp <- ggplot2::ggplot(
   acc_pre_exp,
   ggplot2::aes(x = rand_freq, y = mean)
 ) +
-  ggplot2::geom_point(colour = SURF_PURPLE, size = 2.8) +
   ggplot2::geom_linerange(
     ggplot2::aes(ymin = ymin, ymax = ymax),
     colour = SURF_PURPLE,
@@ -1438,51 +1452,127 @@ p_acc_pre_exp <- ggplot2::ggplot(
   ) +
   ggplot2::geom_errorbar(
     ggplot2::aes(ymin = ymin, ymax = ymax),
-    width = 0.20,
-    colour = SURF_PURPLE,
-    linewidth = 0.6
+    width = 0.2,
+    colour = SURF_PURPLE
   ) +
-  add_point_labels_left(x_nudge = -0.15, digits = 2, size = 2.9) +
+  ggplot2::geom_point(
+    colour = SURF_PURPLE,
+    size = 2.8
+  ) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = y_label, label = label),
+    colour = SURF_TEXT,
+    size = 3.1,
+    vjust = 0
+  ) +
   ggplot2::facet_wrap(~ device_group, nrow = 2) +
   ggplot2::scale_y_continuous(
-    limits = c(0, 4),
     breaks = 0:4,
-    oob = scales::squish
+    labels = 0:4
   ) +
-  ggplot2::scale_x_discrete(
-    drop = FALSE,
-    expand = ggplot2::expansion(mult = c(0.16, 0.06))
-  ) +
+  # WICHTIG: ylim via coord_cartesian + clip off (gegen Abschneiden)
+  ggplot2::coord_cartesian(ylim = c(0, 4.35), clip = "off") +
   ggplot2::labs(
     title = "Akzeptanz (vor Szenario) nach Experimentalbedingung und Gerätebesitzgruppen",
     subtitle = "Mittelwerte mit 95%-Konfidenzintervallen",
     x = "Experimentalbedingung (Häufigkeit der Steuerung)",
-    y = "Akzeptanz (Mittelwert, 0–4)"
+    y = "Akzeptanz (0–4)"
   ) +
-  theme_surf(base_size = 11)
+  theme_surf(base_size = 11) +
+  ggplot2::theme(
+    # mehr Platz oberhalb, damit Text außerhalb des Panels auch sichtbar bleibt
+    plot.margin = ggplot2::margin(16, 12, 18, 12)
+  )
 
 p_acc_pre_exp_branded <- brand_plot_surf(p_acc_pre_exp)
+save_plot(p_acc_pre_exp_branded, 2, 2, "acceptance_pre_experiment_groups")
+p_acc_pre_exp_branded
 
-save_plot(
-  plot  = p_acc_pre_exp_branded,
-  block = 2,
-  sub   = 2,
-  slug  = "acceptance_pre_experiment_groups"
-)
 
+```
+
+```{r}
+#| label: plot-02-02-acc-pre-experiment
+#| warning: false
+#| message: false
+
+acc_pre_exp <- daten_analysis |>
+  dplyr::filter(device_group != "Gesamtstichprobe") |>
+  dplyr::mutate(
+    device_group = factor(
+      device_group,
+      levels = c(
+        "Gerätebesitzer",
+        "Kurzfristige Adopter",
+        "Langfristig Interessierte",
+        "Nicht-Adopter"
+      )
+    ),
+    rand_freq = force_rand_freq_order(rand_freq)
+  ) |>
+  dplyr::group_by(device_group, rand_freq) |>
+  dplyr::summarise(mean_ci_n(acc_pre), .groups = "drop") |>
+  dplyr::mutate(label_y = ymax + 0.12)
+
+y_top_pre_exp <- max(c(acc_pre_exp$label_y, acc_pre_exp$ymax, 4), na.rm = TRUE) + 0.15
+
+p_acc_pre_exp <- ggplot2::ggplot(
+  acc_pre_exp,
+  ggplot2::aes(x = rand_freq, y = mean)
+) +
+  ggplot2::geom_point(colour = SURF_PURPLE, size = 2.8) +
+  ggplot2::geom_errorbar(
+    ggplot2::aes(ymin = ymin, ymax = ymax),
+    width = 0.2,
+    colour = SURF_PURPLE
+  ) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = round(mean, 2)),
+    size = 2.9,
+    vjust = 0
+  ) +
+  ggplot2::facet_wrap(~ device_group, nrow = 2) +
+  ggplot2::labs(
+    title = "Akzeptanz (vor Szenario) nach Experimentalbedingung und Gerätebesitzgruppen",
+    subtitle = "Mittelwerte mit 95%-Konfidenzintervallen",
+    x = "Experimentalbedingung (Häufigkeit der Steuerung)",
+    y = "Akzeptanz (0–4)"
+  ) +
+  theme_surf(base_size = 11) +
+  ggplot2::scale_y_continuous(breaks = 0:4) +
+  ggplot2::coord_cartesian(ylim = c(0, y_top_pre_exp), clip = "off")
+
+p_acc_pre_exp_branded <- brand_plot_surf(p_acc_pre_exp)
+save_plot(p_acc_pre_exp_branded, 2, 2, "acceptance_pre_experiment_groups")
 p_acc_pre_exp_branded
 
 ```
 
+
+
 ### Akzeptanz am Ende
 
 ```{r}
-#| label: plot-02-02-acc-post-groups
+#| label: plot-02-03-acc-post-groups
 #| warning: false
 #| message: false
 
 acc_post_groups <- daten_analysis |>
-  dplyr::bind_rows(daten_analysis |> dplyr::mutate(device_group = "Gesamtstichprobe")) |>
+  dplyr::mutate(
+    device_group = factor(
+      device_group,
+      levels = c(
+        "Gerätebesitzer",
+        "Kurzfristige Adopter",
+        "Langfristig Interessierte",
+        "Nicht-Adopter"
+      )
+    )
+  ) |>
+  dplyr::bind_rows(
+    daten_analysis |>
+      dplyr::mutate(device_group = "Gesamtstichprobe")
+  ) |>
   dplyr::mutate(
     device_group = factor(
       device_group,
@@ -1497,42 +1587,46 @@ acc_post_groups <- daten_analysis |>
   ) |>
   dplyr::group_by(device_group) |>
   dplyr::summarise(mean_ci_n(acc_post), .groups = "drop") |>
-  dplyr::arrange(device_group)
+  dplyr::mutate(label_y = ymax + 0.12)
 
-p_acc_post_groups <- ggplot2::ggplot(
-  acc_post_groups,
-  ggplot2::aes(x = device_group, y = mean)
-) +
+y_top_post_groups <- max(c(acc_post_groups$label_y, acc_post_groups$ymax, 4), na.rm = TRUE) + 0.15
+
+p_acc_post_groups <- ggplot2::ggplot(acc_post_groups, ggplot2::aes(x = device_group, y = mean)) +
   ggplot2::geom_point(colour = SURF_PURPLE, size = 3) +
   ggplot2::geom_errorbar(
     ggplot2::aes(ymin = ymin, ymax = ymax),
     width = 0.15,
     colour = SURF_PURPLE
   ) +
-  add_point_labels(digits = 2, size = 3.1, vjust = -1) +
-  ggplot2::scale_x_discrete(drop = FALSE) +
-  ggplot2::scale_y_continuous(limits = c(0, 4), breaks = 0:4) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = round(mean, 2)),
+    size = 3.1,
+    vjust = 0
+  ) +
   ggplot2::labs(
     title = "Akzeptanz der SURF-Plattform (nach Szenario)",
     subtitle = "Durchschnittswerte (mit 95%-Konfidenzintervallen) gesamt und nach Gerätebesitzgruppen",
     x = NULL,
-    y = "Akzeptanz (Mittelwert, 0–4)"
+    y = "Akzeptanz (0–4)"
   ) +
   theme_surf(base_size = 12) +
-  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 15, hjust = 1))
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 15, hjust = 1)) +
+  ggplot2::scale_y_continuous(breaks = 0:4) +
+  ggplot2::coord_cartesian(ylim = c(0, y_top_post_groups), clip = "off")
 
 p_acc_post_groups_branded <- brand_plot_surf(p_acc_post_groups)
-save_plot(p_acc_post_groups_branded, 2, 2, "acceptance_post_groups")
+save_plot(p_acc_post_groups_branded, 2, 3, "acceptance_post_groups")
 p_acc_post_groups_branded
 
 ```
 
 ```{r}
-#| label: plot-02-02-acc-post-experiment
+#| label: plot-02-04-acc-post-experiment
 #| warning: false
 #| message: false
 
 acc_post_exp <- daten_analysis |>
+  dplyr::filter(device_group != "Gesamtstichprobe") |>
   dplyr::mutate(
     device_group = factor(
       device_group,
@@ -1545,14 +1639,15 @@ acc_post_exp <- daten_analysis |>
     ),
     rand_freq = force_rand_freq_order(rand_freq)
   ) |>
-  dplyr::filter(!is.na(device_group), !is.na(rand_freq)) |>
   dplyr::group_by(device_group, rand_freq) |>
   dplyr::summarise(mean_ci_n(acc_post), .groups = "drop") |>
-  dplyr::arrange(device_group, rand_freq)
+  dplyr::mutate(label_y = ymax + 0.12)
+
+y_top_post_exp <- max(c(acc_post_exp$label_y, acc_post_exp$ymax, 4), na.rm = TRUE) + 0.15
 
 p_acc_post_exp <- ggplot2::ggplot(
   acc_post_exp,
-  ggplot2::aes(x = rand_freq, y = mean, group = 1)
+  ggplot2::aes(x = rand_freq, y = mean)
 ) +
   ggplot2::geom_point(colour = SURF_PURPLE, size = 2.8) +
   ggplot2::geom_errorbar(
@@ -1560,20 +1655,24 @@ p_acc_post_exp <- ggplot2::ggplot(
     width = 0.2,
     colour = SURF_PURPLE
   ) +
-  add_point_labels(digits = 2, size = 2.9, vjust = -1) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = round(mean, 2)),
+    size = 2.9,
+    vjust = 0
+  ) +
   ggplot2::facet_wrap(~ device_group, nrow = 2) +
-  ggplot2::scale_x_discrete(drop = FALSE) +
-  ggplot2::scale_y_continuous(limits = c(0, 4), breaks = 0:4) +
   ggplot2::labs(
     title = "Akzeptanz (nach Szenario) nach Experimentalbedingung und Gerätebesitzgruppen",
     subtitle = "Mittelwerte mit 95%-Konfidenzintervallen",
     x = "Experimentalbedingung (Häufigkeit der Steuerung)",
-    y = "Akzeptanz (Mittelwert, 0–4)"
+    y = "Akzeptanz (0–4)"
   ) +
-  theme_surf(base_size = 11)
+  theme_surf(base_size = 11) +
+  ggplot2::scale_y_continuous(breaks = 0:4) +
+  ggplot2::coord_cartesian(ylim = c(0, y_top_post_exp), clip = "off")
 
 p_acc_post_exp_branded <- brand_plot_surf(p_acc_post_exp)
-save_plot(p_acc_post_exp_branded, 2, 3, "acceptance_post_experiment_groups")
+save_plot(p_acc_post_exp_branded, 2, 4, "acceptance_post_experiment_groups")
 p_acc_post_exp_branded
 
 ```
