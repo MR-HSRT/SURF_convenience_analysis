@@ -1,0 +1,5 @@
+device,Punkt 0,Punkt 1,Punkt 2,Punkt 3,Punkt 4,Punkt 6
+Batteriespeicher,1,3,14,10,2,2
+Photovoltaik,3,8,16,4,1,11
+Wallbox,2,3,8,4,1,5
+Wärmepumpe,1,2,7,6,2,0

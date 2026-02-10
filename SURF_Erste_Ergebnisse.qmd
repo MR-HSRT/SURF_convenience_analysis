@@ -1,0 +1,4031 @@
+---
+title: "SURF Akzeptanzbefragung"
+format:
+  html:
+    embed-resources: true
+    toc: true
+    number-sections: true
+    theme: cosmo
+execute:
+  echo: false
+  warning: false
+  message: false
+  cache: false
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+```{r}
+SURF_LOGO_PATH <- here::here("doc", "survey", "Logo-Surf-RGB.png")
+
+```
+
+::: text-center
+![](doc/survey/Logo-Surf-RGB.svg){fig-alt="SURF Projektlogo"
+width="280px"}
+:::
+
+```{r}
+#| label: setup
+#| include: false
+
+# ----------------------------
+# 1) Pakete installieren, prüfen und laden
+# ----------------------------
+
+# Stabiler CRAN-Mirror (wichtig, falls RStudio alte Repos nutzt)
+options(repos = c(CRAN = "https://cloud.r-project.org"))
+
+required_pkgs <- c(
+  "here","readr","dplyr","tidyr","stringr","janitor","labelled",
+  "psych","gtsummary","flextable","ggplot2","scales","broom","knitr",
+  "readxl", "webshot2"
+)
+
+# Fehlende Pakete ermitteln
+missing_pkgs <- required_pkgs[!vapply(required_pkgs, requireNamespace, logical(1), quietly = TRUE)]
+
+# Fehlende Pakete installieren (ohne Stop; mit klarer Meldung)
+if (length(missing_pkgs) > 0) {
+  message("Installiere fehlende Pakete: ", paste(missing_pkgs, collapse = ", "))
+  tryCatch(
+    {
+      install.packages(missing_pkgs, dependencies = TRUE)
+    },
+    error = function(e) {
+      message("Paketinstallation fehlgeschlagen: ", conditionMessage(e))
+      message("Hinweis: Bitte R/RStudio neu starten und erneut ausführen. ",
+              "Falls weiterhin Probleme: R als Admin starten oder Schreibrechte für die Library prüfen.")
+    }
+  )
+}
+
+# Pakete laden (leise; ohne Fehlermeldungsflut)
+loaded <- vapply(required_pkgs, function(pkg) {
+  suppressWarnings(suppressPackageStartupMessages(require(pkg, character.only = TRUE)))
+}, logical(1))
+
+# Wenn etwas trotz Install-Versuch nicht ladbar ist: nur eine kompakte Warnung
+if (any(!loaded)) {
+  warning("Folgende Pakete konnten nicht geladen werden: ",
+          paste(required_pkgs[!loaded], collapse = ", "),
+          call. = FALSE)
+}
+
+# ----------------------------
+# 2) Ordnerstruktur erstellen
+# ----------------------------
+dir.create(here::here("data", "raw"),        recursive = TRUE, showWarnings = FALSE)
+dir.create(here::here("data", "processed"),  recursive = TRUE, showWarnings = FALSE)
+dir.create(here::here("outputs", "plots"),   recursive = TRUE, showWarnings = FALSE)
+dir.create(here::here("outputs", "tables"),  recursive = TRUE, showWarnings = FALSE)
+
+# ----------------------------
+# 3) Reproduzierbarkeit
+# ----------------------------
+set.seed(1234)
+
+PLOTS_DIR  <- here::here("outputs", "plots")
+TABLES_DIR <- here::here("outputs", "tables")
+
+# ----------------------------
+# 4) .gitignore sicherstellen
+# ----------------------------
+# gitignore_path <- here::here(".gitignore")
+# 
+# gitignore_content <- c(
+#   "# --- R / RStudio ---",
+#   ".Rproj.user/",
+#   ".Rhistory",
+#   ".RData",
+#   ".Ruserdata",
+#   "",
+#   "# --- Data files ---",
+#   "*.csv",
+#   "*.xlsx",
+#   "*.json",
+#   "",
+#   "# --- Quarto ---",
+#   "*_cache/",
+#   "*_files/",
+#   "",
+#   "# --- Private data (NEVER commit) ---",
+#   "data/raw/",
+#   "data/processed/",
+#   "",
+#   "# --- Local secrets ---",
+#   ".env"
+# )
+# 
+# if (!file.exists(gitignore_path)) {
+#   writeLines(gitignore_content, gitignore_path)
+# } else {
+#   existing_raw  <- readLines(gitignore_path, warn = FALSE)
+#   existing_trim <- trimws(existing_raw)
+# 
+#   to_add <- gitignore_content[!gitignore_content %in% existing_trim]
+# 
+#   if (length(to_add) > 0) {
+#     writeLines(c(existing_raw, to_add), gitignore_path)
+#   }
+# }
+
+```
+
+```{r}
+#| label: import-data
+#| include: false
+
+# 1) Pfade definieren
+path_allgemein <- here::here("data", "raw", "results-survey739381.xlsx")
+path_saarlouis <- here::here("data", "raw", "results-survey421972.xlsx")
+
+# 2) Einlesen
+df_allg <- readxl::read_xlsx(path_allgemein)
+df_saar <- readxl::read_xlsx(path_saarlouis)
+
+# 3) Harmonisierung & Quell-Variable hinzufügen
+# Wir wandeln kritische Spalten explizit in character um, 
+# damit bind_rows sie problemlos mergen kann.
+df_allg <- df_allg %>% 
+  dplyr::mutate(
+    FinAmountYear = as.character(FinAmountYear),
+    Motive = as.character(Motive),
+    survey_source = "Allgemein"
+  )
+
+df_saar <- df_saar %>% 
+  dplyr::mutate(
+    FinAmountYear = as.character(FinAmountYear),
+    Motive = as.character(Motive),
+    survey_source = "Saarlouis"
+  )
+
+# 4) Datensätze zusammenführen
+# bind_rows füllt unterschiedliche Spalten (groupTimes) mit NA auf
+daten_combined <- dplyr::bind_rows(df_allg, df_saar)
+
+# 5) Spaltennamen bereinigen (snake_case)
+daten <- daten_combined %>% janitor::clean_names()
+
+# QC Datensatz erstellen
+surf_check <- daten
+
+```
+
+```{r}
+#| label: surf-plot-style
+#| include: false
+
+# Pakete (minimal für Branding)
+if (!requireNamespace("png", quietly = TRUE)) install.packages("png")
+if (!requireNamespace("cowplot", quietly = TRUE)) install.packages("cowplot")
+
+library(grid)
+library(png)
+library(cowplot)
+
+# Pfad zum SURF-Logo
+SURF_LOGO_PATH <- here::here("doc", "survey", "Logo-Surf-RGB.png")
+
+# Corporate-Farben (aus dem bereitgestellten SURF-Logo abgeleitet)
+SURF_PURPLE <- "#602890"
+SURF_PINK   <- "#E81878"
+SURF_MAG    <- "#902088"
+SURF_TEXT   <- "#2B2B2B"
+SURF_GRID   <- "#D9D9D9"
+
+theme_surf <- function(base_size = 12, base_family = "") {
+  ggplot2::theme_minimal(base_size = base_size, base_family = base_family) +
+    ggplot2::theme(
+      plot.title.position = "plot",
+      plot.title   = ggplot2::element_text(face = "bold", colour = SURF_TEXT, size = base_size * 1.15),
+      plot.subtitle= ggplot2::element_text(colour = SURF_TEXT, size = base_size * 0.95),
+      axis.title   = ggplot2::element_text(colour = SURF_TEXT),
+      axis.text    = ggplot2::element_text(colour = SURF_TEXT),
+      panel.grid.minor = ggplot2::element_blank(),
+      panel.grid.major = ggplot2::element_line(colour = SURF_GRID, linewidth = 0.3),
+      plot.margin = ggplot2::margin(12, 12, 12, 12)
+    )
+}
+
+# Logo als Grob laden
+surf_logo_grob <- function(path = SURF_LOGO_PATH) {
+  if (!file.exists(path)) return(NULL)
+  img <- png::readPNG(path)
+  grid::rasterGrob(img, interpolate = TRUE)
+}
+
+# Plot + Logo (oben rechts, relative Koordinaten, robust)
+brand_plot_surf <- function(p, logo_path = SURF_LOGO_PATH,
+                            x = 0.98, y = 0.98, w = 0.16, h = 0.16) {
+  lg <- surf_logo_grob(logo_path)
+  if (is.null(lg)) return(p)
+
+  cowplot::ggdraw(p) +
+    cowplot::draw_grob(lg, x = x - w, y = y - h, width = w, height = h, hjust = 0, vjust = 0)
+}
+
+```
+
+```{r}
+#| label: surf-legend-style
+#| include: false
+
+# Standard-Legende: kompakt, mehrzeilig, passt in Exportplots
+surf_legend_bottom <- function(nrow = 2, text_size = 9) {
+  list(
+    ggplot2::theme(
+      legend.position = "bottom",
+      legend.direction = "horizontal",
+      legend.box = "horizontal",
+      legend.text = ggplot2::element_text(size = text_size, colour = SURF_TEXT),
+      legend.key.size = grid::unit(0.5, "lines"),
+      legend.spacing.x = grid::unit(0.4, "lines")
+    ),
+    ggplot2::guides(
+      fill = ggplot2::guide_legend(nrow = nrow, byrow = TRUE)
+    )
+  )
+}
+
+```
+
+```{r}
+#| label: surf-label-utils
+#| include: false
+
+# Prozent-Formatierung (einheitlich)
+fmt_pct <- function(x, acc = 1) scales::percent(x, accuracy = acc)
+
+# Label nur anzeigen, wenn Segment groß genug ist (gegen Overplotting)
+pct_if_big <- function(x, min_pct = 0.05, acc = 0) {
+  dplyr::if_else(x >= min_pct, fmt_pct(x, acc), "")
+}
+
+# Labels für horizontale Balken (Prozent rechts außen)
+add_bar_labels_h <- function(size = 3.2, acc = 1, colour = SURF_TEXT) {
+  ggplot2::geom_text(
+    ggplot2::aes(label = fmt_pct(..x.., acc)),
+    stat = "identity",
+    hjust = -0.05,
+    size = size,
+    colour = colour
+  )
+}
+
+# Labels für vertikale Balken (Prozent über Balken)
+add_bar_labels_v <- function(size = 3.2, acc = 1, colour = SURF_TEXT, vjust = -0.4) {
+  ggplot2::geom_text(
+    ggplot2::aes(label = fmt_pct(y, acc)),
+    vjust = vjust,
+    size = size,
+    colour = colour
+  )
+}
+
+# Labels in 100%-Stacked Segmenten (nur wenn Segment >= min_pct)
+add_stack_labels <- function(size = 3.0, acc = 0, min_pct = 0.06, colour = "white") {
+  ggplot2::geom_text(
+    ggplot2::aes(label = pct_if_big(Anteil_prop, min_pct = min_pct, acc = acc)),
+    position = ggplot2::position_stack(vjust = 0.5),
+    size = size,
+    colour = colour
+  )
+}
+
+# Labels für Punktplots (Mean über Punkt)
+add_point_labels <- function(size = 3.1, digits = 2, colour = SURF_TEXT, vjust = -1) {
+  ggplot2::geom_text(
+    ggplot2::aes(label = round(mean, digits)),
+    vjust = vjust,
+    size = size,
+    colour = colour
+  )
+}
+
+# Labels für Prozentpunkte in Differenzplots (außerhalb, links/rechts je Vorzeichen)
+add_diff_labels_h <- function(xvar = "diff", size = 3.2, acc = 1, colour = SURF_TEXT) {
+  ggplot2::geom_text(
+    ggplot2::aes(label = fmt_pct(.data[[xvar]], acc)),
+    hjust = ifelse(control_diff[[xvar]] >= 0, -0.05, 1.05),
+    size = size,
+    colour = colour
+  )
+}
+
+```
+
+```{r}
+#| label: custom-functions
+#| include: false
+
+# Save-Plot Engine
+save_plot <- function(plot, block, sub, slug,
+                      width = 8, height = 5, dpi = 300) {
+  filename <- sprintf("%02d_%02d_%s.png", block, sub, slug)
+  path <- file.path(PLOTS_DIR, filename)
+  ggplot2::ggsave(filename = path, plot = plot, width = width, height = height, dpi = dpi)
+  invisible(path)
+}
+
+# Mean + SD + SE + 95%-CI + n
+mean_ci_n <- function(x) {
+  x <- x[!is.na(x)]
+  n <- length(x)
+
+  # Falls n < 2: CI nicht sinnvoll -> NA
+  m <- mean(x)
+  s <- if (n >= 2) stats::sd(x) else NA_real_
+  se <- if (!is.na(s)) s / sqrt(n) else NA_real_
+  ci <- if (!is.na(se) && n >= 2) stats::qt(0.975, df = n - 1) * se else NA_real_
+
+  tibble::tibble(
+    n = n,
+    mean = m,
+    sd = s,
+    se = se,
+    ymin = if (!is.na(ci)) m - ci else NA_real_,
+    ymax = if (!is.na(ci)) m + ci else NA_real_
+  )
+}
+
+# ---- Flextable Theme (SURF Look) ----
+theme_ft_surf <- function(ft,
+                          font_size = 10,
+                          header_bg = "#F5F5F5",
+                          line_col = "#D9D9D9",
+                          line_w_header = 1,
+                          line_w_body = 0.7,
+                          padding = 4) {
+
+  if (!requireNamespace("officer", quietly = TRUE)) install.packages("officer")
+
+  ft |>
+    flextable::autofit() |>
+    flextable::fontsize(size = font_size, part = "all") |>
+    flextable::padding(padding = padding, part = "all") |>
+    flextable::bold(part = "header") |>
+    flextable::bg(bg = header_bg, part = "header") |>
+    flextable::border_remove() |>
+    flextable::hline_top(
+      border = officer::fp_border(color = line_col, width = line_w_header),
+      part = "all"
+    ) |>
+    flextable::hline_bottom(
+      border = officer::fp_border(color = line_col, width = line_w_header),
+      part = "all"
+    ) |>
+    flextable::hline(
+      border = officer::fp_border(color = line_col, width = line_w_body),
+      part = "body"
+    )
+}
+
+# ---- Convenience: make SURF flextable from data ----
+make_ft_surf <- function(data,
+                         caption = NULL,
+                         align_left_cols = NULL,
+                         align_right_cols = NULL,
+                         font_size = 10) {
+
+  ft <- flextable::flextable(data)
+
+  if (!is.null(align_left_cols)) {
+    ft <- flextable::align(ft, j = align_left_cols, align = "left", part = "all")
+  }
+  if (!is.null(align_right_cols)) {
+    ft <- flextable::align(ft, j = align_right_cols, align = "right", part = "all")
+  }
+
+  ft <- theme_ft_surf(ft, font_size = font_size)
+
+  if (!is.null(caption)) {
+    ft <- flextable::set_caption(ft, caption = caption)
+  }
+
+  ft
+}
+
+# ---- PNG Export (tight, PPT-friendly) ----
+export_flextable_png <- function(ft,
+                                 filename_base,
+                                 tables_dir = TABLES_DIR,
+                                 res = 300,
+                                 overwrite = TRUE) {
+
+  # flextable image export needs either "magick" or "ragg" (depending on setup).
+  # We try to install what is needed.
+  if (!requireNamespace("flextable", quietly = TRUE)) install.packages("flextable")
+  if (!requireNamespace("magick", quietly = TRUE)) {
+    # magick is best for tight cropping; if install fails, save_as_image may still work via other devices
+    try(install.packages("magick"), silent = TRUE)
+  }
+
+  dir.create(tables_dir, recursive = TRUE, showWarnings = FALSE)
+
+  png_file <- file.path(tables_dir, paste0(filename_base, ".png"))
+
+  if (!overwrite && file.exists(png_file)) {
+    stop("Export abgebrochen, da overwrite = FALSE und Datei bereits existiert: ", png_file)
+  }
+
+  # This usually creates a tightly-cropped image of the table
+  flextable::save_as_image(
+    x = ft,
+    path = png_file,
+    res = res
+  )
+
+  invisible(png_file)
+}
+
+
+force_rand_freq_order <- function(x) {
+  x <- as.character(x)
+  x <- stringr::str_trim(x)
+  x <- stringr::str_replace_all(x, "–", "-")      # En-Dash -> Minus
+  x <- stringr::str_replace_all(x, "\\s+", "")    # alle Leerzeichen raus (z.B. "3 - 5" -> "3-5")
+
+  factor(x, levels = c("3-5", "10-15", "20-30"))
+}
+
+```
+
+# Die SURF Akzeptanzbefragung
+
+Die SURF Akzeptanzbefragung erfasst Einstellungen, Präferenzen und
+Zahlungsbereitschaften von Haushalten in Bezug auf eine digitale
+Plattform zur netzdienlichen Steuerung steuerbarer Haushaltsgeräte. Der
+Fragebogen kombiniert allgemeine Einstellungsabfragen mit einem
+szenariobasierten Experimentalteil und deckt sowohl Haushalte mit als
+auch ohne derzeit verfügbare steuerbare Geräte ab.
+
+## Aufbau und Inhalte der Umfrage
+
+**Die zentralen Inhaltsbereiche der Umfrage sind dabei, in Reihenfolge
+ihrer Erhebung:**
+
+-   **Primer: Erklärvideo zur SURF (erstellt in Kooperation mit dem
+    AWSi)**
+    -   ca. 3-minütiges Erklärvideo über die wesentlichen Aspekte der
+        SURF-Plattform, ihrer Funktionsweise und ihres Nutzens für
+        Stromnetz und Teilnehmende.
+-   **Haushaltsausstattung mit SVE**
+    -   Besitz und geplante Anschaffung von Wallbox, Wärmepumpe,
+        Batteriespeicher, Photovoltaikanlage und
+        Energiemanagementsystem.
+-   **Allgemeine Einstellung zur SURF-Plattform**
+    -   Grundsätzliche Bewertung der Plattform.
+    -   Teilnahmebereitschaft, differenziert nach Haushalten mit und
+        ohne vorhandene steuerbare Geräte.
+-   **Szenariobasierter Experimentalteil**
+    -   Einführung eines hypothetischen Nutzungsszenarios mit aktiver
+        Teilnahme an der SURF-Plattform.
+    -   Annahme einer automatischen, zeitlich begrenzten Gerätesteuerung
+        zur Behebung von Netzengpässen.
+    -   Zufällige Variation der jährlichen Häufigkeit von
+        Steuerungseingriffen.
+-   **Eingriffspräferenzen für automatische Steuerung**
+    -   Entscheidung, welche Geräte grundsätzlich gesteuert werden
+        dürfen.
+    -   Angabe der maximal akzeptierten Einschränkungen je Gerät (z. B.
+        Ladeverzögerung, Temperaturabweichung, Einspeisereduktion,
+        Restladung).
+-   **Finanzielle Präferenzen und Zahlungsbereitschaft**
+    -   Bevorzugte Form der Vergütung.
+    -   Präferierte Vergütungslogik (pauschal vs. leistungsabhängig).
+    -   Angabe eines jährlichen Mindestbetrags für die akzeptierten
+        Einschränkungen.
+    -   Einschätzung der Sicherheit dieser Zahlungsbereitschaft.
+-   **Steuerungspräferenzen und Vertrauen**
+    -   Bedeutung individueller Kontroll- und Eingriffsmöglichkeiten.
+-   **Informationsbedarfe und App-Funktionen**
+    -   Bedarf an zusätzlichen Informationen.
+    -   Relevanz verschiedener Informationsinhalte (Netzzustand,
+        Komfort-, Finanz- und Netzeffekte).
+    -   Bevorzugte Darstellungsformen und gewünschte Informationstiefe.
+-   **Teilnahmemotive**
+    -   Zentrales Motiv für eine potenzielle Teilnahme an der Plattform.
+-   **Soziodemografische Merkmale**
+    -   Alter, Haushaltsgröße, Einkommen, Stromkosten und
+        Stromkostenanteil an Einkommen, Bildung, Geschlecht, Wohnform
+        und Wohnort.
+
+# Erste Ergebnisse
+
+```{r}
+#| label: step1-build-analysis-dataset
+#| warning: false
+#| message: false
+
+# ------------------------------------------------------------
+# Schritt 1: Analyse-Datensatz erstellen (nur inhaltliche Variablen)
+# - Whitelist-Ansatz: wir definieren, was INHALT ist, und droppen den Rest
+# - erzeugt:
+#   * daten_analysis (inhaltliche Variablen)
+#   * drop_log (entfernte Variablen + Grund)
+#   * var_map (Variable -> Inhaltsblock)
+# ------------------------------------------------------------
+
+all_vars <- names(daten)
+
+# 1) Inhaltsvariablen definieren (Whitelist)
+#    RandFreq = Experimentalbedingung (wichtig behalten!)
+content_regex <- c(
+  "^rand_freq$",                # Experimentalbedingung
+  "^dev_",                      # Geräteausstattung (DevBox, DevHeat, ...)
+  "^acc_(pre|post)$",           # Akzeptanz vor/nach
+  "^part_(pre|post)_(real|hypo)$",  # Teilnahmebereitschaft vor/nach
+  "^control_",                  # Gerätesteuerung erlaubt? (ControlHeat, ...)
+  "^flex_",                     # Eingriffspräferenzen / Flexibilität
+  "^fin_(form|structure|amount_year|amount_certainty)", # Vergütung / WTP
+  "^restrictions_year$",        # ggf. Filter/inhaltlich (im Fragebogen)
+  "^config_",                   # Konfig-/Governance-Batterie
+  "^auto_trust",                # Vertrauen / Info-Bedarf
+  "^info_content",              # Info-Inhalte (InfoContent[1]...)
+  "^info_form",                 # Info-Darstellung (InfoForm[1]...)
+  "^info_trust",                # falls vorhanden (im Datensatz sichtbar)
+  "^motive$",                   # Teilnahmemotiv
+  "^alter$",                    # Alter
+  "^pers$",                     # Haushaltsgröße (im Datensatz als Pers)
+  "^eink$",                     # Einkommen
+  "^strom_rechnung$",           # Stromrechnung
+  "^bild$",                     # Bildung
+  "^geschl$",                   # Geschlecht
+  "^wohn$",                     # Wohnform
+  "^wohnort$"                   # Wohnort/Region
+)
+
+content_keep <- all_vars[
+  stringr::str_detect(all_vars, paste(content_regex, collapse = "|"))
+]
+
+# 2) Technische Variablen (werden entfernt, falls nicht schon ausgeschlossen)
+technical_regex <- c(
+  "^id$",
+  "^submitdate$",
+  "^lastpage$",
+  "^startlanguage$",
+  "^seed$",
+  "^video_info$",
+  "^immersion$",
+  "^control_info$",
+  "^cheap_talk_script$",
+  "^redirect_info_end$",
+  "^survey_feedback$",
+  "^interviewtime$",
+  "^grouptime",     # groupTime#### nach clean_names -> grouptime####
+  "time$",           # alles, was auf _time endet
+  "^dev_.*_time$"
+)
+
+technical_vars <- all_vars[
+  stringr::str_detect(all_vars, paste(technical_regex, collapse = "|"))
+]
+
+# 3) Endgültige Drop-Liste:
+#    Alles, was nicht in content_keep ist, fliegt raus.
+#    (Das ist die strengste und sauberste Variante für Schritt 1.)
+drop_vars <- setdiff(all_vars, content_keep)
+
+# 4) Analyse-Datensatz
+daten_analysis <- daten |>
+  dplyr::select(dplyr::all_of(content_keep))
+
+# 5) Mapping: Variable -> Inhaltsblock (für Dokumentation & Plan Schritt 2)
+var_map <- tibble::tibble(variable = content_keep) |>
+  dplyr::mutate(
+    block = dplyr::case_when(
+      stringr::str_detect(variable, "^rand_freq$") ~ "03_experiment_randfreq",
+      stringr::str_detect(variable, "^dev_") ~ "01_ausstattung",
+      stringr::str_detect(variable, "^acc_pre$") ~ "02_akzeptanz_pre",
+      stringr::str_detect(variable, "^part_pre_") ~ "02_teilnahme_pre",
+      stringr::str_detect(variable, "^control_") ~ "04_geraeteauswahl_steuerung",
+      stringr::str_detect(variable, "^flex_") ~ "05_eingriffspraeferenzen",
+      stringr::str_detect(variable, "^fin_") | variable == "restrictions_year" ~ "06_verguetung_wtp",
+      stringr::str_detect(variable, "^config_") | stringr::str_detect(variable, "^auto_trust") ~ "07_vertrauen_kontrolle",
+      stringr::str_detect(variable, "^info_content") | stringr::str_detect(variable, "^info_form") | stringr::str_detect(variable, "^info_trust") ~ "08_information_app",
+      stringr::str_detect(variable, "^motive$") ~ "09_motive",
+      stringr::str_detect(variable, "^(alter|pers|eink|strom_rechnung|bild|geschl|wohn|wohnort)$") ~ "10_soziodemografie",
+      TRUE ~ "zz_unspecified"
+    )
+  ) |>
+  dplyr::arrange(block, variable)
+
+# 6) Drop-Log erstellen (mit Hinweis, ob "technisch erkannt" oder "nicht in Whitelist")
+drop_log <- tibble::tibble(variable = drop_vars) |>
+  dplyr::mutate(
+    drop_reason = dplyr::case_when(
+      variable %in% technical_vars ~ "technical/timing/meta",
+      TRUE ~ "not-in-content-whitelist"
+    )
+  ) |>
+  dplyr::arrange(drop_reason, variable)
+
+# 7) Report-Ausgabe (kompakt)
+# cat("Dimensionen daten (raw): ", paste(dim(daten), collapse = " x "), "\n")
+# cat("Dimensionen daten_analysis: ", paste(dim(daten_analysis), collapse = " x "), "\n")
+# cat("Behaltene Variablen: ", ncol(daten_analysis), "\n")
+# cat("Entfernte Variablen: ", length(drop_vars), "\n")
+
+# 8) Logs speichern (optional, aber sehr empfehlenswert)
+readr::write_csv(var_map,  file.path(TABLES_DIR, "00_variable_mapping_blocks.csv"))
+readr::write_csv(drop_log, file.path(TABLES_DIR, "00_drop_log_step1.csv"))
+
+# 9) Logs im Report anzeigen (kurz, damit es nicht überläuft)
+# knitr::kable(
+#   var_map |> dplyr::count(block, name = "n_vars") |> dplyr::arrange(block),
+#   caption = "Schritt 1: Anzahl inhaltlicher Variablen pro Inhaltsblock."
+# )
+# 
+# knitr::kable(
+#   head(drop_log, 25),
+#   caption = "Schritt 1: Beispielhaft entfernte Variablen (erste 25). Vollständige Liste als CSV gespeichert."
+# )
+
+```
+
+```{r}
+#| label: data cleaning
+#| warning: false
+#| message: false
+#| 
+# --- content_keep berechnen (wie bisher) ---
+content_keep <- all_vars[
+  stringr::str_detect(all_vars, paste(content_regex, collapse = "|"))
+]
+
+# --- technische Variablen (wie bisher, aber sauber) ---
+technical_regex <- c(
+  "^id$","^submitdate$","^lastpage$","^startlanguage$","^seed$",
+  "^video_info$","^immersion$","^control_info$","^cheap_talk_script$",
+  "^redirect_info_end$","^survey_feedback$",
+  "^interviewtime$",
+  "^grouptime",
+  "_time$"
+)
+
+technical_vars <- all_vars[
+  stringr::str_detect(all_vars, paste(technical_regex, collapse = "|"))
+]
+
+# --- HIER DER FIX: technische Variablen aus content_keep rauswerfen ---
+content_keep <- setdiff(content_keep, technical_vars)
+
+# Analyse-Datensatz
+daten_analysis <- daten |>
+  dplyr::select(dplyr::all_of(content_keep))
+
+
+```
+
+```{r}
+#| label: recode-missing-likert-after-step1
+#| include: false
+#| warning: false
+#| message: false
+
+# ------------------------------------------------------------
+# FINAL nach data cleaning (daten_analysis ist final):
+# (A) 98/99 -> NA
+# (B) Likert 1–5 -> 0–4 (idempotent)
+# ------------------------------------------------------------
+
+# A) Missing Codes 98/99 -> NA (nur in daten_analysis)
+daten_analysis <- daten_analysis |>
+  dplyr::mutate(
+    dplyr::across(
+      .cols = where(is.numeric),
+      .fns  = ~ dplyr::na_if(dplyr::na_if(.x, 98), 99)
+    )
+  )
+
+# B) Likert-Variablen identifizieren
+likert_regex <- c(
+  "^acc_(pre|post)$",
+  "^part_(pre|post)_(real|hypo)$",
+  "^flex_",
+  "^config_",
+  "^info_content",
+  "^info_form",
+  "^auto_trust",
+  "^info_trust"
+)
+
+likert_vars <- names(daten_analysis)[
+  stringr::str_detect(names(daten_analysis), paste(likert_regex, collapse = "|"))
+]
+
+# Idempotent recode:
+# - Nur dann recoden, wenn Werte > 4 vorkommen (typisch: 5 im 1–5-System)
+# - Bereits recodierte 0–4 bleiben unverändert
+daten_analysis <- daten_analysis |>
+  dplyr::mutate(
+    dplyr::across(
+      .cols = dplyr::all_of(likert_vars),
+      .fns  = ~ {
+        x <- suppressWarnings(as.numeric(.x))
+        if (any(x > 4, na.rm = TRUE)) {
+          dplyr::if_else(x %in% 1:5, x - 1, x)
+        } else {
+          x
+        }
+      }
+    )
+  )
+
+```
+
+## Szenario
+
+Um eine realistische Bewertung der Steuerungsmaßnahmen und Entschädigungen zu ermöglichen, wurden alle Teilnehmenden gebeten, sich in eine spezifische Nutzungssituation hineinzuversetzen. Durch die zufällige Variation der Steuerungshäufigkeit ({RandFreq}) wurde untersucht, wie die Akzeptanz mit der Belastung korreliert.
+
+::: {.callout-note appearance="simple"}
+**Item: Einführung des Nutzungsszenarios**
+
+*"Bitte stellen Sie sich für die nächsten Fragen folgendes Szenario vor:"*
+
+-   Sie nehmen bereits aktiv an der SURF-Plattform teil.
+
+-   Sie besitzen alle genannten Geräte (auch falls dem nicht so ist).
+
+-   Die SURF-Plattform steuert angeschlossene Geräte im Durchschnitt **{RandFreq}-mal im Jahr** automatisch (jeweils für 1-2 Stunden).
+
+-   Ihre Geräte werden für kurze Zeit automatisch gesteuert, Sie erhalten dafür aber eine finanzielle Vergütung und stabilisieren das Netz.
+:::
+
+## SVE
+
+::: {.callout-note appearance="simple"}
+**Item: Haushaltsausstattung mit steuerbaren Geräten**
+
+*"Wie im Video gezeigt, bezieht sich die SURF-Plattform auf steuerbare
+Geräte im Haushalt. Welche der steuerbaren Geräte besitzen Sie oder
+planen Sie anzuschaffen?"*
+
+**Abgefragte Geräte:**
+
+-   Wallbox für Elektroauto
+
+-   Wärmepumpe
+
+-   Batteriespeicher (für Solaranlage oder Pufferspeicher)
+
+-   Photovoltaik-Anlage (Solaranlage)
+
+-   Energiemanagementsystem (Steuerungszentrale für Ihre Geräte)
+
+**Antwortoptionen (je Gerät):**
+
+-   Besitze ich
+
+-   Plane ich in den nächsten 12 Monaten
+
+-   Plane ich langfristig
+
+-   Besitze ich nicht und plane keine Anschaffung
+:::
+
+Der erste Analyseblock dient der Beschreibung der Stichprobe anhand der
+Ausstattung der Haushalte mit steuerbaren Geräten. Die Geräteausstattung
+ist sowohl ein zentrales inhaltliches Merkmal der Befragung als auch
+eine wichtige Grundlage für die Interpretation nachfolgender Ergebnisse,
+da sie maßgeblich die potenziellen Nutzungsmöglichkeiten der
+SURF-Plattform bestimmt.
+
+```{r}
+#| label: block01-devices-overview-table
+#| warning: false
+#| message: false
+
+# ============================================================
+# BLOCK 01: Geräteausstattung (Stichprobenbeschreibung)
+# - nutzt deinen SURF Plot Style (theme_surf + brand_plot_surf)
+# - ein Übersichtsplot für alle Geräte
+# - Export: outputs/plots/01_01_devices_overview.png
+# ============================================================
+
+# 1) Gerätevariablen: nur dev_-Inhalte (time ist bereits aus daten_analysis raus)
+device_vars <- names(daten_analysis)[stringr::str_detect(names(daten_analysis), "^dev_")]
+
+if (length(device_vars) == 0) stop("Block 01: Keine dev_-Variablen in daten_analysis gefunden.")
+
+# 2) Gerätnamen (falls Spalten anders heißen: hier anpassen)
+device_labels <- c(
+  dev_box     = "Wallbox für Elektroauto",
+  dev_heat    = "Wärmepumpe",
+  dev_battery = "Batteriespeicher",
+  dev_pv      = "Photovoltaik-Anlage (Solaranlage)",
+  dev_hems    = "Energiemanagementsystem"
+)
+
+# 3) Statuslabels (gemäß Umfrage: 1–4)
+status_levels <- c(
+  "Besitze ich",
+  "Plane ich in den nächsten 12 Monaten",
+  "Plane ich langfristig",
+  "Besitze ich nicht und plane keine Anschaffung"
+)
+
+# 4) Long-Format + Rekodierung
+devices_long <- daten_analysis |>
+  dplyr::select(dplyr::all_of(device_vars)) |>
+  tidyr::pivot_longer(
+    cols = dplyr::everything(),
+    names_to = "device",
+    values_to = "status_raw"
+  ) |>
+  dplyr::mutate(
+    device_label = dplyr::if_else(
+      device %in% names(device_labels),
+      unname(device_labels[device]),
+      device
+    ),
+    status_code = suppressWarnings(as.integer(as.character(status_raw))),
+    status = dplyr::case_when(
+      status_code == 1 ~ status_levels[1],
+      status_code == 2 ~ status_levels[2],
+      status_code == 3 ~ status_levels[3],
+      status_code == 4 ~ status_levels[4],
+      TRUE ~ "Keine Angabe"
+    ),
+    status = factor(status, levels = c(status_levels, "Keine Angabe"))
+  ) |>
+  dplyr::select(device_label, status)
+
+# 5) Tabelle (n / %)
+device_table <- devices_long |>
+  dplyr::count(device_label, status, name = "Anzahl") |>
+  dplyr::group_by(device_label) |>
+  dplyr::mutate(Anteil = round(Anzahl / sum(Anzahl) * 100, 1)) |>
+  dplyr::ungroup() |>
+  dplyr::arrange(device_label, match(status, levels(devices_long$status)))
+
+# knitr::kable(
+#   device_table,
+#   col.names = c("Gerät", "Status", "Anzahl", "Anteil (%)"),
+#   align = c("l", "l", "r", "r"),
+#   caption = "Geräteausstattung der Stichprobe: Besitz und geplante Anschaffung steuerbarer Geräte."
+# )
+
+```
+
+```{r}
+#| label: plot-01-devices-overview-plot
+#| warning: false
+#| message: false
+
+# plot_df muss enthalten: device_label, status, Anteil_prop
+# (aus deinem Block-01-Übersichts-Code)
+plot_df <- devices_long |>
+  dplyr::count(device_label, status, name = "Anzahl") |>
+  dplyr::group_by(device_label) |>
+  dplyr::mutate(
+    Anteil_prop = Anzahl / sum(Anzahl)
+  ) |>
+  dplyr::ungroup()
+
+p_b01 <- ggplot2::ggplot(
+  plot_df,
+  ggplot2::aes(y = device_label, x = Anteil_prop, fill = status)
+) +
+  ggplot2::geom_col(width = 0.75, colour = "white", linewidth = 0.2) +
+  ggplot2::scale_x_continuous(labels = scales::percent_format(accuracy = 1)) +
+  ggplot2::scale_fill_manual(
+    values = c(
+      "Besitze ich"                                   = SURF_PURPLE,
+      "Plane ich in den nächsten 12 Monaten"          = SURF_PINK,
+      "Plane ich langfristig"                         = SURF_MAG,
+      "Besitze ich nicht und plane keine Anschaffung" = SURF_GRID,
+      "Keine Angabe"                                  = SURF_GRID
+    )
+  ) +
+  ggplot2::labs(
+    title = "Geräteausstattung der Stichprobe",
+    subtitle = "Besitz und geplante Anschaffung steuerbarer Geräte (Anteile je Gerät)",
+    x = "Anteil der Befragten",
+    y = NULL,
+    fill = NULL
+  ) +
+  theme_surf(base_size = 12) +
+  surf_legend_bottom(nrow = 2, text_size = 9) +
+  add_stack_labels(size = 3.0, acc = 0, min_pct = 0.06, colour = "white")
+
+p_b01_branded <- brand_plot_surf(p_b01)
+
+save_plot(plot = p_b01_branded, block = 1, sub = 1, slug = "devices_overview")
+p_b01_branded
+
+
+```
+
+### SVE Gruppen
+
+Auf Basis der Geräteausstattung und der angegebenen
+Anschaffungsabsichten lassen sich vier Haushaltsgruppen unterscheiden.
+Ein Teil der Stichprobe verfügt bereits über mindestens ein steuerbares
+Gerät und wird als aktive Flexibilitätsnutzer eingeordnet. Weitere
+Haushalte planen die Anschaffung entsprechender Geräte kurzfristig oder
+langfristig, während ein verbleibender Anteil weder Geräte besitzt noch
+Anschaffungsabsichten angibt. Diese Gruppierung bildet eine zentrale
+Grundlage für die Interpretation der nachfolgenden Analysen.
+
+```{r}
+#| label: b01-device-groups-create
+#| warning: false
+#| message: false
+
+# ------------------------------------------------------------
+# Gerätebesitzgruppen auf Haushaltsebene
+# ------------------------------------------------------------
+
+# Gerätevariablen (Inhalte)
+device_vars <- names(daten_analysis)[stringr::str_detect(names(daten_analysis), "^dev_")]
+
+# Long-Format: Haushalt × Gerät
+devices_long_hh <- daten_analysis |>
+  dplyr::select(dplyr::all_of(device_vars)) |>
+  dplyr::mutate(hh_id = dplyr::row_number()) |>
+  tidyr::pivot_longer(
+    cols = -hh_id,
+    names_to = "device",
+    values_to = "status_raw"
+  ) |>
+  dplyr::mutate(
+    status_code = suppressWarnings(as.integer(as.character(status_raw)))
+  )
+
+# Haushaltsweise Flags
+device_group_flags <- devices_long_hh |>
+  dplyr::group_by(hh_id) |>
+  dplyr::summarise(
+    has_device        = any(status_code == 1, na.rm = TRUE),
+    plans_shortterm   = any(status_code == 2, na.rm = TRUE),
+    plans_longterm    = any(status_code == 3, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Gruppenvariable (Prioritätslogik!)
+device_groups <- device_group_flags |>
+  dplyr::mutate(
+    device_group = dplyr::case_when(
+      has_device ~ "Gerätebesitzer",
+      !has_device & plans_shortterm ~ "Kurzfristige Adopter",
+      !has_device & !plans_shortterm & plans_longterm ~ "Langfristig Interessierte",
+      TRUE ~ "Nicht-Adopter"
+    ),
+    device_group = factor(
+      device_group,
+      levels = c(
+        "Gerätebesitzer",
+        "Kurzfristige Adopter",
+        "Langfristig Interessierte",
+        "Nicht-Adopter"
+      )
+    )
+  )
+
+# Gruppenvariable an daten_analysis anhängen
+daten_analysis <- daten_analysis |>
+  dplyr::mutate(
+    device_group = device_groups$device_group
+  )
+
+```
+
+```{r}
+#| label: b01-device-groups-plot
+#| warning: false
+#| message: false
+
+# Daten für Plot
+device_group_plot <- daten_analysis |>
+  dplyr::count(device_group, name = "Anzahl") |>
+  dplyr::mutate(
+    Anteil = Anzahl / sum(Anzahl)
+  )
+
+# Plot
+p_groups <- ggplot2::ggplot(
+  device_group_plot,
+  ggplot2::aes(x = device_group, y = Anteil)
+) +
+  ggplot2::geom_col(
+    fill = SURF_PURPLE,
+    width = 0.65
+  ) +
+  ggplot2::scale_y_continuous(
+    labels = scales::percent_format(accuracy = 1)
+  ) +
+  ggplot2::labs(
+    title = "Gerätebesitz- und Anschaffungsgruppen in der Stichprobe",
+    subtitle = "Haushaltsbezogene Einteilung auf Basis von Besitz und Anschaffungsintention",
+    x = NULL,
+    y = "Anteil der Befragten"
+  ) +
+  theme_surf(base_size = 12) +
+  ggplot2::theme(
+    axis.text.x = ggplot2::element_text(angle = 15, hjust = 1)
+  )
+
+p_groups_branded <- brand_plot_surf(p_groups)
+
+# Export
+save_plot(
+  plot  = p_groups_branded,
+  block = 1,
+  sub   = 2,
+  slug  = "device_groups"
+)
+
+p_groups_branded
+
+```
+
+```{r}
+#| label: b01-device-groups-create-b
+#| warning: false
+#| message: false
+
+# 1) Gerätevariablen identifizieren
+device_vars <- names(daten_analysis)[stringr::str_detect(names(daten_analysis), "^dev_")]
+
+# 2) Haushaltsweise Flags berechnen
+device_group_flags <- daten_analysis |>
+  dplyr::select(dplyr::all_of(device_vars)) |>
+  dplyr::mutate(hh_id = dplyr::row_number()) |>
+  tidyr::pivot_longer(cols = -hh_id, names_to = "device", values_to = "status_raw") |>
+  dplyr::mutate(status_code = suppressWarnings(as.integer(as.character(status_raw)))) |>
+  dplyr::group_by(hh_id) |>
+  dplyr::summarise(
+    has_device       = any(status_code == 1, na.rm = TRUE),
+    plans_shortterm   = any(status_code == 2, na.rm = TRUE),
+    plans_longterm    = any(status_code == 3, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# 3) Gruppenvariablen an den Hauptdatensatz hängen
+daten_analysis <- daten_analysis |>
+  dplyr::mutate(
+    # Detaillierte Gruppen (4 Stufen)
+    device_group = dplyr::case_when(
+      device_group_flags$has_device ~ "Gerätebesitzer",
+      !device_group_flags$has_device & device_group_flags$plans_shortterm ~ "Kurzfristige Adopter",
+      !device_group_flags$has_device & !device_group_flags$plans_shortterm & device_group_flags$plans_longterm ~ "Langfristig Interessierte",
+      TRUE ~ "Nicht-Adopter"
+    ),
+    device_group = factor(device_group, levels = c("Gerätebesitzer", "Kurzfristige Adopter", "Langfristig Interessierte", "Nicht-Adopter")),
+    
+    # AGGREGRIERTER STATUS (Hier ist die Lösung für deinen Fehler!)
+    owner_group = dplyr::case_when(
+      device_group == "Gerätebesitzer" ~ "Gerätebesitzer",
+      TRUE ~ "Nicht-Besitzer"
+    ),
+    owner_group = factor(owner_group, levels = c("Gerätebesitzer", "Nicht-Besitzer"))
+  )
+```
+
+## Partizipationsintention (PI)
+
+Nachdem die Befragten über die Funktionsweise der Plattform informiert wurden, wurde die Bereitschaft zur Teilnahme erhoben. Dabei wurde methodisch zwischen Haushalten unterschieden, die bereits steuerbare Geräte besitzen, und solchen, bei denen dies (noch) nicht der Fall ist.
+
+::: {.callout-note appearance="simple"}
+**Item: Partizipationsintention (Teilnahmebereitschaft)**
+
+*Abhängig vom Besitzstatus wurde eine der folgenden zwei Varianten abgefragt:*
+
+**Variante A: Reale Intention (für Besitzer von SVE)**
+
+-   "Ich möchte an der SURF-Plattform teilnehmen."
+
+-   *(Filter: Mindestens ein Gerät vorhanden)*
+
+**Variante B: Hypothetische Intention (für Nicht-Besitzer)**
+
+-   "Falls in meinem Haushalt zukünftig steuerbare Geräte (z. B. Wallbox, Wärmepumpe) verfügbar sind, möchte ich an der SURF-Plattform teilnehmen."
+
+-   *(Filter: Kein Gerät vorhanden)*
+
+**Antwortoptionen (5-stufige Likert-Skala):**
+
+-   1 - Stimme überhaupt nicht zu
+
+-   2 - Stimme eher nicht zu
+
+-   3 - Teils, teils
+
+-   4 - Stimme eher zu
+
+-   5 - Stimme vollständig zu
+
+-   Weiß ich nicht
+
+:::
+
+Während die Akzeptanz die grundsätzliche Einstellung der Befragten zur
+SURF-Plattform widerspiegelt, misst die Partizipationsintention (PI) die
+konkrete Bereitschaft, das eigene Haushaltssystem tatsächlich für eine
+netzdienliche Steuerung zur Verfügung zu stellen. Die Intention gilt in
+der psychologischen Forschung als der stärkste Prädiktor für
+tatsächliches zukünftiges Verhalten.
+
+Methodisch wird in dieser Untersuchung zwischen zwei Ausgangslagen
+unterschieden:
+
+-   Reale Partizipationsintention: Befragte, die bereits steuerbare
+    Geräte besitzen, bewerten ihre Bereitschaft zur unmittelbaren
+    Teilnahme.
+-   Hypothetische Partizipationsintention: Befragte ohne entsprechende
+    Hardware bewerten ihre Bereitschaft für den Fall einer zukünftigen
+    Anschaffung.
+
+Durch die Zusammenführung dieser beiden Perspektiven auf einer
+gemeinsamen Skala lässt sich analysieren, wie stark die generelle
+Bereitschaft im Sample ausgeprägt ist und inwieweit die Konfrontation
+mit der technischen Realität (bei Besitzern) oder die bloße Vorstellung
+(bei Nicht-Besitzern) die Teilnahmebereitschaft beeinflusst. Wie schon
+bei der Akzeptanz wird auch hier untersucht, ob die PI im Verlauf der
+Befragung – insbesondere nach der Präsentation der konkreten
+Steuerungsszenarien – stabil bleibt oder sich signifikant verändert.
+
+```{r}
+#| label: part-owner-group-create
+#| warning: false
+#| message: false
+
+daten_analysis <- daten_analysis |>
+  dplyr::mutate(
+    # Besitzstatus: Gerätebesitzer vs Nicht-Besitzer
+    owner_group = dplyr::case_when(
+      device_group == "Gerätebesitzer" ~ "Gerätebesitzer",
+      device_group %in% c("Kurzfristige Adopter","Langfristig Interessierte","Nicht-Adopter") ~ "Nicht-Besitzer",
+      TRUE ~ NA_character_
+    ),
+    owner_group = factor(owner_group, levels = c("Gerätebesitzer", "Nicht-Besitzer")),
+
+    # ------------------------------------------------------------
+    # WICHTIGER FIX:
+    # PI wurde 2x erhoben: real (Besitzer) und hypo (Nicht-Besitzer)
+    # => gemeinsame PRE/POST Variable bauen
+    # (achte darauf, dass die richtigen Spaltennamen existieren)
+    # ------------------------------------------------------------
+    part_pre = dplyr::case_when(
+      owner_group == "Gerätebesitzer" ~ part_pre_real,
+      owner_group == "Nicht-Besitzer" ~ part_pre_hypo,
+      TRUE ~ NA_real_
+    ),
+    part_post = dplyr::case_when(
+      owner_group == "Gerätebesitzer" ~ part_post_real,
+      owner_group == "Nicht-Besitzer" ~ part_post_hypo,
+      TRUE ~ NA_real_
+    ),
+
+    # Differenz (POST – PRE) auf Basis der gemeinsamen Variable
+    part_diff = dplyr::if_else(!is.na(part_post) & !is.na(part_pre), part_post - part_pre, NA_real_)
+  )
+
+```
+
+### PI zu Beginn
+
+```{r}
+#| label: plot-03-13-part-pre-combined
+#| warning: false
+#| message: false
+
+combined_levels <- c(
+  "Gesamtstichprobe",
+  "Gerätebesitzer",
+  "Nicht-Besitzer (agg.)",
+  "Kurzfristige Adopter",
+  "Langfristig Interessierte",
+  "Nicht-Adopter"
+)
+
+part_pre_combined <- dplyr::bind_rows(
+  daten_analysis |> dplyr::mutate(group_combined = "Gesamtstichprobe"),
+  daten_analysis |> dplyr::filter(device_group == "Gerätebesitzer") |> dplyr::mutate(group_combined = "Gerätebesitzer"),
+  daten_analysis |> dplyr::filter(owner_group == "Nicht-Besitzer") |> dplyr::mutate(group_combined = "Nicht-Besitzer (agg.)"),
+  daten_analysis |>
+    dplyr::filter(device_group %in% c("Kurzfristige Adopter", "Langfristig Interessierte", "Nicht-Adopter")) |>
+    dplyr::mutate(group_combined = device_group)
+) |>
+  dplyr::mutate(group_combined = factor(group_combined, levels = combined_levels)) |>
+  dplyr::group_by(group_combined) |>
+  dplyr::summarise(mean_ci_n(part_pre), .groups = "drop") |>
+  dplyr::mutate(label_y = ymax + 0.12)
+
+# Headroom
+y_top_part_pre_combined <- max(
+  c(part_pre_combined$label_y, part_pre_combined$ymax, 4),
+  na.rm = TRUE
+) + 0.35
+
+# Gemeinsame (hohe) Box-Höhe: minimal näher an den oberen Rand
+annot_y_pre <- y_top_part_pre_combined + 0.3
+
+subtitle_pre <- paste(
+  "Partizipationsintention Real oder Hypothetisch",
+  "Nach Aggregat, Adoption, und Adoptionsintention",
+  sep = "\n"
+)
+
+p_part_pre_combined <- ggplot2::ggplot(
+  part_pre_combined,
+  ggplot2::aes(x = group_combined, y = mean)
+) +
+  # visuelle Trennung (deutlich)
+  ggplot2::geom_vline(
+    xintercept = 3.5,
+    colour = SURF_GRID,
+    linewidth = 1.1
+  ) +
+
+  # Linke Box (Aggregat / Besitz vs. Nicht-Besitz)
+  ggplot2::annotate(
+    "label",
+    x = 2.5,                     # exakt zwischen Kategorie 2 und 3
+    y = annot_y_pre,
+    label = "Besitz vs. Nicht-Besitz",
+    hjust = 0.5,
+    vjust = 1,
+    size = 3.0,
+    colour = SURF_TEXT,
+    fill = "white",
+    label.size = 0.35
+  ) +
+
+  # Rechte Box (Differenzierung Nicht-Besitz)
+  ggplot2::annotate(
+    "label",
+    x = 5.0,
+    y = annot_y_pre,
+    label = "Differenzierung Nicht-Besitz",
+    hjust = 0.5,
+    vjust = 1,
+    size = 3.0,
+    colour = SURF_TEXT,
+    fill = "white",
+    label.size = 0.35
+  ) +
+
+  ggplot2::geom_point(colour = SURF_PURPLE, size = 3) +
+  ggplot2::geom_errorbar(
+    ggplot2::aes(ymin = ymin, ymax = ymax),
+    width = 0.15,
+    colour = SURF_PURPLE
+  ) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = round(mean, 2)),
+    size = 3.1,
+    vjust = 0
+  ) +
+  ggplot2::labs(
+    title = "Teilnahmebereitschaft vor dem Szenario",
+    subtitle = subtitle_pre,
+    x = NULL,
+    y = "Teilnahmeintention (0–4)"
+  ) +
+  theme_surf(base_size = 12) +
+  ggplot2::theme(
+    axis.text.x = ggplot2::element_text(angle = 15, hjust = 1),
+
+    # mehr Abstand zwischen (Unter-)Titel und Panel
+    plot.title.position = "plot",
+    plot.subtitle = ggplot2::element_text(
+      margin = ggplot2::margin(b = 14)
+    ),
+
+    # mehr Luft oben + rechts (Logo + Labels)
+    plot.margin = ggplot2::margin(18, 30, 18, 12)
+  ) +
+  ggplot2::scale_x_discrete(drop = FALSE) +
+  ggplot2::scale_y_continuous(breaks = 0:4) +
+  ggplot2::coord_cartesian(
+    ylim = c(0, y_top_part_pre_combined),
+    clip = "off"
+  )
+
+p_part_pre_combined_branded <- brand_plot_surf(p_part_pre_combined)
+
+save_plot(
+  plot  = p_part_pre_combined_branded,
+  block = 3,
+  sub   = 13,
+  slug  = "participation_pre_combined"
+)
+
+p_part_pre_combined_branded
+
+```
+
+### PI am Ende
+
+#### Nach Adoptionsstatus
+
+```{r}
+#| label: plot-03-04-part-post-experiment
+#| warning: false
+#| message: false
+
+part_post_exp <- daten_analysis |>
+  dplyr::filter(!is.na(owner_group)) |>
+  dplyr::mutate(
+    owner_group = factor(owner_group, levels = c("Gerätebesitzer", "Nicht-Besitzer")),
+    rand_freq   = force_rand_freq_order(rand_freq)
+  ) |>
+  dplyr::group_by(owner_group, rand_freq) |>
+  dplyr::summarise(mean_ci_n(part_post), .groups = "drop") |>
+  dplyr::mutate(label_y = ymax + 0.12)
+
+y_top_part_post_exp <- max(c(part_post_exp$label_y, part_post_exp$ymax, 4), na.rm = TRUE) + 0.15
+
+p_part_post_exp <- ggplot2::ggplot(
+  part_post_exp,
+  ggplot2::aes(x = rand_freq, y = mean)
+) +
+  ggplot2::geom_point(colour = SURF_PURPLE, size = 2.8) +
+  ggplot2::geom_errorbar(
+    ggplot2::aes(ymin = ymin, ymax = ymax),
+    width = 0.2,
+    colour = SURF_PURPLE
+  ) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = round(mean, 2)),
+    size = 2.9,
+    vjust = 0
+  ) +
+  ggplot2::facet_wrap(~ owner_group, nrow = 1) +
+  ggplot2::labs(
+    title = "Teilnahmebereitschaft nach dem Szenario nach Experimentalbedingung",
+    subtitle = "Gemeinsame PI-Skala (REAL bei Besitzern, HYPO bei Nicht-Besitzern) – Mittelwerte mit 95%-KI",
+    x = "Experimentalbedingung (Häufigkeit der Steuerung)",
+    y = "Teilnahmeintention (0–4)"
+  ) +
+  theme_surf(base_size = 11) +
+  ggplot2::scale_y_continuous(breaks = 0:4) +
+  ggplot2::coord_cartesian(ylim = c(0, y_top_part_post_exp), clip = "off")
+
+p_part_post_exp_branded <- brand_plot_surf(p_part_post_exp)
+
+save_plot(
+  plot  = p_part_post_exp_branded,
+  block = 3,
+  sub   = 4,
+  slug  = "participation_post_experiment_owner"
+)
+
+p_part_post_exp_branded
+
+```
+
+### PI Differenz Beginn-Ende
+
+```{r}
+#| label: plot-03-15-part-diff-combined
+#| warning: false
+#| message: false
+
+combined_levels <- c(
+  "Gesamtstichprobe",
+  "Gerätebesitzer",
+  "Nicht-Besitzer (agg.)",
+  "Kurzfristige Adopter",
+  "Langfristig Interessierte",
+  "Nicht-Adopter"
+)
+
+part_diff_combined <- dplyr::bind_rows(
+  daten_analysis |> dplyr::mutate(group_combined = "Gesamtstichprobe"),
+  daten_analysis |> dplyr::filter(device_group == "Gerätebesitzer") |> dplyr::mutate(group_combined = "Gerätebesitzer"),
+  daten_analysis |> dplyr::filter(owner_group == "Nicht-Besitzer") |> dplyr::mutate(group_combined = "Nicht-Besitzer (agg.)"),
+  daten_analysis |>
+    dplyr::filter(device_group %in% c("Kurzfristige Adopter", "Langfristig Interessierte", "Nicht-Adopter")) |>
+    dplyr::mutate(group_combined = device_group)
+) |>
+  dplyr::mutate(group_combined = factor(group_combined, levels = combined_levels)) |>
+  dplyr::group_by(group_combined) |>
+  dplyr::summarise(mean_ci_n(part_diff), .groups = "drop") |>
+  dplyr::mutate(label_y = ymax + 0.12)
+
+# Symmetrische Headroom-Logik (Diff-Plot)
+y_top_part_diff_combined <- max(c(part_diff_combined$label_y, part_diff_combined$ymax), na.rm = TRUE) + 0.15
+y_bot_part_diff_combined <- min(part_diff_combined$ymin, na.rm = TRUE) - 0.15
+y_abs_part_diff_combined <- max(abs(c(y_bot_part_diff_combined, y_top_part_diff_combined, -1, 1)), na.rm = TRUE)
+
+# Box-Position oberhalb des Panels (clip = "off")
+annot_y_diff <- y_abs_part_diff_combined + 0.0
+
+subtitle_diff <- paste(
+  "POST − PRE (Mittelwerte mit 95%-Konfidenzintervallen)",
+  "Nach Aggregat, Adoption, und Adoptionsintention",
+  sep = "\n"
+)
+
+p_part_diff_combined <- ggplot2::ggplot(
+  part_diff_combined,
+  ggplot2::aes(x = group_combined, y = mean)
+) +
+  ggplot2::geom_hline(yintercept = 0, colour = SURF_GRID, linewidth = 0.4) +
+
+  # visuelle Trennung (deutlich)
+  ggplot2::geom_vline(
+    xintercept = 3.5,
+    colour = SURF_GRID,
+    linewidth = 1.1
+  ) +
+
+  # Linke Box (Aggregat / Besitz vs. Nicht-Besitz)
+  ggplot2::annotate(
+    "label",
+    x = 2.5,                     # exakt zwischen Kategorie 2 und 3
+    y = annot_y_diff,
+    label = "Besitz vs. Nicht-Besitz",
+    hjust = 0.5,
+    vjust = 1,
+    size = 3.0,
+    colour = SURF_TEXT,
+    fill = "white",
+    label.size = 0.35
+  ) +
+
+  # Rechte Box (Differenzierung Nicht-Besitz)
+  ggplot2::annotate(
+    "label",
+    x = 5.0,
+    y = annot_y_diff,
+    label = "Differenzierung Nicht-Besitz",
+    hjust = 0.5,
+    vjust = 1,
+    size = 3.0,
+    colour = SURF_TEXT,
+    fill = "white",
+    label.size = 0.35
+  ) +
+
+  ggplot2::geom_point(colour = SURF_PURPLE, size = 3) +
+  ggplot2::geom_errorbar(
+    ggplot2::aes(ymin = ymin, ymax = ymax),
+    width = 0.15,
+    colour = SURF_PURPLE
+  ) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = round(mean, 2)),
+    size = 3.1,
+    vjust = 0
+  ) +
+  ggplot2::labs(
+    title = "Veränderung der Teilnahmebereitschaft durch das Szenario",
+    subtitle = subtitle_diff,
+    x = NULL,
+    y = "Δ Teilnahmeintention (POST − PRE)"
+  ) +
+  theme_surf(base_size = 12) +
+  ggplot2::theme(
+    axis.text.x = ggplot2::element_text(angle = 15, hjust = 1),
+
+    # mehr Abstand zwischen (Unter-)Titel und Panel
+    plot.title.position = "plot",
+    plot.subtitle = ggplot2::element_text(
+      margin = ggplot2::margin(b = 14)
+    ),
+
+    # mehr Luft oben + rechts (Logo + Labels)
+    plot.margin = ggplot2::margin(18, 30, 18, 12)
+  ) +
+  ggplot2::scale_x_discrete(drop = FALSE) +
+  ggplot2::coord_cartesian(
+    ylim = c(-y_abs_part_diff_combined, y_abs_part_diff_combined),
+    clip = "off"
+  )
+
+p_part_diff_combined_branded <- brand_plot_surf(p_part_diff_combined)
+
+save_plot(
+  plot  = p_part_diff_combined_branded,
+  block = 3,
+  sub   = 15,
+  slug  = "participation_diff_combined"
+)
+
+# p_part_diff_combined_branded
+
+```
+
+#### Nach Adoptionsstatus
+
+```{r}
+#| label: plot-03-06-part-diff-experiment
+#| warning: false
+#| message: false
+
+part_diff_exp <- daten_analysis |>
+  dplyr::filter(!is.na(owner_group)) |>
+  dplyr::mutate(
+    owner_group = factor(owner_group, levels = c("Gerätebesitzer", "Nicht-Besitzer")),
+    rand_freq   = force_rand_freq_order(rand_freq)
+  ) |>
+  dplyr::group_by(owner_group, rand_freq) |>
+  dplyr::summarise(mean_ci_n(part_diff), .groups = "drop") |>
+  dplyr::mutate(label_y = ymax + 0.12)
+
+y_top_part_diff_exp <- max(c(part_diff_exp$label_y, part_diff_exp$ymax), na.rm = TRUE) + 0.15
+y_bot_part_diff_exp <- min(part_diff_exp$ymin, na.rm = TRUE) - 0.15
+y_abs_part_diff_exp <- max(abs(c(y_bot_part_diff_exp, y_top_part_diff_exp, -1, 1)), na.rm = TRUE)
+
+p_part_diff_exp <- ggplot2::ggplot(
+  part_diff_exp,
+  ggplot2::aes(x = rand_freq, y = mean)
+) +
+  ggplot2::geom_hline(yintercept = 0, colour = SURF_GRID, linewidth = 0.4) +
+  ggplot2::geom_point(colour = SURF_PURPLE, size = 2.8) +
+  ggplot2::geom_errorbar(
+    ggplot2::aes(ymin = ymin, ymax = ymax),
+    width = 0.2,
+    colour = SURF_PURPLE
+  ) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = round(mean, 2)),
+    size = 2.9,
+    vjust = 0
+  ) +
+  ggplot2::facet_wrap(~ owner_group, nrow = 1) +
+  ggplot2::labs(
+    title = "Veränderung der Teilnahmebereitschaft nach Experimentalbedingung",
+    subtitle = "POST − PRE (Mittelwerte mit 95%-Konfidenzintervallen)",
+    x = "Experimentalbedingung (Häufigkeit der Steuerung)",
+    y = "Δ Teilnahmeintention (POST − PRE)"
+  ) +
+  theme_surf(base_size = 11) +
+  ggplot2::coord_cartesian(ylim = c(-y_abs_part_diff_exp, y_abs_part_diff_exp), clip = "off")
+
+p_part_diff_exp_branded <- brand_plot_surf(p_part_diff_exp)
+
+save_plot(
+  plot  = p_part_diff_exp_branded,
+  block = 3,
+  sub   = 6,
+  slug  = "participation_difference_experiment_owner"
+)
+
+p_part_diff_exp_branded
+
+```
+
+## Steuerungsbereitschaft nach Gerät
+
+Nach der Einführung in das Szenario wurden die Teilnehmenden gebeten, eine konkrete Auswahl zu treffen, welche ihrer (potenziellen) Geräte sie für die automatische Steuerung durch die SURF-Plattform freigeben würden.
+
+::: {.callout-note appearance="simple"}
+
+**Item: Auswahl der Geräte**
+
+*"Bitte geben Sie nun zunächst an, welche der folgenden Geräte in Ihrem Haushalt Sie von der SURF-Plattform **{RandFreq}-mal im Jahr** (jeweils für 1-2 Stunden) automatisch steuern lassen würden, um Netzengpässe zu beheben."*
+
+*"Wir bitten Sie, diese Entscheidungen so ernsthaft zu treffen, als würden Sie sie vertraglich festlegen."*
+
+**Abgefragte Geräte:**
+
+-   Wallbox
+
+-   Wärmepumpe
+
+-   Batteriespeicher
+
+-   Photovoltaik-Anlage
+
+**Antwortoptionen (je Gerät):**
+
+-   Ja (Steuerung erlaubt)
+
+-   Nein (Keine Steuerung erlaubt)
+:::
+
+```{r}
+#| label: b04-control-readiness-final
+#| warning: false
+#| message: false
+
+# 1) Definitionen (Mapping der Steuerungsvariable zum Besitzstand)
+# WICHTIG: Die Namen links (control_...) müssen exakt so im Datensatz stehen.
+target_map <- list(
+  "Wallbox"          = list(ctrl = "control_ev",   dev = "dev_box"),
+  "Wärmepumpe"       = list(ctrl = "control_heat", dev = "dev_heat"),
+  "Batteriespeicher" = list(ctrl = "control_batt", dev = "dev_battery"),
+  "Photovoltaik"     = list(ctrl = "control_pv",   dev = "dev_pv")
+)
+
+# Ziel-Reihenfolge der Zeilen
+combined_levels <- c(
+  "Gesamtstichprobe", "Gerätebesitzer", "Nicht-Besitzer (agg.)",
+  "Kurzfristige Adopter", "Langfristig Interessierte", "Nicht-Adopter"
+)
+
+# 2) Berechnung der Quoten Gerät für Gerät
+results_list <- list()
+
+for (label in names(target_map)) {
+  ctrl_var <- target_map[[label]]$ctrl
+  dev_var  <- target_map[[label]]$dev
+  
+  # Hilfs-Datensatz für dieses eine Gerät
+  df_sub <- daten_analysis |>
+    dplyr::select(ctrl = dplyr::all_of(ctrl_var), dev = dplyr::all_of(dev_var)) |>
+    dplyr::mutate(
+      ctrl = as.numeric(as.character(ctrl)),
+      dev  = as.numeric(as.character(dev)),
+      success = dplyr::if_else(ctrl == 1, 1, 0)
+    ) |>
+    dplyr::filter(!is.na(ctrl), !is.na(dev))
+  
+  # Quoten berechnen
+  res <- dplyr::bind_rows(
+    df_sub |> dplyr::summarise(pct = mean(success)*100, Gruppe = "Gesamtstichprobe"),
+    df_sub |> dplyr::filter(dev == 1) |> dplyr::summarise(pct = mean(success)*100, Gruppe = "Gerätebesitzer"),
+    df_sub |> dplyr::filter(dev > 1)  |> dplyr::summarise(pct = mean(success)*100, Gruppe = "Nicht-Besitzer (agg.)"),
+    df_sub |> dplyr::filter(dev == 2) |> dplyr::summarise(pct = mean(success)*100, Gruppe = "Kurzfristige Adopter"),
+    df_sub |> dplyr::filter(dev == 3) |> dplyr::summarise(pct = mean(success)*100, Gruppe = "Langfristig Interessierte"),
+    df_sub |> dplyr::filter(dev == 4) |> dplyr::summarise(pct = mean(success)*100, Gruppe = "Nicht-Adopter")
+  ) |>
+    dplyr::mutate(Gerät = label)
+  
+  results_list[[label]] <- res
+}
+
+control_final_data <- dplyr::bind_rows(results_list) |>
+  dplyr::mutate(Gruppe = factor(Gruppe, levels = combined_levels))
+
+# 3) Tabelle im Breitformat erstellen
+control_table_wide <- control_final_data |>
+  dplyr::mutate(display = dplyr::if_else(is.nan(pct), "-", sprintf("%.1f%%", pct))) |>
+  dplyr::select(Gruppe, Gerät, display) |>
+  tidyr::pivot_wider(names_from = Gerät, values_from = display) |>
+  dplyr::arrange(Gruppe)
+
+# 4) Flextable erstellen
+ft_control_final <- make_ft_surf(
+  data = control_table_wide,
+  caption = "Zustimmung zur automatischen Steuerung (geräte-spezifische Basis).",
+  align_left_cols = "Gruppe"
+) |>
+  # Hierarchischer Einzug für Zeilen 4-6
+  flextable::padding(i = 4:6, j = 1, padding.left = 20, part = "body") |>
+  # Aggregat-Zeilen fett markieren
+  flextable::bold(i = 1:3, j = 1)
+
+# Anzeige
+# ft_control_final
+
+# Export
+# export_flextable_png(ft_control_final, "04_01_control_readiness_comprehensive_table")
+
+```
+
+```{r}
+#| label: plot-04-01-control-overall-owner
+#| warning: false
+#| message: false
+
+# 1) Datenaufbereitung mit geräte-spezifischer Besitz-Logik
+control_owner_data <- daten_analysis |>
+  dplyr::mutate(hh_id = dplyr::row_number()) |>
+  dplyr::select(
+    hh_id,
+    control_ev, control_heat, control_batt, control_pv,
+    dev_box, dev_heat, dev_battery, dev_pv
+  ) |>
+  tidyr::pivot_longer(
+    cols = c(control_ev, control_heat, control_batt, control_pv),
+    names_to = "control_var",
+    values_to = "control_val"
+  ) |>
+  dplyr::mutate(
+    # Mapping der Labels
+    device_label = dplyr::recode(control_var,
+      "control_ev"   = "Wallbox",
+      "control_heat" = "Wärmepumpe",
+      "control_batt" = "Batteriespeicher",
+      "control_pv"   = "Photovoltaik"
+    ),
+    # Dynamisches Mapping zum jeweiligen Besitzstand
+    dev_var = dplyr::recode(control_var,
+      "control_ev"   = "dev_box",
+      "control_heat" = "dev_heat",
+      "control_batt" = "dev_battery",
+      "control_pv"   = "dev_pv"
+    ),
+    # Wert des Besitzstands auslesen
+    dev_status = purrr::map2_dbl(hh_id, dev_var, ~ as.numeric(daten_analysis[[.y]][.x])),
+    # Gruppe definieren
+    is_owner = dplyr::if_else(dev_status == 1, "Gerätebesitzer", "Nicht-Besitzer"),
+    agrees = as.numeric(as.character(control_val)) == 1
+  ) |>
+  dplyr::filter(!is.na(agrees), !is.na(is_owner)) |>
+  dplyr::group_by(device_label, is_owner) |>
+  dplyr::summarise(
+    pct = mean(agrees) * 100,
+    .groups = "drop"
+  )
+
+# 2) Plot erstellen (Dodge Bar Chart)
+p_control_overall_owner <- ggplot2::ggplot(
+  control_owner_data, 
+  ggplot2::aes(x = pct / 100, y = device_label, fill = is_owner)
+) +
+  # Balken nebeneinander (position_dodge)
+  ggplot2::geom_col(position = ggplot2::position_dodge(width = 0.8), width = 0.7) +
+  
+  # Textlabels für die Prozente
+  ggplot2::geom_text(
+    ggplot2::aes(label = sprintf("%.1f%%", pct)),
+    position = ggplot2::position_dodge(width = 0.8),
+    hjust = -0.2,
+    size = 3.2,
+    colour = SURF_TEXT
+  ) +
+  
+  # Skalierung fixiert auf 100%
+  ggplot2::scale_x_continuous(
+    labels = scales::percent_format(accuracy = 1),
+    limits = c(0, 1.1), # Etwas Headroom für die Textlabels
+    breaks = seq(0, 1, 0.2),
+    expand = ggplot2::expansion(mult = c(0, 0.05))
+  ) +
+  
+  # Farben
+  ggplot2::scale_fill_manual(
+    values = c("Gerätebesitzer" = SURF_PURPLE, "Nicht-Besitzer" = SURF_PINK)
+  ) +
+  
+  # Beschriftung
+  ggplot2::labs(
+    title = "Bereitschaft zur Gerätesteuerung nach Besitzstatus",
+    subtitle = "Zustimmungsquote (Besitzer besitzen das jeweilige Gerät bereits)",
+    x = "Zustimmungsquote (Anteil 'Ja')",
+    y = NULL,
+    fill = "Status"
+  ) +
+  
+  # Theme
+  theme_surf(base_size = 12) +
+  surf_legend_bottom(nrow = 1) +
+  ggplot2::theme(panel.grid.major.y = ggplot2::element_blank())
+
+# Branding & Speichern
+p_control_overall_owner_branded <- brand_plot_surf(p_control_overall_owner)
+save_plot(p_control_overall_owner_branded, 4, 1, "control_readiness_overall_owner")
+
+p_control_overall_owner_branded
+
+```
+
+## Flexibilitätsbereitschaft
+
+In diesem Abschnitt wurden die Teilnehmenden gebeten, für jedes zur Steuerung freigegebene Gerät das maximal akzeptable Maß an Einschränkung zu definieren. Diese Angaben bilden die Grundlage für die spätere Berechnung der notwendigen Entschädigung.
+
+::: {.callout-note appearance="simple"}
+**Item: Maximale Einschränkung je Gerät**
+
+*"Geben Sie pro Gerät in Ihrem Haushalt an, welche maximale Einschränkung Sie akzeptieren, wenn die SURF-Plattform dieses **{RandFreq}-mal im Jahr** (jeweils für 1-2 Stunden) automatisch zur Behebung eines Netzengpasses steuert."*
+
+*"Wir bitten Sie, diese Entscheidungen so ernsthaft zu treffen, als würden Sie sie vertraglich festlegen."*
+
+*(Hinweis: Im nächsten Schritt fragen wir Sie, welche finanzielle Vergütung Sie für die akzeptierten Einschränkungen verlangen.)*
+
+**Abgefragte Dimensionen (je Gerät):**
+
+-   **Wallbox:** Zeitliche Verzögerung des Ladevorgangs
+
+-   **Wärmepumpe:** Kurzzeitige Abweichung von der Raumtemperatur
+
+-   **Batteriespeicher:** Mindest-Ladestand, der für den Eigenverbrauch verbleiben muss
+
+-   **Photovoltaik:** Grad der Einspeisereduktion bei Netzüberlastung
+
+**Antwortformat:**
+
+-   6-stufige Skala (von Stufe 0 "Geringe Flexibilität" bis Stufe 5 "Hohe Flexibilität")
+:::
+
+```{r}
+# Reparatur der Flex-Variablen in daten_analysis
+# Die 6 (höchste Stufe) wurde im qmd-Skript übersehen
+daten_analysis <- daten_analysis |>
+  dplyr::mutate(
+    dplyr::across(
+      .cols = dplyr::starts_with("flex_"),
+      .fns  = ~ {
+        # Falls Werte wie 6 vorkommen, wurde die Verschiebung 
+        # nicht korrekt für alle Stufen durchgeführt.
+        if (any(.x == 6, na.rm = TRUE)) {
+          # Wir setzen alles auf die saubere 0-5 Skala
+          # (6 wird zu 5, 4 bleibt 4 wenn es schon korrigiert war, etc.)
+          dplyr::case_when(
+            .x == 6 ~ 5,
+            .x == 5 ~ 4,
+            .x == 4 ~ 3,
+            .x == 3 ~ 2,
+            .x == 2 ~ 1,
+            .x == 1 ~ 0,
+            TRUE ~ .x
+          )
+        } else { .x }
+      }
+    )
+  )
+```
+
+### Generell
+
+```{r}
+#| label: flex-definitions
+#| warning: false
+#| message: false
+
+# 1) Definition der technischen Werte laut Fragebogen
+flex_def_data <- tibble::tibble(
+  Stufe = 0:5,
+  Wallbox = c("0,5 Std.", "1,0 Std.", "2,0 Std.", "3,0 Std.", "4,0 Std.", "5,0 Std."),
+  Wärmepumpe = c("0,0 °C", "0,5 °C", "1,0 °C", "1,5 °C", "2,0 °C", "2,5 °C"),
+  Batteriespeicher = c("90 %", "70 %", "50 %", "30 %", "10 %", "0-5 %"),
+  Photovoltaik = c("10 %", "30 %", "50 %", "70 %", "90 %", "100 %")
+)
+
+# 2) Erstellung der Flextable im SURF-Style
+ft_flex_def <- flex_def_data |>
+  flextable::flextable() |>
+  # Header-Styling
+  flextable::bg(bg = "#F5F5F5", part = "header") |>
+  flextable::bold(part = "header") |>
+  flextable::color(color = "#602890", part = "header") |> # SURF_PURPLE
+  # Ausrichtung
+  flextable::align(align = "center", part = "all") |>
+  flextable::align(j = 1, align = "left", part = "all") |>
+  # Linien & Rahmen
+  flextable::border_remove() |>
+  flextable::hline_top(border = officer::fp_border(color = "#D9D9D9", width = 1.5), part = "all") |>
+  flextable::hline_bottom(border = officer::fp_border(color = "#D9D9D9", width = 1.5), part = "all") |>
+  flextable::hline(border = officer::fp_border(color = "#D9D9D9", width = 0.5), part = "body") |>
+  # Spaltenbreiten & Text
+  flextable::set_caption(caption = "Technische Übersetzung der Flexibilitätsstufen (Eingriffstiefe)") |>
+  flextable::fontsize(size = 10, part = "all") |>
+  flextable::autofit()
+
+# Anzeige
+ft_flex_def
+
+# Export als PNG für die Dokumentation
+export_flextable_png(ft_flex_def, "05_00_flexibility_technical_definitions")
+```
+
+```{r}
+#| label: plot-05-01-flexibility-unified-scale
+#| warning: false
+#| message: false
+
+# 1) Datenaufbereitung (Einheitliche 6-Punkte-Skala 0-5)
+flex_unified_data <- daten_analysis |>
+  dplyr::mutate(hh_id = dplyr::row_number()) |>
+  dplyr::select(
+    hh_id, flex_ev, flex_heat, flex_batt, flex_pv,
+    dev_box, dev_heat, dev_battery, dev_pv
+  ) |>
+  tidyr::pivot_longer(
+    cols = c(flex_ev, flex_heat, flex_batt, flex_pv),
+    names_to = "flex_var",
+    values_to = "flex_point"
+  ) |>
+  dplyr::mutate(
+    # Mapping der Geräte-Labels
+    device_label = dplyr::recode(flex_var,
+      "flex_ev"   = "Wallbox",
+      "flex_heat" = "Wärmepumpe",
+      "flex_batt" = "Batteriespeicher",
+      "flex_pv"   = "Photovoltaik"
+    ),
+    # Gerätespezifischer Besitzstatus
+    dev_var = dplyr::recode(flex_var,
+      "flex_ev" = "dev_box", "flex_heat" = "dev_heat",
+      "flex_batt" = "dev_battery", "flex_pv" = "dev_pv"
+    ),
+    dev_status = purrr::map2_dbl(hh_id, dev_var, ~ as.numeric(daten_analysis[[.y]][.x])),
+    is_owner = dplyr::if_else(dev_status == 1, "Gerätebesitzer", "Nicht-Besitzer")
+  ) |>
+  dplyr::filter(!is.na(flex_point), !is.na(is_owner)) |>
+  dplyr::group_by(device_label, is_owner) |>
+  dplyr::summarise(
+    mean_point = mean(flex_point, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# 2) Plot erstellen
+p_flex_unified <- ggplot2::ggplot(flex_unified_data) +
+  # Hintergrund (Alle 5 Stufen der Skala)
+  ggplot2::geom_col(
+    ggplot2::aes(x = 5, y = is_owner), 
+    fill = SURF_GRID, alpha = 0.3, width = 0.7
+  ) +
+  # Tatsächliche Auswahl
+  ggplot2::geom_col(
+    ggplot2::aes(x = mean_point, y = is_owner, fill = is_owner), 
+    width = 0.7, show.legend = FALSE
+  ) +
+  # Wert-Label
+  ggplot2::geom_text(
+    ggplot2::aes(x = mean_point, y = is_owner, label = sprintf("%.2f", mean_point)),
+    hjust = -0.3, size = 3.5, fontface = "bold", colour = SURF_TEXT
+  ) +
+  # Einheitliche Skala 0-5 für alle Facetten
+  ggplot2::facet_wrap(~ device_label, ncol = 1) +
+  ggplot2::scale_x_continuous(
+    limits = c(0, 5.5), 
+    breaks = 0:5,
+    expand = ggplot2::expansion(mult = c(0, 0.1))
+  ) +
+  ggplot2::scale_fill_manual(
+    values = c("Gerätebesitzer" = SURF_PURPLE, "Nicht-Besitzer" = SURF_PINK)
+  ) +
+  ggplot2::labs(
+    title = "Mittlere Flexibilität auf der 6-Punkte-Antwortskala",
+    subtitle = "Vergleich der gewählten Stufen (0 = Keine Flexibilität bis 5 = Maximale Flexibilität)",
+    x = "Gewählte Stufe im Fragebogen",
+    y = NULL
+  ) +
+  theme_surf(base_size = 12) +
+  ggplot2::theme(
+    panel.grid.major.y = ggplot2::element_blank(),
+    strip.text = ggplot2::element_text(hjust = 0, face = "bold", color = SURF_PURPLE)
+  )
+
+# Branding & Export
+p_flex_unified_branded <- brand_plot_surf(p_flex_unified)
+save_plot(p_flex_unified_branded, 5, 1, "flexibility_unified_scale")
+
+p_flex_unified_branded
+
+```
+
+```{r}
+#| label: block05-flexibility-safe-final
+#| warning: false
+
+# 1) Echte technische Intervalle (Mapping)
+flex_mapping_final <- list(
+  "Wallbox"          = c("0.5h", "1h", "2h", "3h", "4h", "5h"),
+  "Wärmepumpe"       = c("0.0°C", "0.5°C", "1.0°C", "1.5°C", "2.0°C", "2.5°C"),
+  "Batteriespeicher" = c("90%", "70%", "50%", "30%", "10%", "0-5%"),
+  "Photovoltaik"     = c("10%", "30%", "50%", "70%", "90%", "100%")
+)
+
+# 2) Daten-Aufbereitung OHNE externe Filter
+# Wir nehmen JEDEN, der eine Angabe gemacht hat (das sind implizit die Besitzer/Steuerungsbereiten)
+flex_clean_final <- daten |>
+  dplyr::select(flex_ev, flex_heat, flex_batt, flex_pv) |>
+  tidyr::pivot_longer(cols = everything(), names_to = "var", values_to = "val") |>
+  dplyr::mutate(
+    # Missing Codes 98/99 entfernen
+    val = dplyr::na_if(dplyr::na_if(val, 98), 99)
+  ) |>
+  dplyr::filter(!is.na(val)) |>
+  dplyr::mutate(
+    # Rohdaten 1-6 auf Skala 0-5 mappen
+    point = val - 1,
+    device = dplyr::recode(var, 
+      "flex_ev"="Wallbox", "flex_heat"="Wärmepumpe", 
+      "flex_batt"="Batteriespeicher", "flex_pv"="Photovoltaik")
+  ) |>
+  dplyr::filter(point >= 0, point <= 5)
+
+# 3) Häufigkeitstabelle zur sofortigen Kontrolle
+# Hier MUSST du jetzt die Zahlen sehen, die du erwartest (z.B. n=58 bei Stufe 1 Batteriespeicher)
+flex_check_counts <- flex_clean_final |>
+  dplyr::group_by(device, point) |>
+  dplyr::summarise(n = dplyr::n(), .groups = "drop") |>
+  tidyr::pivot_wider(names_from = point, names_prefix = "Stufe_", values_from = n, values_fill = 0)
+
+# print(flex_check_counts)
+
+# 4) Statistiken für die Visualisierung
+flex_final_stats <- flex_clean_final |>
+  dplyr::group_by(device) |>
+  dplyr::summarise(
+    m_val = mean(point),
+    mode_val = as.numeric(names(sort(table(point), decreasing = TRUE)[1])),
+    .groups = "drop"
+  ) |>
+  dplyr::mutate(
+    real_text = purrr::map2_chr(device, mode_val, ~ flex_mapping_final[[.x]][.y + 1]),
+    box_label = sprintf("Häufigste Wahl: Stufe %d\n= %s Spielraum", mode_val, real_text)
+  )
+
+# 5) PLOT A: Verteilungs-Dichte
+p_flex_density_final <- ggplot2::ggplot(flex_clean_final, ggplot2::aes(x = point)) +
+  ggplot2::geom_density(fill = SURF_PURPLE, alpha = 0.4, colour = SURF_PURPLE) +
+  ggplot2::geom_vline(data = flex_final_stats, ggplot2::aes(xintercept = m_val), 
+                      colour = SURF_PURPLE, linetype = "dashed", alpha = 0.6) +
+  ggplot2::geom_vline(data = flex_final_stats, ggplot2::aes(xintercept = mode_val), 
+                      colour = SURF_PINK, linewidth = 1.2) +
+  ggplot2::geom_label(data = flex_final_stats, ggplot2::aes(x = 5, y = Inf, label = box_label),
+                      hjust = 1, vjust = 1.15, fill = "#2D2D2D", colour = "white", 
+                      fontface = "bold", size = 2.8, label.size = 0) +
+  ggplot2::facet_wrap(~ device, nrow = 2) +
+  ggplot2::scale_x_continuous(limits = c(0, 5), breaks = 0:5) +
+  ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.45))) +
+  ggplot2::labs(title = "Profil der Komfort-Flexibilität (Alle Antworten)", 
+                x = "Antwortstufe (0 = keine Flexibilität bis 5 = maximale Flexibilität)", 
+                y = "Dichte") +
+  theme_surf()
+
+# 6) PLOT B: Akzeptanz-Schwelle
+acceptance_final_data <- flex_clean_final |>
+  dplyr::group_by(device, point) |>
+  dplyr::summarise(n = dplyr::n(), .groups = "drop_last") |>
+  dplyr::mutate(pct_accept = rev(cumsum(rev(n))) / sum(n))
+
+p_flex_acceptance_final <- ggplot2::ggplot(acceptance_final_data, 
+                                     ggplot2::aes(x = point, y = pct_accept, colour = device, group = device)) +
+  ggplot2::geom_hline(yintercept = 0.8, linetype = "dashed", colour = "grey50") +
+  ggplot2::annotate("text", x = 5, y = 0.85, label = "80% Akzeptanz-Schwelle", 
+                    hjust = 1, colour = "grey50", fontface = "italic", size = 3) +
+  ggplot2::geom_line(linewidth = 1.2) + ggplot2::geom_point(size = 3) +
+  ggplot2::facet_wrap(~ device, nrow = 2) +
+  ggplot2::scale_x_continuous(limits = c(0, 5), breaks = 0:5) +
+  ggplot2::scale_y_continuous(labels = scales::percent_format(), limits = c(0, 1)) +
+  ggplot2::scale_colour_manual(values = c("Wallbox"=SURF_PURPLE, "Wärmepumpe"=SURF_PINK, 
+                                          "Batteriespeicher"="#4A4A4A", "Photovoltaik"="#8E9AAF")) +
+  ggplot2::labs(title = "Optimale Eingriffstiefe bestimmen", 
+                x = "Stufe (0-5)", y = "Zustimmungsquote", colour = "Gerät") +
+  theme_surf() + surf_legend_bottom()
+
+```
+
+```{r}
+# p_flex_density_final
+```
+
+```{r}
+# p_flex_acceptance_final
+```
+
+```{r}
+#| label: block05-flexibility-owners-final
+#| warning: false
+
+# 1) Technische Zuordnung der 6 Stufen (0 bis 5)
+flex_tech_mapping <- list(
+  "Wallbox"          = c("0.5h", "1h", "2h", "3h", "4h", "5h"),
+  "Wärmepumpe"       = c("0.0°C", "0.5°C", "1.0°C", "1.5°C", "2.0°C", "2.5°C"),
+  "Batteriespeicher" = c("90%", "70%", "50%", "30%", "10%", "0-5%"),
+  "Photovoltaik"     = c("10%", "30%", "50%", "70%", "90%", "100%")
+)
+
+# 2) Daten-Aufbereitung: Wir gehen auf 'daten' zurück (Rohwerte 1-6), 
+# beachten dabei aber deine Kleinschreibung der Variablen.
+flex_owners_clean <- daten |>
+  dplyr::select(
+    flex_ev, flex_heat, flex_batt, flex_pv, 
+    dev_box, dev_heat, dev_battery, dev_pv
+  ) |>
+  dplyr::mutate(hh_id = dplyr::row_number()) |>
+  tidyr::pivot_longer(
+    cols = c(flex_ev, flex_heat, flex_batt, flex_pv),
+    names_to = "flex_var",
+    values_to = "raw_val"
+  ) |>
+  dplyr::mutate(
+    # Mapping der Besitz-Variable
+    dev_var = dplyr::recode(flex_var, 
+      "flex_ev"   = "dev_box", 
+      "flex_heat" = "dev_heat", 
+      "flex_batt" = "dev_battery", 
+      "flex_pv"   = "dev_pv"
+    ),
+    # Besitzer-Status aus 'daten' extrahieren (1 = Besitzer)
+    is_owner = purrr::map2_dbl(hh_id, dev_var, ~ as.numeric(daten[[.y]][.x])),
+    device = dplyr::recode(flex_var, 
+      "flex_ev"   = "Wallbox", 
+      "flex_heat" = "Wärmepumpe", 
+      "flex_batt" = "Batteriespeicher", 
+      "flex_pv"   = "Photovoltaik"
+    )
+  ) |>
+  # FILTER: Nur echte Besitzer (1) und valide Skalenwerte (1-6)
+  dplyr::filter(is_owner == 1, !is.na(raw_val), raw_val <= 6) |>
+  # Saubere Transformation der Rohwerte 1-6 auf 0-5
+  dplyr::mutate(point = raw_val - 1)
+
+# 3) Statistiken für die Visualisierung
+flex_stats_owners <- flex_owners_clean |>
+  dplyr::group_by(device) |>
+  dplyr::summarise(
+    m_val = mean(point, na.rm = TRUE),
+    mode_val = as.numeric(names(sort(table(point), decreasing = TRUE)[1])),
+    .groups = "drop"
+  ) |>
+  dplyr::mutate(
+    real_text = purrr::map2_chr(device, mode_val, ~ flex_tech_mapping[[.x]][.y + 1]),
+    box_label = sprintf("Häufigste Wahl: Stufe %d\n= %s Spielraum", mode_val, real_text)
+  )
+
+# --- PLOT 1: DICHTEVERTEILUNG (DENSITY) ---
+p_flex_density <- ggplot2::ggplot(flex_owners_clean, ggplot2::aes(x = point)) +
+  ggplot2::geom_density(fill = SURF_PURPLE, alpha = 0.4, colour = SURF_PURPLE) +
+  ggplot2::geom_vline(data = flex_stats_owners, ggplot2::aes(xintercept = m_val), 
+                      colour = SURF_PURPLE, linetype = "dashed", alpha = 0.6) +
+  ggplot2::geom_vline(data = flex_stats_owners, ggplot2::aes(xintercept = mode_val), 
+                      colour = SURF_PINK, linewidth = 1.2) +
+  ggplot2::geom_label(data = flex_stats_owners, ggplot2::aes(x = 5, y = Inf, label = box_label),
+                      hjust = 1, vjust = 1.15, fill = "#2D2D2D", colour = "white", 
+                      fontface = "bold", size = 2.7, label.size = 0) +
+  ggplot2::facet_wrap(~ device, nrow = 2) +
+  ggplot2::scale_x_continuous(limits = c(0, 5), breaks = 0:5) +
+  ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.45))) +
+  ggplot2::labs(
+    title = "Flexibilitäts-Profil der Gerätebesitzer", 
+    subtitle = "Dichteverteilung der Antwortstufen (Nur Haushalte mit Gerätebesitz)",
+    x = "Antwortstufe (0 = Keine Flexibilität bis 5 = Maximale Flexibilität)", 
+    y = "Dichte"
+  ) +
+  theme_surf()
+
+# --- PLOT 2: AKZEPTANZ-SCHWELLE (CUMULATIVE) ---
+acceptance_owners_data <- flex_owners_clean |>
+  dplyr::group_by(device, point) |>
+  dplyr::summarise(n = dplyr::n(), .groups = "drop_last") |>
+  dplyr::mutate(pct_accept = rev(cumsum(rev(n))) / sum(n))
+
+p_flex_acceptance <- ggplot2::ggplot(acceptance_owners_data, 
+                                     ggplot2::aes(x = point, y = pct_accept, colour = device, group = device)) +
+  ggplot2::geom_hline(yintercept = 0.8, linetype = "dashed", colour = "grey50") +
+  ggplot2::annotate("text", x = 5, y = 0.85, label = "80% Akzeptanz-Schwelle", 
+                    hjust = 1, colour = "grey50", fontface = "italic", size = 3.2) +
+  ggplot2::geom_line(linewidth = 1.2) + 
+  ggplot2::geom_point(size = 3) +
+  ggplot2::facet_wrap(~ device, nrow = 2) +
+  ggplot2::scale_x_continuous(limits = c(0, 5), breaks = 0:5) +
+  ggplot2::scale_y_continuous(labels = scales::percent_format(), limits = c(0, 1)) +
+  ggplot2::scale_colour_manual(values = c(
+    "Wallbox" = SURF_PURPLE, 
+    "Wärmepumpe" = SURF_PINK, 
+    "Batteriespeicher" = "#4A4A4A", 
+    "Photovoltaik" = "#8E9AAF"
+  )) +
+  ggplot2::labs(
+    title = "Bestimmung der optimalen Eingriffstiefe (Gerätebesitzer)", 
+    x = "Stufe (0-5)", y = "Zustimmungsquote", colour = "Gerät"
+  ) +
+  theme_surf() + 
+  surf_legend_bottom()
+
+```
+
+```{r}
+# p_flex_density
+```
+
+```{r}
+p_flex_acceptance
+```
+
+## Erwartet Vergütung
+
+In diesem zentralen Abschnitt des Experiments wurde der jährliche Mindestbetrag (Willingness-to-Accept) ermittelt. Um realistische Werte zu erhalten, wurde ein „Cheap Talk Script“ eingesetzt und den Befragten ihre individuellen Komfort-Einschränkungen noch einmal unmittelbar vor der Preisabfrage vor Augen geführt.
+
+::: {.callout-note appearance="simple"}
+**Item: Erwarteter jährlicher Mindestbetrag**
+
+*"Als nächstes möchten wir wissen, welche Vergütung Sie für Ihre Teilnahme an der SURF-Plattform verlangen."*
+
+**Wichtiger Hinweis – Bitte realistisch einschätzen (Cheap Talk):**
+
+-   In ähnlichen Studien nennen Teilnehmer oft Beträge, die höher sind, als sie real akzeptieren würden.
+
+-   Bedenken Sie: Hohe Vergütungen müssten über die Netzentgelte von allen Haushalten finanziert werden.
+
+-   Bitte nennen Sie den Betrag, den Sie tatsächlich als fairen Ausgleich akzeptieren würden.
+
+**Zusammenfassung Ihrer gewählten Einschränkungen:**
+
+-   *(Hier wurden dem Teilnehmer seine zuvor gewählten maximalen Einschränkungen für Wallbox, Wärmepumpe, Batteriespeicher und PV-Anlage individuell zusammengefasst eingeblendet.)*
+
+**Die Preisschätzungsfrage:**
+
+*"Wie hoch ist Ihr jährlicher Mindestbetrag, damit Sie **{RandFreq}-mal im Jahr** für jeweils 1–2 Stunden die automatische Steuerung Ihrer Geräte mit den genannten Einschränkungen akzeptieren?"*
+
+**Antwortoptionen (Auswahl):**
+
+-   0 € / 15 € / 30 € / 50 € / 75 € / 100 € / 125 € / 150 € / 175 € / 200 € / 250 €
+
+-   Mehr als 250 € (Betrag bitte angeben)
+
+-   Ich möchte nicht teilnehmen, egal wie hoch die Bezahlung ist.
+
+-   Weiß ich nicht / Sonstiges
+:::
+
+```{r}
+#| label: plot-06-03-incentive-by-device-count-real-values
+#| warning: false
+#| message: false
+
+# 1) Datenaufbereitung mit Ausschluss des 500€-Werts
+incentive_count_data <- daten_analysis |>
+  dplyr::mutate(
+    val_raw = as.character(fin_amount_year),
+    amount_real = dplyr::case_when(
+      val_raw == "1"  ~ 0,
+      val_raw == "2"  ~ 15,
+      val_raw == "3"  ~ 30,
+      val_raw == "4"  ~ 50,
+      val_raw == "5"  ~ 75,
+      val_raw == "6"  ~ 100,
+      val_raw == "7"  ~ 125,
+      val_raw == "8"  ~ 150,
+      val_raw == "9"  ~ 175,
+      val_raw == "10" ~ 200,
+      val_raw == "11" ~ 250,
+      (val_raw == "14" | val_raw == "-oth-") ~ as.numeric(as.character(fin_amount_year_other)),
+      TRUE ~ NA_real_
+    ),
+    n_devices = (dev_box == 1) + (dev_heat == 1) + (dev_battery == 1) + (dev_pv == 1),
+    detailed_group = dplyr::case_when(
+      n_devices == 0 ~ "Nicht-Besitzer",
+      n_devices == 1 ~ "Besitzer (1 Gerät)",
+      n_devices == 2 ~ "Besitzer (2 Geräte)",
+      n_devices >= 3 ~ "Besitzer (3+ Geräte)"
+    ),
+    detailed_group = factor(detailed_group, levels = c(
+      "Nicht-Besitzer", "Besitzer (1 Gerät)", "Besitzer (2 Geräte)", "Besitzer (3+ Geräte)"
+    ))
+  ) |>
+  # FILTER: Ausschluss des 500€ Ausreißers
+  dplyr::filter(!is.na(amount_real), amount_real < 500, !is.na(detailed_group)) |>
+  
+  dplyr::group_by(detailed_group) |>
+  dplyr::summarise(
+    res = list(mean_ci_n(amount_real)),
+    .groups = "drop"
+  ) |>
+  tidyr::unnest(res)
+
+# 2) Dynamische Skalierung (reagiert auf die neuen Max-Werte ohne n-Beschriftung)
+y_limit_inc <- max(incentive_count_data$ymax, na.rm = TRUE) * 1.2
+
+# 3) Visualisierung
+p_incentive_count_top <- ggplot2::ggplot(incentive_count_data, 
+  ggplot2::aes(x = detailed_group, y = mean, colour = detailed_group)) +
+  
+  ggplot2::geom_hline(yintercept = seq(0, 250, by=50), colour = SURF_GRID, linewidth = 0.2) +
+  
+  ggplot2::geom_errorbar(
+    ggplot2::aes(ymin = ymin, ymax = ymax),
+    width = 0.1, colour = SURF_TEXT, alpha = 0.4
+  ) +
+  
+  ggplot2::geom_point(size = 5, fill = "white", shape = 21, stroke = 2) +
+  
+  ggplot2::geom_label(
+    ggplot2::aes(label = paste0(round(mean), " €")),
+    vjust = -1.2, fontface = "bold", size = 3.5, label.size = 0, fill = "white", alpha = 0.8
+  ) +
+  
+  # Hinweis: geom_text für Fallzahlen n wurde hier entfernt
+  
+  ggplot2::scale_colour_manual(values = c(
+    "Nicht-Besitzer"       = SURF_PINK,
+    "Besitzer (1 Gerät)"   = "#902088", 
+    "Besitzer (2 Geräte)"  = "#602890", 
+    "Besitzer (3+ Geräte)" = "#2B2B2B"
+  )) +
+  
+  ggplot2::scale_y_continuous(limits = c(0, y_limit_inc), expand = c(0, 0)) +
+  ggplot2::labs(
+    title = "Finanzielle Erwartung nach Geräteanzahl",
+    subtitle = "Ø Jährliche Entschädigung (Mittelwerte mit 95% KI)",
+    x = NULL,
+    y = "Ø Jährliche Entschädigung (€)"
+  ) +
+  theme_surf() +
+  ggplot2::theme(legend.position = "none")
+
+brand_plot_surf(p_incentive_count_top)
+
+```
+
+### Nach Gerätetyp
+
+```{r}
+#| label: plot-06-06-incentive-by-device-type-final
+#| warning: false
+#| message: false
+
+# 1) Datenaufbereitung: Long-Format der Besitzer, Euro-Übersetzung & Filter
+incentive_device_type <- daten_analysis |>
+  dplyr::mutate(
+    val_raw = as.character(fin_amount_year),
+    amount_real = dplyr::case_when(
+      val_raw == "1"  ~ 0,
+      val_raw == "2"  ~ 15,
+      val_raw == "3"  ~ 30,
+      val_raw == "4"  ~ 50,
+      val_raw == "5"  ~ 75,
+      val_raw == "6"  ~ 100,
+      val_raw == "7"  ~ 125,
+      val_raw == "8"  ~ 150,
+      val_raw == "9"  ~ 175,
+      val_raw == "10" ~ 200,
+      val_raw == "11" ~ 250,
+      (val_raw == "14" | val_raw == "-oth-") ~ as.numeric(as.character(fin_amount_year_other)),
+      TRUE ~ NA_real_
+    )
+  ) |>
+  dplyr::filter(!is.na(amount_real), amount_real < 500) |>
+  tidyr::pivot_longer(
+    cols = c(dev_box, dev_heat, dev_battery, dev_pv),
+    names_to = "device_type",
+    values_to = "is_owner"
+  ) |>
+  dplyr::filter(is_owner == 1) |>
+  dplyr::mutate(
+    device_label = dplyr::recode(device_type,
+      "dev_box"     = "Wallbox",
+      "dev_heat"    = "Wärmepumpe",
+      "dev_battery" = "Batteriespeicher",
+      "dev_pv"      = "Photovoltaik"
+    )
+  ) |>
+  dplyr::group_by(device_label) |>
+  dplyr::summarise(
+    res = list(mean_ci_n(amount_real)),
+    .groups = "drop"
+  ) |>
+  tidyr::unnest(res) |>
+  dplyr::arrange(desc(mean))
+
+# 2) Dynamische Positionierung (gestrafft ohne n-Werte)
+y_limit_type <- max(incentive_device_type$ymax, na.rm = TRUE) * 1.2
+
+# 3) Visualisierung
+p_incentive_type <- ggplot2::ggplot(incentive_device_type, 
+  ggplot2::aes(x = reorder(device_label, -mean), y = mean, colour = device_label)) +
+  
+  ggplot2::geom_hline(yintercept = seq(0, 250, by = 50), 
+                      colour = SURF_GRID, linewidth = 0.2) +
+  
+  ggplot2::geom_errorbar(
+    ggplot2::aes(ymin = ymin, ymax = ymax),
+    width = 0.1, colour = SURF_TEXT, alpha = 0.4
+  ) +
+  
+  ggplot2::geom_point(size = 5, fill = "white", shape = 21, stroke = 2) +
+  
+  ggplot2::geom_label(
+    ggplot2::aes(label = paste0(round(mean), " €")),
+    vjust = -1.2, fontface = "bold", size = 3.5, label.size = 0, fill = "white", alpha = 0.8
+  ) +
+  
+  ggplot2::scale_colour_manual(values = c(
+    "Wallbox"          = SURF_PURPLE,
+    "Wärmepumpe"       = SURF_PINK,
+    "Batteriespeicher" = SURF_MAG,
+    "Photovoltaik"     = "#2B2B2B"
+  )) +
+  
+  ggplot2::scale_y_continuous(limits = c(0, y_limit_type), breaks = seq(0, 250, by = 50), expand = c(0, 0)) +
+  ggplot2::labs(
+    title = "Entschädigungserwartung nach Gerätetyp",
+    subtitle = "Ø Jährliche Entschädigung (€) differenziert nach besessenem Gerät",
+    x = NULL,
+    y = "Ø Jährliche Entschädigung (€)"
+  ) +
+  theme_surf() +
+  ggplot2::theme(legend.position = "none")
+
+p_incentive_type_branded <- brand_plot_surf(p_incentive_type)
+save_plot(p_incentive_type_branded, 6, 6, "incentive_by_device_type_final")
+p_incentive_type_branded
+
+```
+
+### Nach Szenario
+
+```{r}
+#| label: plot-06-02-incentive-by-freq-final-clean
+#| warning: false
+#| message: false
+
+# 1) Datenaufbereitung mit Euro-Übersetzung & Filter (ohne 500€)
+incentive_clean <- daten_analysis |>
+  dplyr::mutate(
+    val_raw = as.character(fin_amount_year),
+    amount_real = dplyr::case_when(
+      val_raw == "1"  ~ 0,
+      val_raw == "2"  ~ 15,
+      val_raw == "3"  ~ 30,
+      val_raw == "4"  ~ 50,
+      val_raw == "5"  ~ 75,
+      val_raw == "6"  ~ 100,
+      val_raw == "7"  ~ 125,
+      val_raw == "8"  ~ 150,
+      val_raw == "9"  ~ 175,
+      val_raw == "10" ~ 200,
+      val_raw == "11" ~ 250,
+      (val_raw == "14" | val_raw == "-oth-") ~ as.numeric(as.character(fin_amount_year_other)),
+      TRUE ~ NA_real_
+    ),
+    rand_freq = force_rand_freq_order(rand_freq)
+  ) |>
+  dplyr::filter(!is.na(amount_real), amount_real < 500, !is.na(owner_group), !is.na(rand_freq)) |>
+  
+  # Statistiken berechnen
+  dplyr::group_by(rand_freq, owner_group) |>
+  dplyr::summarise(
+    res = list(mean_ci_n(amount_real)),
+    .groups = "drop"
+  ) |>
+  tidyr::unnest(res)
+
+# 2) Dynamische Positionierung für n-Werte am oberen Rand
+y_max_val <- max(incentive_clean$ymax, na.rm = TRUE)
+y_limit_final <- y_max_val * 1.35
+y_pos_n_final <- y_max_val * 1.25
+
+# 3) Visualisierung
+p_incentive_final <- ggplot2::ggplot(incentive_clean, 
+  ggplot2::aes(x = rand_freq, y = mean, colour = owner_group, group = owner_group)) +
+  
+  # Hilfslinien im Hintergrund (bis 250 €)
+  ggplot2::geom_hline(yintercept = seq(0, 250, by = 50), 
+                      colour = SURF_GRID, linewidth = 0.2) +
+  
+  # Konfidenz-Schatten
+  ggplot2::geom_ribbon(
+    ggplot2::aes(ymin = ymin, ymax = ymax, fill = owner_group),
+    alpha = 0.1, colour = NA, show.legend = FALSE
+  ) +
+  
+  # Hauptlinie und Punkte
+  ggplot2::geom_line(linewidth = 1.3) +
+  ggplot2::geom_point(size = 4, fill = "white", shape = 21, stroke = 1.5) +
+  
+  # Werte-Labels (€) direkt an den Punkten
+  ggplot2::geom_label(
+    ggplot2::aes(label = paste0(round(mean), " €")), 
+    vjust = -1.5, fontface = "bold", show.legend = FALSE, label.size = 0, fill = "white", alpha = 0.8
+  ) +
+  
+  # Farben und Skalen
+  ggplot2::scale_colour_manual(values = c("Gerätebesitzer" = SURF_PURPLE, "Nicht-Besitzer" = SURF_PINK)) +
+  ggplot2::scale_fill_manual(values = c("Gerätebesitzer" = SURF_PURPLE, "Nicht-Besitzer" = SURF_PINK)) +
+  
+  # Achsen anpassen (Fokus auf 0-250 € Bereich mit Puffer nach oben)
+  ggplot2::scale_y_continuous(limits = c(0, y_limit_final), breaks = seq(0, 250, by = 50), expand = c(0, 0)) +
+  
+  ggplot2::labs(
+    title = "Preissensitivität der Flexibilität",
+    subtitle = "Ø Jährliche Entschädigung (€) | Vergleich nach Status & Frequenz",
+    x = "Häufigkeit der Steuerung (Mal pro Jahr)",
+    y = "Ø Jährliche Entschädigung (€)",
+    colour = "Status"
+  ) +
+  theme_surf() +
+  surf_legend_bottom()
+
+# Branding & Anzeige
+brand_plot_surf(p_incentive_final)
+
+```
+
+## Form und Struktur der Vergütung
+
+Dieser Block wird in der Umfrage, welche diesen Daten zugrunde liegt,
+vor der erwarteten Vergütung abgefragt. Aus diesem Grund kann das Ausmaß
+der erwarteten Vergütung nach der präferierten Vergütungsform und
+-struktur analysiert werden.
+
+### Form der Vergütung
+
+Nachdem die Höhe der Vergütung thematisiert wurde, wurde ermittelt, über welchen Kanal die Haushalte die Entschädigung am liebsten erhalten möchten. Dies ist entscheidend für die Ausgestaltung der Abrechnungsprozesse der Plattform.
+
+::: {.callout-note appearance="simple"}
+**Item: Bevorzugte Form der Vergütung**
+
+*"Wie möchten Sie für Ihre Teilnahme von der SURF-Plattform vergütet werden?"*
+
+**Optionen:**
+
+-   Verringerung Ihrer jährlichen Stromrechnung
+
+-   Direkte Gutschrift auf Ihr Konto
+
+-   Bonuspunkte oder Gutscheine für Prämien
+
+-   Ich habe keine Präferenz
+:::
+
+```{r}
+#| label: 06-payment-summary
+#| warning: false
+#| message: false
+
+# 1) Datenaufbereitung für die Tabelle
+payment_summary_table <- daten_analysis |>
+  dplyr::select(owner_group, fin_form) |>
+  dplyr::filter(!is.na(fin_form), !is.na(owner_group)) |>
+  dplyr::mutate(
+    Label = dplyr::case_when(
+      fin_form == 1 ~ "Verringerung der jährlichen Stromrechnung",
+      fin_form == 2 ~ "Direkte Gutschrift auf ihr Konto",
+      fin_form == 3 ~ "Bonuspunkte oder Gutscheine für Prämien",
+      fin_form == 4 ~ "Keine Präferenz",
+      TRUE ~ "Sonstiges"
+    ),
+    Label = factor(Label, levels = c(
+      "Verringerung der jährlichen Stromrechnung", 
+      "Direkte Gutschrift auf ihr Konto", 
+      "Bonuspunkte oder Gutscheine für Prämien",
+      "Keine Präferenz"
+    ))
+  ) |>
+  # Zählen pro Gruppe und insgesamt
+  dplyr::group_by(Label) |>
+  dplyr::summarise(
+    Gesamt_n = dplyr::n(),
+    Besitzer_n = sum(owner_group == "Gerätebesitzer"),
+    NichtBesitzer_n = sum(owner_group == "Nicht-Besitzer"),
+    .groups = "drop"
+  ) |>
+  # Prozentuale Anteile berechnen (für die Spalte Gesamt)
+  dplyr::mutate(
+    Anteil = scales::percent(Gesamt_n / sum(Gesamt_n), accuracy = 0.1)
+  ) |>
+  # Spalten umbenennen für das SURF-Styling
+  dplyr::rename(
+    `Präferenz (Label)` = Label,
+    `Gesamt (n)` = Gesamt_n,
+    `Gerätebesitzer (n)` = Besitzer_n,
+    `Nicht-Besitzer (n)` = NichtBesitzer_n,
+    `Anteil (%)` = Anteil
+  )
+
+# 2) Erstellung der Flextable im SURF-Style
+# ft_payment_summary <- payment_summary_table |>
+#   flextable::flextable() |>
+#   # Header-Styling
+#   flextable::bg(bg = "#F5F5F5", part = "header") |>
+#   flextable::bold(part = "header") |>
+#   flextable::color(color = "#602890", part = "header") |> # SURF_PURPLE
+#   # Ausrichtung
+#   flextable::align(align = "center", j = 2:5, part = "all") |>
+#   flextable::align(align = "left", j = 1, part = "all") |>
+#   # Linien
+#   flextable::border_remove() |>
+#   flextable::hline_top(border = officer::fp_border(color = "#602890", width = 2), part = "header") |>
+#   flextable::hline_bottom(border = officer::fp_border(color = "#D9D9D9", width = 1), part = "body") |>
+#   # Spaltenbreite & Caption
+#   flextable::set_caption(caption = "Zusammenfassung der gewünschten Vergütungsformen (n-Zahlen und Prozentanteile)") |>
+#   flextable::autofit()
+
+# Anzeige
+# ft_payment_summary
+
+```
+
+```{r}
+#| label: plot-06-08-payment-form-final-fixed
+#| warning: false
+#| message: false
+
+# 1) Datenaufbereitung mit korrekter Gruppen-Prozentuierung
+payment_form_final <- daten_analysis |>
+  dplyr::select(owner_group, fin_form) |>
+  dplyr::filter(!is.na(fin_form), !is.na(owner_group)) |>
+  dplyr::mutate(
+    fin_form_text = dplyr::case_when(
+      fin_form == 1 ~ "Verringerung der jährlichen Stromrechnung",
+      fin_form == 2 ~ "Direkte Gutschrift auf ihr Konto",
+      fin_form == 3 ~ "Bonuspunkte oder Gutscheine für Prämien",
+      fin_form == 4 ~ "Keine Präferenz",
+      TRUE ~ "Sonstiges"
+    ),
+    fin_form_text = factor(fin_form_text, levels = c(
+      "Verringerung der jährlichen Stromrechnung", 
+      "Direkte Gutschrift auf ihr Konto", 
+      "Bonuspunkte oder Gutscheine für Prämien",
+      "Keine Präferenz"
+    ))
+  ) |>
+  # Schritt 1: Zählen pro Kombination
+  dplyr::count(owner_group, fin_form_text, .drop = FALSE) |>
+  # Schritt 2: Prozente EXAKT innerhalb der owner_group berechnen
+  dplyr::group_by(owner_group) |>
+  dplyr::mutate(pct = n / sum(n)) |>
+  dplyr::ungroup()
+
+# 2) Visualisierung
+p_payment_final <- ggplot2::ggplot(payment_form_final, 
+  ggplot2::aes(x = fin_form_text, y = pct, fill = owner_group)) +
+  
+  # Balken mit fester Ausrichtung
+  ggplot2::geom_bar(stat = "identity", position = ggplot2::position_dodge(0.8, preserve = "single"), width = 0.7) +
+  
+  # Prozent-Labels (nur für Werte > 0)
+  ggplot2::geom_text(
+    ggplot2::aes(label = ifelse(pct > 0, scales::percent(pct, accuracy = 1), "")),
+    position = ggplot2::position_dodge(0.8),
+    vjust = -0.5, size = 3.2, fontface = "bold"
+  ) +
+  
+  # Farbschema
+  ggplot2::scale_fill_manual(values = c("Gerätebesitzer" = SURF_PURPLE, "Nicht-Besitzer" = SURF_PINK)) +
+  
+  # Design & Achsen
+  ggplot2::scale_y_continuous(labels = scales::percent, limits = c(0, max(payment_form_final$pct, 0.1) * 1.2)) +
+  ggplot2::labs(
+    title = "Gewünschte Form der Vergütung",
+    subtitle = "Relative Präferenz der Auszahlungsart innerhalb der Statusgruppen",
+    x = NULL,
+    y = "Anteil innerhalb der Gruppe (%)",
+    fill = "Status"
+  ) +
+  theme_surf() +
+  surf_legend_bottom() +
+  ggplot2::scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = 18), drop = FALSE)
+
+# Branding & Anzeige
+brand_plot_surf(p_payment_final)
+
+```
+
+```{r}
+#| label: plot-06-09-payment-form-scenario
+#| warning: false
+#| message: false
+
+# 1) Datenaufbereitung: Prozentberechnung pro Szenario und Statusgruppe
+payment_scenario_data <- daten_analysis |>
+  dplyr::select(owner_group, fin_form, rand_freq) |>
+  dplyr::filter(!is.na(fin_form), !is.na(owner_group), !is.na(rand_freq)) |>
+  dplyr::mutate(
+    # Szenario-Reihenfolge erzwingen
+    rand_freq = force_rand_freq_order(rand_freq),
+    # Labels zuweisen
+    fin_form_text = dplyr::case_when(
+      fin_form == 1 ~ "Stromrechnung",
+      fin_form == 2 ~ "Direktes Konto",
+      fin_form == 3 ~ "Bonuspunkte",
+      fin_form == 4 ~ "Keine Präferenz",
+      TRUE ~ "Sonstiges"
+    ),
+    fin_form_text = factor(fin_form_text, levels = c(
+      "Stromrechnung", "Direktes Konto", "Bonuspunkte", "Keine Präferenz"
+    ))
+  ) |>
+  # Zählen pro Szenario, Status und Wahl
+  dplyr::count(rand_freq, owner_group, fin_form_text, .drop = FALSE) |>
+  # Prozente innerhalb jeder Kombination aus Szenario und Status berechnen
+  dplyr::group_by(rand_freq, owner_group) |>
+  dplyr::mutate(pct = n / sum(n)) |>
+  dplyr::ungroup()
+
+# 2) Visualisierung mit Facets (Szenarien nebeneinander)
+p_payment_scen <- ggplot2::ggplot(payment_scenario_data, 
+  ggplot2::aes(x = fin_form_text, y = pct, fill = owner_group)) +
+  
+  # Balken (nebeneinander)
+  ggplot2::geom_bar(stat = "identity", position = ggplot2::position_dodge(0.8, preserve = "single"), width = 0.7) +
+  
+  # Prozent-Labels (dezent über den Balken)
+  ggplot2::geom_text(
+    ggplot2::aes(label = ifelse(pct > 0.03, scales::percent(pct, accuracy = 1), "")),
+    position = ggplot2::position_dodge(0.8),
+    vjust = -0.5, size = 2.5, fontface = "bold"
+  ) +
+  
+  # Panels für die Szenarien (Häufigkeit)
+  ggplot2::facet_wrap(~ rand_freq, labeller = ggplot2::as_labeller(function(x) paste(x, "Eingriffe/Jahr"))) +
+  
+  # Farben & Design
+  ggplot2::scale_fill_manual(values = c("Gerätebesitzer" = SURF_PURPLE, "Nicht-Besitzer" = SURF_PINK)) +
+  ggplot2::scale_y_continuous(labels = scales::percent, limits = c(0, max(payment_scenario_data$pct, 0.1) * 1.2)) +
+  
+  ggplot2::labs(
+    title = "Vergütungspräferenz im Szenarien-Vergleich",
+    subtitle = "Relative Anteile der gewünschten Auszahlungsform nach Belastungsgrad",
+    x = NULL,
+    y = "Anteil pro Gruppe (%)",
+    fill = "Status"
+  ) +
+  theme_surf() +
+  surf_legend_bottom() +
+  # Labels drehen für bessere Lesbarkeit in den Facets
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, size = 8))
+
+# Branding & Speichern
+p_payment_scen_branded <- brand_plot_surf(p_payment_scen)
+save_plot(p_payment_scen_branded, 6, 9, "payment_form_scenario_facets")
+
+# p_payment_scen_branded
+
+```
+
+```{r}
+#| label: plot-06-10-incentive-by-payment-form-final
+#| warning: false
+#| message: false
+
+# 1) Datenaufbereitung: Euro-Übersetzung & Filter (Konsistent ohne 500€)
+incentive_form_base <- daten_analysis |>
+  dplyr::mutate(
+    val_raw = as.character(fin_amount_year),
+    amount_real = dplyr::case_when(
+      val_raw == "1"  ~ 0, val_raw == "2"  ~ 15, val_raw == "3"  ~ 30,
+      val_raw == "4"  ~ 50, val_raw == "5"  ~ 75, val_raw == "6"  ~ 100,
+      val_raw == "7"  ~ 125, val_raw == "8"  ~ 150, val_raw == "9"  ~ 175,
+      val_raw == "10" ~ 200, val_raw == "11" ~ 250,
+      TRUE ~ NA_real_
+    ),
+    fin_form_text = dplyr::case_when(
+      fin_form == 1 ~ "Stromrechnung",
+      fin_form == 2 ~ "Direktes Konto",
+      fin_form == 3 ~ "Bonuspunkte",
+      fin_form == 4 ~ "Keine Präferenz",
+      TRUE ~ "Sonstiges"
+    )
+  ) |>
+  dplyr::filter(!is.na(amount_real), !is.na(owner_group))
+
+# 2) Statistiken berechnen
+stats_form_group <- incentive_form_base |>
+  dplyr::group_by(Vergütungsform = fin_form_text, Status = owner_group) |>
+  dplyr::summarise(n = dplyr::n(), mean_val = mean(amount_real), .groups = "drop")
+
+stats_form_total <- incentive_form_base |>
+  dplyr::group_by(Vergütungsform = fin_form_text) |>
+  dplyr::summarise(Status = "Gesamt", n = dplyr::n(), mean_val = mean(amount_real), .groups = "drop")
+
+# 3) TABELLE: Mit korrekter Sortierung (Gesamt immer unten)
+tbl_incentive_form <- dplyr::bind_rows(stats_form_group, stats_form_total) |>
+  dplyr::mutate(
+    Status = factor(Status, levels = c("Gerätebesitzer", "Nicht-Besitzer", "Gesamt")),
+    Vergütungsform = factor(Vergütungsform, levels = c("Stromrechnung", "Direktes Konto", "Bonuspunkte", "Keine Präferenz"))
+  ) |>
+  dplyr::filter(!is.na(Vergütungsform)) |>
+  dplyr::arrange(Vergütungsform, Status) |>
+  dplyr::mutate(`Ø Betrag` = sprintf("%.2f €", mean_val)) |>
+  dplyr::select(Vergütungsform, Status, n, `Ø Betrag`)
+
+# Flextable Anzeige
+ft_incentive_form <- tbl_incentive_form |>
+  flextable::flextable() |>
+  flextable::bg(bg = "#F5F5F5", part = "header") |>
+  flextable::color(color = "#602890", i = ~ Status == "Gesamt") |>
+  flextable::bold(i = ~ Status == "Gesamt") |>
+  flextable::align(align = "center", j = 3:4, part = "all") |>
+  flextable::merge_v(j = 1) |>
+  flextable::border_remove() |>
+  flextable::hline_top(border = officer::fp_border(color = "#602890", width = 2), part = "header") |>
+  flextable::set_caption(caption = "Erwartete Entschädigung nach Vergütungsform (ohne 500 € Ausreißer)") |>
+  flextable::autofit()
+
+# 4) GRAFIK: Mit synchronisierten Werten und 'preserve = single'
+p_incentive_form_viz <- ggplot2::ggplot(
+  dplyr::filter(tbl_incentive_form, Status != "Gesamt"), 
+  ggplot2::aes(x = Vergütungsform, y = as.numeric(gsub(" €", "", `Ø Betrag`)), fill = Status)) +
+  
+  # preserve = "single" sorgt dafür, dass Balken auch bei n=0 an ihrem Platz bleiben
+  ggplot2::geom_bar(stat = "identity", position = ggplot2::position_dodge(0.8, preserve = "single"), width = 0.7) +
+  
+  # Labels (Werte jetzt exakt wie in der Tabelle)
+  ggplot2::geom_text(
+    ggplot2::aes(label = `Ø Betrag`),
+    position = ggplot2::position_dodge(0.8, preserve = "single"),
+    vjust = -0.5, size = 3, fontface = "bold"
+  ) +
+  
+  # Fallzahlen (n) oben, sauber gedodged
+  ggplot2::geom_text(
+    ggplot2::aes(y = 280, label = paste0("n=", n), colour = Status),
+    position = ggplot2::position_dodge(0.8, preserve = "single"),
+    size = 2.5, fontface = "italic", show.legend = FALSE
+  ) +
+  
+  # Design
+  ggplot2::scale_fill_manual(values = c("Gerätebesitzer" = SURF_PURPLE, "Nicht-Besitzer" = SURF_PINK)) +
+  ggplot2::scale_colour_manual(values = c("Gerätebesitzer" = SURF_PURPLE, "Nicht-Besitzer" = SURF_PINK)) +
+  ggplot2::scale_y_continuous(limits = c(0, 310), breaks = seq(0, 250, by = 50), labels = function(x) paste0(x, " €")) +
+  ggplot2::labs(title = "Vergleich: Erwartung vs. Form", x = NULL, y = "Ø Entschädigung (€)") +
+  theme_surf() +
+  surf_legend_bottom()
+
+# Anzeige
+# ft_incentive_form
+
+```
+
+```{r}
+#| label: 06-incentive-by-payment-form-structured
+#| warning: false
+#| message: false
+
+# 1) Datenaufbereitung mit Euro-Übersetzung (ohne 500€ Ausreißer)
+incentive_form_base <- daten_analysis |>
+  dplyr::mutate(
+    val_raw = as.character(fin_amount_year),
+    amount_real = dplyr::case_when(
+      val_raw == "1"  ~ 0, val_raw == "2"  ~ 15, val_raw == "3"  ~ 30,
+      val_raw == "4"  ~ 50, val_raw == "5"  ~ 75, val_raw == "6"  ~ 100,
+      val_raw == "7"  ~ 125, val_raw == "8"  ~ 150, val_raw == "9"  ~ 175,
+      val_raw == "10" ~ 200, val_raw == "11" ~ 250,
+      TRUE ~ NA_real_
+    ),
+    fin_form_text = dplyr::case_when(
+      fin_form == 1 ~ "Stromrechnung",
+      fin_form == 2 ~ "Direktes Konto",
+      fin_form == 3 ~ "Bonuspunkte",
+      fin_form == 4 ~ "Keine Präferenz",
+      TRUE ~ "Sonstiges"
+    )
+  ) |>
+  dplyr::filter(!is.na(amount_real), !is.na(owner_group))
+
+# 2) Statistiken pro Gruppe
+stats_group <- incentive_form_base |>
+  dplyr::group_by(Vergütungsform = fin_form_text, Status = owner_group) |>
+  dplyr::summarise(n = dplyr::n(), mean_val = mean(amount_real), .groups = "drop")
+
+# 3) Statistiken Gesamt
+stats_total <- incentive_form_base |>
+  dplyr::group_by(Vergütungsform = fin_form_text) |>
+  dplyr::summarise(Status = "Gesamt", n = dplyr::n(), mean_val = mean(amount_real), .groups = "drop")
+
+# 4) Zusammenführung & Struktur-Erzwingung (Cross Join)
+# Wir erstellen ein Template, damit jede Form immer alle 3 Status-Zeilen hat
+template <- expand.grid(
+  Vergütungsform = c("Stromrechnung", "Direktes Konto", "Bonuspunkte", "Keine Präferenz"),
+  Status = c("Gerätebesitzer", "Nicht-Besitzer", "Gesamt"),
+  stringsAsFactors = FALSE
+)
+
+tbl_consistent <- template |>
+  dplyr::left_join(dplyr::bind_rows(stats_group, stats_total), by = c("Vergütungsform", "Status")) |>
+  dplyr::mutate(
+    n = tidyr::replace_na(n, 0),
+    # Formatierung: Wenn n > 0, dann Euro-Wert, sonst "-"
+    `Ø Betrag` = ifelse(n > 0, sprintf("%.2f €", mean_val), "-"),
+    Status = factor(Status, levels = c("Gerätebesitzer", "Nicht-Besitzer", "Gesamt")),
+    Vergütungsform = factor(Vergütungsform, levels = c("Stromrechnung", "Direktes Konto", "Bonuspunkte", "Keine Präferenz"))
+  ) |>
+  dplyr::arrange(Vergütungsform, Status) |>
+  dplyr::select(Vergütungsform, Status, n, `Ø Betrag`)
+
+# 5) Flextable mit sauberem Layout
+ft_consistent <- tbl_consistent |>
+  flextable::flextable() |>
+  flextable::bg(bg = "#F5F5F5", part = "header") |>
+  flextable::bold(part = "header") |>
+  flextable::color(color = "#602890", part = "header") |>
+  # Gesamt-Zeilen hervorheben
+  flextable::bold(i = ~ Status == "Gesamt") |>
+  flextable::bg(i = ~ Status == "Gesamt", bg = "#F9F3F9") |>
+  # Zellen-Ausrichtung
+  flextable::align(align = "center", j = 3:4, part = "all") |>
+  # Struktur: Erste Spalte mergen
+  flextable::merge_v(j = 1) |>
+  flextable::valign(j = 1, valign = "top") |>
+  flextable::border_remove() |>
+  # Trennlinien zwischen den Hauptgruppen
+  flextable::hline(i = c(3, 6, 9), border = officer::fp_border(color = "#D9D9D9", width = 1)) |>
+  flextable::hline_top(border = officer::fp_border(color = "#602890", width = 2), part = "header") |>
+  flextable::hline_bottom(border = officer::fp_border(color = "#602890", width = 1.5)) |>
+  flextable::set_caption(caption = "Zusammenfassung: Entschädigungshöhe nach gewünschter Vergütungsform") |>
+  flextable::autofit()
+
+# ft_consistent
+```
+
+```{r}
+#| label: plot-06-11-incentive-by-payment-form-final
+#| warning: false
+#| message: false
+
+# Plot-Daten vorbereiten (nur Besitzer/Nicht-Besitzer, ohne Gesamt)
+plot_clean <- tbl_consistent |>
+  dplyr::filter(Status != "Gesamt") |>
+  dplyr::mutate(mean_num = as.numeric(gsub(" €", "", gsub("-", "0", `Ø Betrag`))))
+
+p_incentive_final <- ggplot2::ggplot(plot_clean, 
+  ggplot2::aes(x = Vergütungsform, y = mean_num, fill = Status)) +
+  
+  # Balken mit festen Positionen (preserve = single ist hier der Schlüssel)
+  ggplot2::geom_bar(stat = "identity", position = ggplot2::position_dodge(0.8, preserve = "single"), width = 0.7) +
+  
+  # Euro-Labels (nur wenn n > 0)
+  ggplot2::geom_text(
+    ggplot2::aes(label = ifelse(n > 0, `Ø Betrag`, "")),
+    position = ggplot2::position_dodge(0.8, preserve = "single"),
+    vjust = -0.5, size = 3, fontface = "bold"
+  ) +
+  
+  # Fallzahlen oben
+  ggplot2::geom_text(
+    ggplot2::aes(y = 280, label = paste0("n=", n), colour = Status),
+    position = ggplot2::position_dodge(0.8, preserve = "single"),
+    size = 2.5, fontface = "italic", show.legend = FALSE
+  ) +
+  
+  # Design
+  ggplot2::scale_fill_manual(values = c("Gerätebesitzer" = SURF_PURPLE, "Nicht-Besitzer" = SURF_PINK)) +
+  ggplot2::scale_colour_manual(values = c("Gerätebesitzer" = SURF_PURPLE, "Nicht-Besitzer" = SURF_PINK)) +
+  ggplot2::scale_y_continuous(limits = c(0, 310), breaks = seq(0, 250, by = 50), labels = function(x) paste0(x, " €")) +
+  ggplot2::labs(
+    title = "Monetäre Erwartung vs. Auszahlungsart",
+    subtitle = "Durchschnittliche Forderung (€) pro Segment",
+    x = NULL, y = "Ø Erwartete Entschädigung (€)"
+  ) +
+  theme_surf() +
+  surf_legend_bottom()
+
+# brand_plot_surf(p_incentive_final)
+```
+
+### Struktur der Vergütung
+
+Ergänzend zur Auszahlungsform wurde die präferierte Vergütungslogik abgefragt. Hierbei standen verschiedene Modelle zur Auswahl, die sich im Grad der Leistungsorientierung (pauschal vs. nutzungsabhängig) unterscheiden.
+
+::: {.callout-note appearance="simple"}
+**Item: Gewünschte Struktur der Vergütung**
+
+*"Wofür möchten Sie im Rahmen der SURF-Plattform finanziell vergütet werden?"*
+
+**Optionen:**
+
+-   Nur für die Teilnahme (alle erhalten denselben Betrag, unabhängig davon, wie viel Flexibilität sie beigetragen haben)
+
+-   Nur für die tatsächliche Menge bereitgestellter Flexibilität (nur wer mehr beiträgt, erhält auch mehr Geld)
+
+-   Für die Teilnahme und die Menge der bereitgestellten Flexibilität (alle erhalten einen Grundbetrag, wer mehr beiträgt, erhält jedoch auch mehr zusätzliches Geld)
+
+-   Ich habe keine Präferenz
+:::
+
+```{r}
+#| label: 06-structure-summary
+#| warning: false
+#| message: false
+
+# 1) Datenaufbereitung für die Häufigkeitstabelle
+structure_summary_table <- daten_analysis |>
+  dplyr::select(owner_group, fin_structure) |>
+  # 98 (keine Angabe) ausschließen
+  dplyr::filter(!is.na(fin_structure), fin_structure != 98, !is.na(owner_group)) |>
+  dplyr::mutate(
+    Label = dplyr::case_when(
+      fin_structure == 1 ~ "Jährlicher Fixbetrag",
+      fin_structure == 2 ~ "Betrag pro Steuerungseingriff",
+      fin_structure == 3 ~ "Kombination aus beidem",
+      fin_structure == 4 ~ "Keine Präferenz",
+      TRUE ~ "Sonstiges"
+    ),
+    Label = factor(Label, levels = c(
+      "Jährlicher Fixbetrag", 
+      "Betrag pro Steuerungseingriff", 
+      "Kombination aus beidem",
+      "Keine Präferenz"
+    ))
+  ) |>
+  # Zählen pro Gruppe und insgesamt
+  dplyr::group_by(Label) |>
+  dplyr::summarise(
+    Gesamt_n = dplyr::n(),
+    Besitzer_n = sum(owner_group == "Gerätebesitzer"),
+    NichtBesitzer_n = sum(owner_group == "Nicht-Besitzer"),
+    .groups = "drop"
+  ) |>
+  # Prozentuale Anteile berechnen
+  dplyr::mutate(
+    Anteil = scales::percent(Gesamt_n / sum(Gesamt_n), accuracy = 0.1)
+  ) |>
+  dplyr::rename(
+    `Struktur (Label)` = Label,
+    `Gesamt (n)` = Gesamt_n,
+    `Gerätebesitzer (n)` = Besitzer_n,
+    `Nicht-Besitzer (n)` = NichtBesitzer_n,
+    `Anteil (%)` = Anteil
+  )
+
+# 2) Erstellung der Flextable im SURF-Style
+# ft_structure_summary <- structure_summary_table |>
+#   flextable::flextable() |>
+#   flextable::bg(bg = "#F5F5F5", part = "header") |>
+#   flextable::bold(part = "header") |>
+#   flextable::color(color = "#602890", part = "header") |>
+#   flextable::align(align = "center", j = 2:5, part = "all") |>
+#   flextable::border_remove() |>
+#   flextable::hline_top(border = officer::fp_border(color = "#602890", width = 2), part = "header") |>
+#   flextable::hline_bottom(border = officer::fp_border(color = "#D9D9D9", width = 1), part = "body") |>
+#   flextable::set_caption(caption = "Zusammenfassung der gewünschten Vergütungsstruktur (Fixum vs. Variabel)") |>
+#   flextable::autofit()
+
+# Anzeige
+# ft_structure_summary
+
+```
+
+```{r}
+#| label: plot-06-12-structure-comparison
+#| warning: false
+#| message: false
+
+# 1) Daten für den Plot vorbereiten
+structure_plot_data <- daten_analysis |>
+  dplyr::select(owner_group, fin_structure) |>
+  dplyr::filter(!is.na(fin_structure), fin_structure != 98, !is.na(owner_group)) |>
+  dplyr::mutate(
+    fin_structure_text = dplyr::case_when(
+      fin_structure == 1 ~ "Jährlicher Fixbetrag",
+      fin_structure == 2 ~ "Betrag pro Eingriff",
+      fin_structure == 3 ~ "Kombination",
+      fin_structure == 4 ~ "Keine Präferenz"
+    ),
+    fin_structure_text = factor(fin_structure_text, levels = c(
+      "Jährlicher Fixbetrag", "Betrag pro Eingriff", "Kombination", "Keine Präferenz"
+    ))
+  ) |>
+  dplyr::count(owner_group, fin_structure_text, .drop = FALSE) |>
+  dplyr::group_by(owner_group) |>
+  dplyr::mutate(pct = n / sum(n)) |>
+  dplyr::ungroup()
+
+# 2) Erstellung des Balkendiagramms
+p_structure_final <- ggplot2::ggplot(structure_plot_data, 
+  ggplot2::aes(x = fin_structure_text, y = pct, fill = owner_group)) +
+  
+  ggplot2::geom_bar(stat = "identity", position = ggplot2::position_dodge(0.8, preserve = "single"), width = 0.7) +
+  
+  ggplot2::geom_text(
+    ggplot2::aes(label = ifelse(pct > 0, scales::percent(pct, accuracy = 1), "")),
+    position = ggplot2::position_dodge(0.8, preserve = "single"),
+    vjust = -0.5, size = 3.2, fontface = "bold"
+  ) +
+  
+  ggplot2::scale_fill_manual(values = c("Gerätebesitzer" = SURF_PURPLE, "Nicht-Besitzer" = SURF_PINK)) +
+  ggplot2::scale_y_continuous(labels = scales::percent, limits = c(0, max(structure_plot_data$pct, 0.1) * 1.2)) +
+  
+  ggplot2::labs(
+    title = "Präferierte Vergütungsstruktur",
+    subtitle = "Vergleich der Auszahlungslogik zwischen Besitzern und Nicht-Besitzern",
+    x = NULL, y = "Anteil innerhalb der Gruppe (%)", fill = "Status"
+  ) +
+  theme_surf() +
+  surf_legend_bottom() +
+  ggplot2::scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = 15), drop = FALSE)
+
+# Branding
+brand_plot_surf(p_structure_final)
+
+```
+
+```{r}
+#| label: plot-06-13-structure-scenario-refined
+#| warning: false
+#| message: false
+
+# 1) Datenaufbereitung
+structure_scenario_data <- daten_analysis |>
+  dplyr::select(owner_group, fin_structure, rand_freq) |>
+  dplyr::filter(!is.na(fin_structure), fin_structure != 98, !is.na(owner_group), !is.na(rand_freq)) |>
+  dplyr::mutate(
+    rand_freq = force_rand_freq_order(rand_freq),
+    fin_structure_text = dplyr::case_when(
+      fin_structure == 1 ~ "Fixum",
+      fin_structure == 2 ~ "pro Eingriff",
+      fin_structure == 3 ~ "Kombi",
+      fin_structure == 4 ~ "keine Präf."
+    ),
+    fin_structure_text = factor(fin_structure_text, levels = c("Fixum", "pro Eingriff", "Kombi", "keine Präf."))
+  ) |>
+  dplyr::count(rand_freq, owner_group, fin_structure_text, .drop = FALSE) |>
+  dplyr::group_by(rand_freq, owner_group) |>
+  dplyr::mutate(pct = n / sum(n)) |>
+  dplyr::ungroup()
+
+# 2) Visualisierung (mit rotierter Beschriftung gegen Überlappung)
+p_structure_scen <- ggplot2::ggplot(structure_scenario_data, 
+  ggplot2::aes(x = fin_structure_text, y = pct, fill = owner_group)) +
+  ggplot2::geom_bar(stat = "identity", position = ggplot2::position_dodge(0.8, preserve = "single"), width = 0.7) +
+  ggplot2::geom_text(
+    ggplot2::aes(label = ifelse(pct > 0.03, scales::percent(pct, accuracy = 1), "")),
+    position = ggplot2::position_dodge(0.8, preserve = "single"),
+    vjust = -0.5, size = 2.5, fontface = "bold"
+  ) +
+  ggplot2::facet_wrap(~ rand_freq, labeller = ggplot2::as_labeller(function(x) paste(x, "Eingriffe/Jahr"))) +
+  ggplot2::scale_fill_manual(values = c("Gerätebesitzer" = SURF_PURPLE, "Nicht-Besitzer" = SURF_PINK)) +
+  ggplot2::scale_y_continuous(labels = scales::percent, limits = c(0, max(structure_scenario_data$pct, 0.1) * 1.3)) +
+  ggplot2::labs(title = "Vergütungsstruktur im Szenarien-Vergleich", x = NULL, y = "Anteil pro Gruppe (%)", fill = "Status") +
+  theme_surf() +
+  surf_legend_bottom() +
+  # Rotation der X-Labels, damit sie in den Facets nicht überlappen
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, size = 8))
+
+# brand_plot_surf(p_structure_scen)
+
+```
+
+```{r}
+#| label: 06-incentive-by-structure-final
+#| warning: false
+#| message: false
+
+# 1) Datenaufbereitung (ohne 500€ Ausreißer)
+incentive_struct_base <- daten_analysis |>
+  dplyr::mutate(
+    val_raw = as.character(fin_amount_year),
+    amount_real = dplyr::case_when(
+      val_raw == "1"  ~ 0, val_raw == "2"  ~ 15, val_raw == "3"  ~ 30,
+      val_raw == "4"  ~ 50, val_raw == "5"  ~ 75, val_raw == "6"  ~ 100,
+      val_raw == "7"  ~ 125, val_raw == "8"  ~ 150, val_raw == "9"  ~ 175,
+      val_raw == "10" ~ 200, val_raw == "11" ~ 250,
+      TRUE ~ NA_real_
+    ),
+    fin_structure_text = dplyr::case_when(
+      fin_structure == 1 ~ "Jährlicher Fixbetrag",
+      fin_structure == 2 ~ "Betrag pro Eingriff",
+      fin_structure == 3 ~ "Kombination aus beidem",
+      fin_structure == 4 ~ "Keine Präferenz"
+    )
+  ) |>
+  dplyr::filter(!is.na(amount_real), !is.na(owner_group), !is.na(fin_structure_text))
+
+# 2) Statistiken
+stats_struct_group <- incentive_struct_base |>
+  dplyr::group_by(Vergütungsstruktur = fin_structure_text, Status = owner_group) |>
+  dplyr::summarise(n = dplyr::n(), mean_val = mean(amount_real), .groups = "drop")
+
+stats_struct_total <- incentive_struct_base |>
+  dplyr::group_by(Vergütungsstruktur = fin_structure_text) |>
+  dplyr::summarise(Status = "Gesamt", n = dplyr::n(), mean_val = mean(amount_real), .groups = "drop")
+
+# 3) Struktur-Template für Konsistenz
+template_struct <- expand.grid(
+  Vergütungsstruktur = c("Jährlicher Fixbetrag", "Betrag pro Eingriff", "Kombination aus beidem", "Keine Präferenz"),
+  Status = c("Gerätebesitzer", "Nicht-Besitzer", "Gesamt"),
+  stringsAsFactors = FALSE
+)
+
+tbl_struct_final <- template_struct |>
+  dplyr::left_join(dplyr::bind_rows(stats_group_struct = stats_struct_group, stats_total_struct = stats_struct_total),
+                   by = c("Vergütungsstruktur", "Status")) |>
+  dplyr::mutate(
+    n = tidyr::replace_na(n, 0),
+    `Ø Betrag` = ifelse(n > 0, sprintf("%.2f €", mean_val), "-"),
+    Status = factor(Status, levels = c("Gerätebesitzer", "Nicht-Besitzer", "Gesamt")),
+    Vergütungsstruktur = factor(Vergütungsstruktur, levels = c("Jährlicher Fixbetrag", "Betrag pro Eingriff", "Kombination aus beidem", "Keine Präferenz"))
+  ) |>
+  dplyr::arrange(Vergütungsstruktur, Status) |>
+  dplyr::select(Vergütungsstruktur, Status, n, `Ø Betrag`)
+# 
+# # 4) Flextable
+# ft_struct_incentive <- tbl_struct_final |>
+#   flextable::flextable() |>
+#   flextable::bg(bg = "#F5F5F5", part = "header") |>
+#   flextable::bold(part = "header") |>
+#   flextable::color(color = "#602890", i = ~ Status == "Gesamt") |>
+#   flextable::bold(i = ~ Status == "Gesamt") |>
+#   flextable::bg(i = ~ Status == "Gesamt", bg = "#F9F3F9") |>
+#   flextable::merge_v(j = 1) |>
+#   flextable::valign(j = 1, valign = "top") |>
+#   flextable::border_remove() |>
+#   flextable::hline(i = c(3, 6, 9), border = officer::fp_border(color = "#D9D9D9", width = 1)) |>
+#   flextable::set_caption(caption = "Erwartete Entschädigungshöhe nach gewünschter Vergütungsstruktur") |>
+#   flextable::autofit()
+
+# ft_struct_incentive
+
+```
+
+```{r}
+#| label: plot-06-14-incentive-by-structure-final
+#| warning: false
+#| message: false
+
+# 1) Plot-Daten vorbereiten
+plot_struct_clean <- tbl_struct_final |>
+  dplyr::filter(Status != "Gesamt") |>
+  dplyr::mutate(mean_num = as.numeric(gsub(" €", "", gsub("-", "0", `Ø Betrag`))))
+
+# 2) Visualisierung
+p_incentive_struct_viz <- ggplot2::ggplot(plot_struct_clean, 
+  ggplot2::aes(x = Vergütungsstruktur, y = mean_num, fill = Status)) +
+  
+  # Balken
+  ggplot2::geom_bar(stat = "identity", position = ggplot2::position_dodge(0.8, preserve = "single"), width = 0.7) +
+  
+  # Euro-Labels
+  ggplot2::geom_text(
+    ggplot2::aes(label = ifelse(n > 0, `Ø Betrag`, "")),
+    position = ggplot2::position_dodge(0.8, preserve = "single"),
+    vjust = -0.5, size = 3, fontface = "bold"
+  ) +
+  
+  # FALLZAHLEN am oberen Rand (versetzt und farblich passend)
+  ggplot2::geom_text(
+    ggplot2::aes(y = 300, label = paste0("n=", n), colour = Status),
+    position = ggplot2::position_dodge(0.8, preserve = "single"),
+    size = 2.8, fontface = "bold.italic", show.legend = FALSE
+  ) +
+  
+  # Design & Farben
+  ggplot2::scale_fill_manual(values = c("Gerätebesitzer" = SURF_PURPLE, "Nicht-Besitzer" = SURF_PINK)) +
+  ggplot2::scale_colour_manual(values = c("Gerätebesitzer" = SURF_PURPLE, "Nicht-Besitzer" = SURF_PINK)) +
+  ggplot2::scale_y_continuous(limits = c(0, 330), breaks = seq(0, 250, by = 50), labels = function(x) paste0(x, " €")) +
+  
+  ggplot2::labs(
+    title = "Monetäre Erwartung nach Strukturtyp",
+    subtitle = "Zusammenhang zwischen Auszahlungslogik und Entschädigungshöhe",
+    x = NULL, y = "Ø Erwartete Entschädigung (€)"
+  ) +
+  theme_surf() +
+  surf_legend_bottom() +
+  # Textumbruch für die langen X-Achsen-Labels
+  ggplot2::scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = 15))
+
+# brand_plot_surf(p_incentive_struct_viz)
+
+```
+
+### Form und Struktur der Vergütung: Typologisierungsansätze und Vergütungserwartungen
+
+Die Kombination aus der Vergütungsform (dem Auszahlungsweg, z. B.
+Stromrechnung vs. Bankkonto) und der Vergütungsstruktur (der
+Berechnungslogik, z. B. Fixum vs. variable Zahlung) erlaubt es,
+spezifische Nutzer-Typologien zu identifizieren. Diese Matrix-Analyse
+gibt Aufschluss darüber, welche „Anreiz-Pakete“ in der Stichprobe
+dominieren und wie die gewählte Kombination mit der monetären
+Erwartungshaltung korreliert.
+
+```{r}
+#| label: plot-06-16-typology-distribution-pure
+#| warning: false
+#| message: false
+
+# 1) Datenaufbereitung: Rein auf Häufigkeiten fokussiert
+typology_dist_data <- daten_analysis |>
+  dplyr::mutate(
+    form_label = dplyr::case_when(
+      fin_form == 1 ~ "Stromrechnung",
+      fin_form == 2 ~ "Direktes Konto",
+      fin_form == 3 ~ "Bonuspunkte",
+      fin_form == 4 ~ "Keine Präferenz",
+      TRUE ~ NA_character_
+    ),
+    struct_label = dplyr::case_when(
+      fin_structure == 1 ~ "Fixbetrag",
+      fin_structure == 2 ~ "Pro Eingriff",
+      fin_structure == 3 ~ "Kombination",
+      fin_structure == 4 ~ "Keine Präf.",
+      TRUE ~ NA_character_
+    )
+  ) |>
+  dplyr::filter(!is.na(form_label), !is.na(struct_label)) |>
+  # Zählen der Kombinationen
+  dplyr::group_by(form_label, struct_label) |>
+  dplyr::summarise(n = dplyr::n(), .groups = "drop")
+
+# 2) Visualisierung als reine Häufigkeits-Matrix
+p_typology_dist <- ggplot2::ggplot(typology_dist_data, 
+  ggplot2::aes(x = struct_label, y = form_label)) +
+  
+  # Die "Balloons": Größe und Farbintensität basieren auf der Fallzahl n
+  ggplot2::geom_point(ggplot2::aes(size = n, colour = n), alpha = 0.8) +
+  
+  # Fallzahl (n) direkt über oder in den Punkten positionieren
+  # Wir setzen sie hier zentral in den Punkt für maximale Klarheit
+  ggplot2::geom_text(
+    ggplot2::aes(label = n), 
+    colour = "white", fontface = "bold", size = 3.5
+  ) +
+  
+  # Farbskala: Von SURF_PINK (selten) zu SURF_PURPLE (häufig)
+  ggplot2::scale_colour_gradient(low = "#EFA9D1", high = "#602890", name = "Anzahl (n)") +
+  
+  # Punktgröße anpassen (Sichtbarkeit der Unterschiede erhöhen)
+  ggplot2::scale_size_area(max_size = 22, guide = "none") +
+  
+  # Achsen-Design
+  ggplot2::scale_y_discrete(expand = ggplot2::expansion(add = c(0.6, 0.6))) +
+  ggplot2::scale_x_discrete(expand = ggplot2::expansion(add = c(0.6, 0.6))) +
+  
+  ggplot2::labs(
+    title = "Verteilung der bevorzugten Vergütungstypen",
+    subtitle = "Häufigkeit der Kombinationen aus Auszahlungsform und -struktur",
+    x = "Struktur der Vergütung",
+    y = "Form der Vergütung",
+    caption = "Die Punktgröße und Farbintensität verdeutlichen die Popularität der jeweiligen Kombination."
+  ) +
+  theme_surf() +
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_line(colour = "grey95"),
+    legend.position = "right"
+  )
+
+# Branding & Anzeige
+# brand_plot_surf(p_typology_dist)
+```
+
+```{r}
+#| label: plot-06-15-remuneration-typology-final-fixed
+#| warning: false
+#| message: false
+
+# 1) Datenaufbereitung (Mapping & Gruppierung)
+typology_data <- daten_analysis |>
+  dplyr::mutate(
+    val_raw = as.character(fin_amount_year),
+    amount_real = dplyr::case_when(
+      val_raw == "1"  ~ 0, val_raw == "2"  ~ 15, val_raw == "3"  ~ 30,
+      val_raw == "4"  ~ 50, val_raw == "5"  ~ 75, val_raw == "6"  ~ 100,
+      val_raw == "7"  ~ 125, val_raw == "8"  ~ 150, val_raw == "9"  ~ 175,
+      val_raw == "10" ~ 200, val_raw == "11" ~ 250,
+      TRUE ~ NA_real_
+    ),
+    form_label = dplyr::case_when(
+      fin_form == 1 ~ "Stromrechnung",
+      fin_form == 2 ~ "Direktes Konto",
+      fin_form == 3 ~ "Bonuspunkte",
+      fin_form == 4 ~ "Keine Präferenz",
+      TRUE ~ "Sonstiges"
+    ),
+    struct_label = dplyr::case_when(
+      fin_structure == 1 ~ "Fixbetrag",
+      fin_structure == 2 ~ "Pro Eingriff",
+      fin_structure == 3 ~ "Kombination",
+      fin_structure == 4 ~ "Keine Präf.",
+      TRUE ~ "Sonstiges"
+    )
+  ) |>
+  dplyr::filter(!is.na(amount_real), !is.na(form_label), !is.na(struct_label), 
+                form_label != "Sonstiges", struct_label != "Sonstiges") |>
+  dplyr::group_by(form_label, struct_label) |>
+  dplyr::summarise(
+    n = dplyr::n(),
+    avg_amount = mean(amount_real),
+    .groups = "drop"
+  )
+
+# 2) Visualisierung
+p_typology_matrix_final <- ggplot2::ggplot(typology_data, 
+  ggplot2::aes(x = struct_label, y = form_label)) +
+  
+  # Die "Balloons"
+  ggplot2::geom_point(ggplot2::aes(size = n, colour = avg_amount), alpha = 0.75) +
+  
+  # Beschriftung 2: Ø € (ÜBER dem Kreis)
+  # Ein etwas größerer vjust-Wert schiebt die Zahl sicher über den Rand
+  ggplot2::geom_text(
+    ggplot2::aes(label = paste0(round(avg_amount), " €")), 
+    vjust = -2.5, colour = "grey10", size = 3.2, fontface = "bold"
+  ) +
+  
+  # Farbskala & Design
+  ggplot2::scale_colour_gradient(low = SURF_PINK, high = SURF_PURPLE, name = "Ø Erwartung (€)") +
+  ggplot2::scale_size_area(max_size = 18, guide = "none") +
+  
+  # Achsen erweitern für Platz der Labels (0.9 sorgt für genug Puffer oben/unten)
+  ggplot2::scale_y_discrete(expand = ggplot2::expansion(add = c(0.9, 1.1))) +
+  ggplot2::scale_x_discrete(expand = ggplot2::expansion(add = c(0.7, 0.7))) +
+  
+  ggplot2::labs(
+    title = "Typologie der Vergütungspräferenzen",
+    subtitle = "Im Kreis: Fallzahl (n) | Über dem Kreis: Ø Jährliche Forderung (€)",
+    x = "Struktur der Auszahlung",
+    y = "Form der Auszahlung"
+  ) +
+  theme_surf() +
+  ggplot2::theme(
+    panel.grid.major = ggplot2::element_line(colour = "grey95"),
+    legend.position = "right"
+  )
+
+# Branding & Anzeige
+brand_plot_surf(p_typology_matrix_final)
+```
+
+
+## Kontrolloptionen
+
+::: {.callout-note appearance="simple"}
+**Item: Bedeutung von Kontroll- und Eingriffsmöglichkeiten**
+
+*"Wie wichtig sind Ihnen die folgenden Möglichkeiten im Rahmen der automatischen Steuerung durch die SURF-Plattform?"*
+
+**Abgefragte Aspekte:**
+
+  - Zeitliche Flexibilität (config_depth): Selbst festlegen zu können, zu welchen Tageszeiten Geräte in meinem Haushalt durch die SURF-Plattform gesteuert werden können.
+
+  - Override-Option (config_override): Die Möglichkeit, die automatische Steuerung jederzeit und sofort zu beenden.
+
+  - Geräteauswahl (config_device): Selbst festlegen zu können, welche meiner Geräte durch die SURF-Plattform gesteuert werden können, und welche nicht.
+
+**Antwortoptionen (Skala 0 bis 4):**
+
+  - 0 - Überhaupt nicht wichtig
+
+  - 1 - Eher unwichtig
+
+  - 2 - Teils, teils
+
+  - 3 - Eher wichtig
+
+  - 4 - Sehr wichtig
+  
+:::
+
+```{r}
+#| label: plot-07-01-control-importance
+#| warning: false
+#| message: false
+
+# 1) Datenaufbereitung
+# Die Spalte für "Tageszeiten" heißt im Datensatz 'config_depth'
+control_needs_data <- daten_analysis |>
+  dplyr::select(
+    owner_group, 
+    config_depth, 
+    config_override, 
+    config_device
+  ) |>
+  tidyr::pivot_longer(
+    cols = starts_with("config_"),
+    names_to = "item",
+    values_to = "value"
+  ) |>
+  # Filtere nur valide Werte der 0-4 Skala (98/99/NA ausschließen)
+  dplyr::filter(!is.na(value), value >= 0, value <= 4) |> 
+  dplyr::mutate(
+    item_label = dplyr::recode(item,
+      "config_depth"    = "Zeitfenster festlegen",
+      "config_override" = "Jederzeit beenden (Override)",
+      "config_device"   = "Geräteauswahl bestimmen"
+    )
+  ) |>
+  dplyr::group_by(item_label, owner_group) |>
+  dplyr::summarise(mean_ci_n(value), .groups = "drop")
+
+# 2) Visualisierung auf der 0-4 Skala
+p_control_needs <- ggplot2::ggplot(control_needs_data, 
+  ggplot2::aes(x = mean, y = reorder(item_label, mean), colour = owner_group)) +
+  
+  # Vertikale Hilfslinie beim neutralen Mittelpunkt (2.0)
+  ggplot2::geom_vline(xintercept = 2, linetype = "dotted", colour = "grey70") +
+  
+  ggplot2::geom_errorbarh(
+    ggplot2::aes(xmin = ymin, xmax = ymax), 
+    height = 0.2, alpha = 0.6
+  ) +
+  ggplot2::geom_point(size = 3.5) +
+  
+  # Labels für die Mittelwerte (0.00 bis 4.00)
+  ggplot2::geom_text(
+    ggplot2::aes(label = sprintf("%.2f", mean)), 
+    vjust = -1.5, size = 3.2, fontface = "bold", show.legend = FALSE
+  ) +
+  
+  ggplot2::scale_colour_manual(values = c("Gerätebesitzer" = SURF_PURPLE, "Nicht-Besitzer" = SURF_PINK)) +
+  
+  # Achsenskalierung fest auf 0 bis 4
+  ggplot2::scale_x_continuous(
+    limits = c(0, 4.5), 
+    breaks = 0:4, 
+    labels = 0:4
+  ) +
+  
+  ggplot2::labs(
+    title = "Wichtigkeit von Kontrollmöglichkeiten",
+    subtitle = "Mittelwerte mit 95% Konfidenzintervall (Skala 0 bis 4)",
+    x = "Wichtigkeit (0=Gering, 4=Hoch)",
+    y = NULL,
+    colour = "Status"
+  ) +
+  theme_surf() +
+  surf_legend_bottom()
+
+# Branding & Anzeige
+p_control_needs_branded <- brand_plot_surf(p_control_needs)
+p_control_needs_branded
+
+```
+
+```{r}
+#| label: plot-07-02-control-importance-by-freq
+#| warning: false
+#| message: false
+
+# 1) Datenaufbereitung mit Einbezug der Steuerungshäufigkeit
+control_freq_data <- daten_analysis |>
+  dplyr::select(
+    owner_group, 
+    rand_freq,
+    config_depth, 
+    config_override, 
+    config_device
+  ) |>
+  tidyr::pivot_longer(
+    cols = c(config_depth, config_override, config_device),
+    names_to = "item",
+    values_to = "value"
+  ) |>
+  # Filtere valide Werte (0-4) und stelle sicher, dass rand_freq korrekt sortiert ist
+  dplyr::filter(!is.na(value), value >= 0, value <= 4) |> 
+  dplyr::mutate(
+    rand_freq = force_rand_freq_order(rand_freq),
+    item_label = dplyr::recode(item,
+      "config_depth"    = "Zeitfenster festlegen",
+      "config_override" = "Jederzeit beenden (Override)",
+      "config_device"   = "Geräteauswahl bestimmen"
+    )
+  ) |>
+  # Gruppierung nach Item, Status und der experimentellen Frequenz
+  dplyr::group_by(item_label, owner_group, rand_freq) |>
+  dplyr::summarise(mean_ci_n(value), .groups = "drop")
+
+# 2) Visualisierung: Facettierung nach Kontroll-Item
+p_control_freq <- ggplot2::ggplot(control_freq_data, 
+  ggplot2::aes(x = rand_freq, y = mean, colour = owner_group, group = owner_group)) +
+  
+  # Vertikale Facetten für die drei Aspekte
+  ggplot2::facet_wrap(~ item_label, ncol = 3) +
+  
+  # Verbindungslinien und Punkte
+  ggplot2::geom_line(linewidth = 1, alpha = 0.5) +
+  ggplot2::geom_errorbar(
+    ggplot2::aes(ymin = ymin, ymax = ymax), 
+    width = 0.15, alpha = 0.7
+  ) +
+  ggplot2::geom_point(size = 3) +
+  
+  # Labels für die Mittelwerte
+  ggplot2::geom_text(
+    ggplot2::aes(label = sprintf("%.2f", mean)), 
+    vjust = -1.5, size = 2.8, fontface = "bold", show.legend = FALSE
+  ) +
+  
+  ggplot2::scale_colour_manual(values = c("Gerätebesitzer" = SURF_PURPLE, "Nicht-Besitzer" = SURF_PINK)) +
+  
+  # Achsenskalierung auf 0-4
+  ggplot2::scale_y_continuous(limits = c(0, 4.5), breaks = 0:4) +
+  
+  ggplot2::labs(
+    title = "Einfluss der Eingriffshäufigkeit auf Kontrollwünsche",
+    subtitle = "Mittelwerte (0-4) differenziert nach Szenario (Eingriffe pro Jahr)",
+    x = "Steuerungshäufigkeit (Szenario)",
+    y = "Wichtigkeit (0=Gering, 4=Hoch)",
+    colour = "Status"
+  ) +
+  theme_surf() +
+  surf_legend_bottom() +
+  # X-Achsen Beschriftung leicht optimieren
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 0, hjust = 0.5))
+
+# Branding & Anzeige
+p_control_freq_branded <- brand_plot_surf(p_control_freq)
+p_control_freq_branded
+```
+
+## Informations und Entscheidungstransparenz
+
+Transparenz gilt als Schlüssel für die Akzeptanz automatisierter Systeme. Hier wurde abgefragt, welche Informationstiefe die Befragten benötigen, um den Entscheidungen der SURF-Plattform vertrauen zu können.
+
+::: {.callout-note appearance="simple"} 
+
+Item: Mindest-Informationsbedarf für Systemvertrauen
+
+"Wie viel Informationen über die automatischen Entscheidungen der SURF-Plattform benötigen Sie mindestens, um diesen vertrauen zu können?"
+
+Antwortoptionen:
+
+-  Basisinformationen: Nur wesentliche Fakten (Mein Flexibilitätsbeitrag, Auswirkungen auf den Haushalt, finanzielle Gewinne).
+
+-  KI-Inputdaten: Zusätzlich die zugrunde liegenden Daten (Netzsituation, Auslastungsvorhersagen, Wetter).
+
+-  Interaktive Erklärung: Die KI soll auf Nachfrage Details zu konkreten Entscheidungen erklären können (Explainable AI).
+    
+:::
+
+```{r}
+#| label: plot-08-01-info-trust-level
+#| warning: false
+#| message: false
+
+# 1) Datenaufbereitung
+info_trust_data <- daten_analysis |>
+  dplyr::select(owner_group, info_trust) |>
+  # 98/99/NA ausschließen (Skala 1 bis 3)
+  dplyr::filter(!is.na(info_trust), info_trust >= 1, info_trust <= 3) |>
+  dplyr::mutate(
+    # Mapping der Labels
+    info_label = dplyr::recode(as.character(info_trust),
+      "1" = "Basisinformationen",
+      "2" = "Zusätzliche KI-Inputdaten",
+      "3" = "Interaktive Detail-Erklärung"
+    ),
+    # REIHENFOLGE: Für die Anzeige von oben nach unten (Basis -> KI -> Interaktiv)
+    # In ggplot (y-Achse) wird das letzte Level oben angezeigt.
+    info_label = factor(info_label, levels = c(
+      "Interaktive Detail-Erklärung",
+      "Zusätzliche KI-Inputdaten", 
+      "Basisinformationen"
+    ))
+  ) |>
+  # Prozentberechnung pro Gruppe
+  dplyr::count(owner_group, info_label) |>
+  dplyr::group_by(owner_group) |>
+  dplyr::mutate(pct = n / sum(n)) |>
+  dplyr::ungroup()
+
+# 2) Visualisierung
+p_info_trust <- ggplot2::ggplot(info_trust_data, 
+  ggplot2::aes(x = pct, y = info_label, fill = owner_group)) +
+  
+  # Balken (nebeneinander/dodge)
+  ggplot2::geom_col(position = ggplot2::position_dodge(width = 0.8), width = 0.7) +
+  
+  # Prozent-Labels rechts neben den Balken
+  ggplot2::geom_text(
+    ggplot2::aes(label = scales::percent(pct, accuracy = 1)),
+    position = ggplot2::position_dodge(width = 0.8),
+    hjust = -0.2, 
+    size = 3.2, 
+    fontface = "bold"
+  ) +
+  
+  # Farbschema SURF
+  ggplot2::scale_fill_manual(values = c("Gerätebesitzer" = SURF_PURPLE, "Nicht-Besitzer" = SURF_PINK)) +
+  
+  # Achsen-Einstellungen
+  ggplot2::scale_x_continuous(
+    labels = scales::percent, 
+    limits = c(0, max(info_trust_data$pct) * 1.25),
+    expand = c(0, 0)
+  ) +
+  
+  ggplot2::labs(
+    title = "Benötigte Informationstiefe für Systemvertrauen",
+    subtitle = "Reihenfolge von Basisinformationen bis zu interaktiven Details",
+    x = "Anteil innerhalb der Gruppe (%)",
+    y = NULL,
+    fill = "Status"
+  ) +
+  theme_surf() +
+  surf_legend_bottom() +
+  # Textumbruch für die Labels der Y-Achse
+  ggplot2::scale_y_discrete(labels = function(x) stringr::str_wrap(x, width = 20))
+
+# Branding & Anzeige
+p_info_trust_branded <- brand_plot_surf(p_info_trust)
+p_info_trust_branded
+
+```
+
+```{r}
+#| label: plot-08-03-info-trust-stacked
+#| warning: false
+#| message: false
+
+# 1) Datenaufbereitung für 100% Stacked Bar
+info_stacked_data <- daten_analysis |>
+  dplyr::select(owner_group, rand_freq, info_trust) |>
+  dplyr::filter(!is.na(info_trust), info_trust >= 1, info_trust <= 3) |>
+  dplyr::mutate(
+    rand_freq = force_rand_freq_order(rand_freq),
+    # Ordnung der Information: Von einfach (unten) nach komplex (oben)
+    info_label = dplyr::recode(as.character(info_trust),
+      "1" = "Basisinformationen",
+      "2" = "KI-Inputdaten",
+      "3" = "Interaktive Erklärung"
+    ),
+    info_label = factor(info_label, levels = c(
+      "Interaktive Erklärung",
+      "KI-Inputdaten",
+      "Basisinformationen"
+    ))
+  ) |>
+  dplyr::count(rand_freq, owner_group, info_label) |>
+  dplyr::group_by(rand_freq, owner_group) |>
+  dplyr::mutate(pct = n / sum(n)) |>
+  dplyr::ungroup()
+
+# 2) Visualisierung als 100% Stacked Bar
+p_info_stacked <- ggplot2::ggplot(info_stacked_data, 
+  ggplot2::aes(x = rand_freq, y = pct, fill = info_label)) +
+  
+  # 100% gestapelte Balken
+  ggplot2::geom_col(position = "fill", width = 0.7, colour = "white", linewidth = 0.2) +
+  
+  # Prozent-Labels direkt in die Segmente (nur wenn Segment groß genug ist)
+  ggplot2::geom_text(
+    ggplot2::aes(label = ifelse(pct > 0.08, scales::percent(pct, accuracy = 1), "")),
+    position = ggplot2::position_stack(vjust = 0.5),
+    size = 3, colour = "white", fontface = "bold"
+  ) +
+  
+  # Facettierung nach Status (Besitzer vs. Nicht-Besitzer)
+  ggplot2::facet_wrap(~ owner_group) +
+  
+  # SURF Farbskala (von Hell nach Dunkel für Informationstiefe)
+  ggplot2::scale_fill_manual(
+    values = c(
+      "Basisinformationen" = "#E81878",  # SURF PINK
+      "KI-Inputdaten"      = "#902088",  # SURF MAG
+      "Interaktive Erklärung" = "#602890" # SURF PURPLE
+    )
+  ) +
+  
+  # Achsen-Design
+  ggplot2::scale_y_continuous(labels = scales::percent, expand = c(0, 0)) +
+  
+  ggplot2::labs(
+    title = "Zusammensetzung des Informationsbedarfs",
+    subtitle = "Wie sich die Ansprüche mit steigender Steuerungshäufigkeit verschieben",
+    x = "Steuerungshäufigkeit (Eingriffe pro Jahr)",
+    y = "Anteil der Befragten (%)",
+    fill = "Gewünschte Informationstiefe"
+  ) +
+  theme_surf() +
+  surf_legend_bottom(nrow = 1)
+
+# Branding & Anzeige
+p_info_stacked_branded <- brand_plot_surf(p_info_stacked)
+p_info_stacked_branded
+```
+
+## Teilahmemotive
+
+Zum Abschluss der inhaltlichen Analyse betrachten wir die Teilnahmemotive. Hierbei wurde erhoben, welcher Aspekt für die Befragten den ausschlaggebenden Impuls für eine Teilnahme an der SURF-Plattform darstellt. Dies ist für das Marketing und die Zielgruppenansprache der Plattform von zentraler Bedeutung.
+
+::: {.callout-note appearance="simple"} 
+
+Item: Zentrales Teilnahmemotiv
+
+"Was motiviert Sie am meisten zur Teilnahme an der SURF-Plattform?"
+
+Optionen:
+
+-  Finanzielle Vergütung
+
+-  Technologisches Interesse
+
+-  Umweltschutz
+
+-  Netzstabilität
+
+-  Sonstiges
+
+-  Weiß ich nicht 
+
+:::
+
+```{r}
+#| label: plot-09-01-participation-motives-ordered
+#| warning: false
+#| message: false
+
+# 1) Datenaufbereitung
+motive_data <- daten_analysis |>
+  dplyr::select(owner_group, motive) |>
+  # 98 (Weiß ich nicht) und NA ausschließen
+  dplyr::filter(!is.na(motive), !motive %in% c("98", "99")) |>
+  dplyr::mutate(
+    motive_label = dplyr::case_when(
+      motive == "1" ~ "Finanzielle Vergütung",
+      motive == "2" ~ "Technologisches Interesse",
+      motive == "3" ~ "Umweltschutz",
+      motive == "4" ~ "Netzstabilität",
+      motive == "-oth-" ~ "Sonstiges",
+      TRUE ~ "Sonstiges"
+    )
+  )
+
+# 2) Berechnung der Anteile und Sortierung nach Gerätebesitzern
+motive_stats <- motive_data |>
+  dplyr::count(owner_group, motive_label) |>
+  dplyr::group_by(owner_group) |>
+  dplyr::mutate(pct = n / sum(n)) |>
+  dplyr::ungroup()
+
+# Hilfsvariable für die Sortierung: Prozente nur der Besitzer extrahieren
+order_logic <- motive_stats |>
+  dplyr::filter(owner_group == "Gerätebesitzer") |>
+  dplyr::arrange(pct) |> # Aufsteigend sortieren für ggplot y-Achse (höchster Wert landet oben)
+  dplyr::pull(motive_label)
+
+# Faktor-Reihenfolge anwenden
+motive_stats <- motive_stats |>
+  dplyr::mutate(motive_label = factor(motive_label, levels = order_logic))
+
+# 3) Visualisierung
+p_motive <- ggplot2::ggplot(motive_stats, 
+  ggplot2::aes(x = pct, y = motive_label, fill = owner_group)) +
+  
+  # Balken nebeneinander
+  ggplot2::geom_col(position = ggplot2::position_dodge(width = 0.8), width = 0.7) +
+  
+  # Prozent-Labels
+  ggplot2::geom_text(
+    ggplot2::aes(label = scales::percent(pct, accuracy = 1)),
+    position = ggplot2::position_dodge(width = 0.8),
+    hjust = -0.1, size = 3.2, fontface = "bold"
+  ) +
+  
+  # SURF Farbschema
+  ggplot2::scale_fill_manual(values = c("Gerätebesitzer" = SURF_PURPLE, "Nicht-Besitzer" = SURF_PINK)) +
+  
+  # Achsen-Einstellungen
+  ggplot2::scale_x_continuous(
+    labels = scales::percent, 
+    limits = c(0, max(motive_stats$pct) * 1.3),
+    expand = c(0, 0)
+  ) +
+  
+  ggplot2::labs(
+    title = "Zentrale Teilnahmemotive",
+    subtitle = "Sortiert nach Relevanz für Gerätebesitzer (absteigend)",
+    x = "Anteil innerhalb der Gruppe (%)",
+    y = NULL,
+    fill = "Status"
+  ) +
+  theme_surf() +
+  surf_legend_bottom()
+
+# Branding & Anzeige
+p_motive_branded <- brand_plot_surf(p_motive)
+p_motive_branded
+
+```
+
+```{r}
+#| label: plot-09-01-participation-motives-stacked
+#| warning: false
+#| message: false
+
+# 1) Datenaufbereitung
+motive_stacked_data <- daten_analysis |>
+  dplyr::select(owner_group, motive) |>
+  # 98 (Weiß ich nicht) und NA ausschließen
+  dplyr::filter(!is.na(motive), !motive %in% c("98", "99"), !is.na(owner_group)) |>
+  dplyr::mutate(
+    motive_label = dplyr::case_when(
+      motive == "1" ~ "Finanzielle Vergütung",
+      motive == "2" ~ "Technologisches Interesse",
+      motive == "3" ~ "Umweltschutz",
+      motive == "4" ~ "Netzstabilität",
+      TRUE ~ "Sonstiges"
+    )
+  )
+
+# 2) Anteile berechnen und Sortierung festlegen
+motive_stats_stacked <- motive_stacked_data |>
+  dplyr::count(owner_group, motive_label) |>
+  dplyr::group_by(owner_group) |>
+  dplyr::mutate(pct = n / sum(n)) |>
+  dplyr::ungroup()
+
+# Sortierung der Motive im Stapel basierend auf der Relevanz für Gerätebesitzer
+# (Finanzielle Vergütung ganz unten für bessere Vergleichbarkeit)
+motive_order <- motive_stats_stacked |>
+  dplyr::filter(owner_group == "Gerätebesitzer") |>
+  dplyr::arrange(desc(pct)) |>
+  dplyr::pull(motive_label)
+
+motive_stats_stacked <- motive_stats_stacked |>
+  dplyr::mutate(motive_label = factor(motive_label, levels = motive_order))
+
+# 3) Visualisierung als gestapelte Balken
+p_motive_stacked <- ggplot2::ggplot(motive_stats_stacked, 
+  ggplot2::aes(x = owner_group, y = pct, fill = motive_label)) +
+  
+  # Gestapelte Balken (100%)
+  ggplot2::geom_col(position = "fill", width = 0.6, colour = "white", linewidth = 0.3) +
+  
+  # Prozent-Labels direkt in die Segmente (nur wenn Segment > 5%)
+  ggplot2::geom_text(
+    ggplot2::aes(label = ifelse(pct > 0.05, scales::percent(pct, accuracy = 1), "")),
+    position = ggplot2::position_stack(vjust = 0.5),
+    size = 3.5, colour = "white", fontface = "bold"
+  ) +
+  
+  # SURF Farbskala für die Motive
+  ggplot2::scale_fill_manual(
+    values = c(
+      "Finanzielle Vergütung"   = "#E81878", # SURF PINK
+      "Umweltschutz"           = "#602890", # SURF PURPLE
+      "Netzstabilität"         = "#902088", # SURF MAG
+      "Technologisches Interesse" = "#2B2B2B", # SURF TEXT
+      "Sonstiges"              = "#D9D9D9"  # SURF GRID
+    )
+  ) +
+  
+  # Achsen-Design
+  ggplot2::scale_y_continuous(labels = scales::percent, expand = c(0, 0)) +
+  
+  ggplot2::labs(
+    title = "Struktur der Teilnahmemotive",
+    subtitle = "Relativer Motiv-Mix im Vergleich zwischen Besitzern und Nicht-Besitzern",
+    x = NULL,
+    y = "Anteil der Befragten (%)",
+    fill = "Zentrales Motiv"
+  ) +
+  theme_surf() +
+  surf_legend_bottom(nrow = 2)
+
+# Branding & Anzeige
+p_motive_stacked_branded <- brand_plot_surf(p_motive_stacked)
+p_motive_stacked_branded
+```
+
+### Nach Steuerungshäufigkeit
+
+```{r}
+#| label: plot-09-02-motives-by-frequency-stacked
+#| warning: false
+#| message: false
+
+# 1) Datenaufbereitung
+motive_freq_data <- daten_analysis |>
+  dplyr::select(owner_group, rand_freq, motive) |>
+  # Ungültige Werte ausschließen
+  dplyr::filter(!is.na(motive), !motive %in% c("98", "99"), !is.na(owner_group)) |>
+  dplyr::mutate(
+    # Frequenz ordnen
+    rand_freq = force_rand_freq_order(rand_freq),
+    # Motive benennen
+    motive_label = dplyr::case_when(
+      motive == "1" ~ "Finanzielle Vergütung",
+      motive == "2" ~ "Technologisches Interesse",
+      motive == "3" ~ "Umweltschutz",
+      motive == "4" ~ "Netzstabilität",
+      TRUE ~ "Sonstiges"
+    ),
+    # Logische Sortierung der Motive für den Stack (Finanziell unten als Basis)
+    motive_label = factor(motive_label, levels = rev(c(
+      "Finanzielle Vergütung", 
+      "Netzstabilität", 
+      "Umweltschutz", 
+      "Technologisches Interesse", 
+      "Sonstiges"
+    )))
+  ) |>
+  # Anteile berechnen
+  dplyr::count(owner_group, rand_freq, motive_label) |>
+  dplyr::group_by(owner_group, rand_freq) |>
+  dplyr::mutate(pct = n / sum(n)) |>
+  dplyr::ungroup()
+
+# 2) Visualisierung als 100% gestapelte Balken
+p_motive_freq <- ggplot2::ggplot(motive_freq_data, 
+  ggplot2::aes(x = rand_freq, y = pct, fill = motive_label)) +
+  
+  # Gestapelte Balken
+  ggplot2::geom_col(position = "fill", width = 0.7, colour = "white", linewidth = 0.2) +
+  
+  # Prozent-Labels in die Segmente (nur wenn groß genug)
+  ggplot2::geom_text(
+    ggplot2::aes(label = ifelse(pct > 0.06, scales::percent(pct, accuracy = 1), "")),
+    position = ggplot2::position_stack(vjust = 0.5),
+    size = 2.8, colour = "white", fontface = "bold"
+  ) +
+  
+  # Vergleich nach Besitzer-Status
+  ggplot2::facet_wrap(~ owner_group) +
+  
+  # SURF-Farbskala für die Motive
+  ggplot2::scale_fill_manual(
+    values = c(
+      "Finanzielle Vergütung"   = "#E81878", # SURF PINK (Dominant)
+      "Netzstabilität"         = "#902088", # SURF MAG
+      "Umweltschutz"           = "#602890", # SURF PURPLE
+      "Technologisches Interesse" = "#2B2B2B", # SURF TEXT
+      "Sonstiges"              = "#D9D9D9"  # SURF GRID
+    )
+  ) +
+  
+  # Design & Achsen
+  ggplot2::scale_y_continuous(labels = scales::percent, expand = c(0, 0)) +
+  ggplot2::labs(
+    title = "Einfluss der Steuerungshäufigkeit auf Teilnahmemotive",
+    subtitle = "Verschiebung der Motivationsanteile je nach Szenario (3-5 bis 20-30 Eingriffe)",
+    x = "Steuerungshäufigkeit (Eingriffe pro Jahr)",
+    y = "Anteil der Befragten (%)",
+    fill = "Hauptmotiv"
+  ) +
+  theme_surf() +
+  surf_legend_bottom(nrow = 2)
+
+# Branding & Anzeige
+p_motive_freq_branded <- brand_plot_surf(p_motive_freq)
+p_motive_freq_branded
+
+```
+
