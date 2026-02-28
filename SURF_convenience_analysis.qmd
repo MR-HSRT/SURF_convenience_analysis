@@ -18,8 +18,8 @@ SURF_LOGO_PATH <- here::here("doc", "survey", "Logo-Surf-RGB.png")
 
 ```
 
-::: {.text-center}
-![](doc/survey/Logo-Surf-RGB.svg){fig-alt="SURF Projektlogo" width=280px}
+::: text-center
+![](doc/survey/Logo-Surf-RGB.svg){fig-alt="SURF Projektlogo" width="280px"}
 :::
 
 ```{r}
@@ -451,10 +451,7 @@ force_rand_freq_order <- function(x) {
 
 # Datenreport: SURF Convenience Survey
 
-Vom XXX bis zum 28.02.2026 wird das SURF Convenience-Survey von den SURF Projektpartnern digital über unterschiedliche Kanäle gestreut.
-Zu diesem Zweck wurde die Online-Umfrage über interne und externe Newsletter, Social Media Plattformen, und Online-Foren gestreut.
-Ziel dieser ersten Umfrage ist es, eine erste Erhebung der Akzeptanz von und Präferenzen für die digitale SURF-Plattform zu erheben,
-und einen umfangreichen Test der Umfrage durchzuführen. Die so erhobenen Ergebnisse fliessen in die Weiterentwicklung der Umfrage und andere Projektbestandteile, sowie in die praktische Entwicklungsarbeit der Umfrage ein.
+Vom XXX bis zum 28.02.2026 wird das SURF Convenience-Survey von den SURF Projektpartnern digital über unterschiedliche Kanäle gestreut. Zu diesem Zweck wurde die Online-Umfrage über interne und externe Newsletter, Social Media Plattformen, und Online-Foren gestreut. Ziel dieser ersten Umfrage ist es, eine erste Erhebung der Akzeptanz von und Präferenzen für die digitale SURF-Plattform zu erheben, und einen umfangreichen Test der Umfrage durchzuführen. Die so erhobenen Ergebnisse fliessen in die Weiterentwicklung der Umfrage und andere Projektbestandteile, sowie in die praktische Entwicklungsarbeit der Umfrage ein.
 
 ## Aufbau und Inhalte der Umfrage
 
@@ -462,51 +459,41 @@ Die SURF-Umfrage erfasst Einstellungen, Präferenzen und Zahlungsbereitschaften 
 
 **Die nentrale Inhaltsbereiche der Umfrage sind dabei, in Reihenfolge ihrer Erhebung:**
 
-- **Primer: Erklärvideo zur SURF (erstellt in Kooperation mit dem AWSi)**
-  - ca. 3-minütiges Erklärvideo über die wesentlichen Aspekte der SURF-Plattform, ihrer Funktionsweise und ihres Nutzens für Stromnetz und Teilnehmende.
-  
-- **Haushaltsausstattung mit steuerbaren Geräten**
-  - Besitz und geplante Anschaffung von Wallbox, Wärmepumpe, Batteriespeicher, Photovoltaikanlage und Energiemanagementsystem.
-
-- **Allgemeine Einstellung zur SURF-Plattform**
-  - Grundsätzliche Bewertung der Plattform.
-  - Teilnahmebereitschaft, differenziert nach Haushalten mit und ohne vorhandene steuerbare Geräte.
-
-- **Szenariobasierter Experimentalteil**
-  - Einführung eines hypothetischen Nutzungsszenarios mit aktiver Teilnahme an der SURF-Plattform.
-  - Annahme einer automatischen, zeitlich begrenzten Gerätesteuerung zur Behebung von Netzengpässen.
-  - Zufällige Variation der jährlichen Häufigkeit von Steuerungseingriffen.
-  
-- **Eingriffspräferenzen für automatische Steuerung**
-  - Entscheidung, welche Geräte grundsätzlich gesteuert werden dürfen.
-  - Angabe der maximal akzeptierten Einschränkungen je Gerät (z. B. Ladeverzögerung, Temperaturabweichung, Einspeisereduktion, Restladung).
-
-- **Finanzielle Präferenzen und Zahlungsbereitschaft**
-  - Bevorzugte Form der Vergütung.
-  - Präferierte Vergütungslogik (pauschal vs. leistungsabhängig).
-  - Angabe eines jährlichen Mindestbetrags für die akzeptierten Einschränkungen.
-  - Einschätzung der Sicherheit dieser Zahlungsbereitschaft.
-
-- **Steuerungspräferenzen und Vertrauen**
-  - Bedeutung individueller Kontroll- und Eingriffsmöglichkeiten.
-
-- **Informationsbedarfe und App-Funktionen**
-  - Bedarf an zusätzlichen Informationen.
-  - Relevanz verschiedener Informationsinhalte (Netzzustand, Komfort-, Finanz- und Netzeffekte).
-  - Bevorzugte Darstellungsformen und gewünschte Informationstiefe.
-
-- **Teilnahmemotive**
-  - Zentrales Motiv für eine potenzielle Teilnahme an der Plattform.
-
-- **Soziodemografische Merkmale**
-  - Alter, Haushaltsgröße, Einkommen, Stromkosten und Stromkostenanteil an Einkommen, Bildung, Geschlecht, Wohnform und Wohnort.
-
+-   **Primer: Erklärvideo zur SURF (erstellt in Kooperation mit dem AWSi)**
+    -   ca. 3-minütiges Erklärvideo über die wesentlichen Aspekte der SURF-Plattform, ihrer Funktionsweise und ihres Nutzens für Stromnetz und Teilnehmende.
+-   **Haushaltsausstattung mit steuerbaren Geräten**
+    -   Besitz und geplante Anschaffung von Wallbox, Wärmepumpe, Batteriespeicher, Photovoltaikanlage und Energiemanagementsystem.
+-   **Allgemeine Einstellung zur SURF-Plattform**
+    -   Grundsätzliche Bewertung der Plattform.
+    -   Teilnahmebereitschaft, differenziert nach Haushalten mit und ohne vorhandene steuerbare Geräte.
+-   **Szenariobasierter Experimentalteil**
+    -   Einführung eines hypothetischen Nutzungsszenarios mit aktiver Teilnahme an der SURF-Plattform.
+    -   Annahme einer automatischen, zeitlich begrenzten Gerätesteuerung zur Behebung von Netzengpässen.
+    -   Zufällige Variation der jährlichen Häufigkeit von Steuerungseingriffen.
+-   **Eingriffspräferenzen für automatische Steuerung**
+    -   Entscheidung, welche Geräte grundsätzlich gesteuert werden dürfen.
+    -   Angabe der maximal akzeptierten Einschränkungen je Gerät (z. B. Ladeverzögerung, Temperaturabweichung, Einspeisereduktion, Restladung).
+-   **Finanzielle Präferenzen und Zahlungsbereitschaft**
+    -   Bevorzugte Form der Vergütung.
+    -   Präferierte Vergütungslogik (pauschal vs. leistungsabhängig).
+    -   Angabe eines jährlichen Mindestbetrags für die akzeptierten Einschränkungen.
+    -   Einschätzung der Sicherheit dieser Zahlungsbereitschaft.
+-   **Steuerungspräferenzen und Vertrauen**
+    -   Bedeutung individueller Kontroll- und Eingriffsmöglichkeiten.
+-   **Informationsbedarfe und App-Funktionen**
+    -   Bedarf an zusätzlichen Informationen.
+    -   Relevanz verschiedener Informationsinhalte (Netzzustand, Komfort-, Finanz- und Netzeffekte).
+    -   Bevorzugte Darstellungsformen und gewünschte Informationstiefe.
+-   **Teilnahmemotive**
+    -   Zentrales Motiv für eine potenzielle Teilnahme an der Plattform.
+-   **Soziodemografische Merkmale**
+    -   Alter, Haushaltsgröße, Einkommen, Stromkosten und Stromkostenanteil an Einkommen, Bildung, Geschlecht, Wohnform und Wohnort.
 
 ## Datenqualität
 
-Aufgrund des Convenience-Charakters der Befragung[^convenience] ist eine sorgfältige Prüfung der Antwortqualität erforderlich. In diesem Abschnitt werden daher zentrale Indikatoren der Datenqualität systematisch überprüft, tabellarisch aufbereitet und grafisch dargestellt.
+Aufgrund des Convenience-Charakters der Befragung[^1] ist eine sorgfältige Prüfung der Antwortqualität erforderlich. In diesem Abschnitt werden daher zentrale Indikatoren der Datenqualität systematisch überprüft, tabellarisch aufbereitet und grafisch dargestellt.
 
-[^convenience]: Bei einer Convenience-Stichprobe handelt es sich um eine nicht-zufällige Auswahl von Teilnehmenden, die aufgrund ihrer leichten Erreichbarkeit in die Untersuchung einbezogen werden. Solche Stichproben sind insbesondere für explorative Analysen und Instrumententests geeignet, erlauben jedoch keine statistische Repräsentativität der Ergebnisse für die Grundgesamtheit.
+[^1]: Bei einer Convenience-Stichprobe handelt es sich um eine nicht-zufällige Auswahl von Teilnehmenden, die aufgrund ihrer leichten Erreichbarkeit in die Untersuchung einbezogen werden. Solche Stichproben sind insbesondere für explorative Analysen und Instrumententests geeignet, erlauben jedoch keine statistische Repräsentativität der Ergebnisse für die Grundgesamtheit.
 
 ```{r}
 #| label: qc-definition-table
@@ -534,7 +521,7 @@ In einem zweiten Schritt werden üblicherweise Fälle entfernt, die Auffälligke
 
 ### Speeding
 
-Speeding bezeichnet sehr schnelle Umfragebearbeitung und deutet auf Satisficing, bzw. oberflächliche Bearbeitung der Umfrage, oder sogar "Durchklicken" ohne inhaltliche Auseinandersetzung hin und wird im Rahmen dieser Befragung formal definiert als Interviewdauer < 1/3 der Median-Dauer (Median-Dauer = XXX Min., XXX Sek.). Im Folgenden wird die Anzahl der so als 'Speeder' definierbaren Fälle aufgeführt und visualisiert. Zuvor wird die Bearbeitungsdauer des Online-Surveys visualisiert.
+Speeding bezeichnet sehr schnelle Umfragebearbeitung und deutet auf Satisficing, bzw. oberflächliche Bearbeitung der Umfrage, oder sogar "Durchklicken" ohne inhaltliche Auseinandersetzung hin und wird im Rahmen dieser Befragung formal definiert als Interviewdauer \< 1/3 der Median-Dauer (Median-Dauer = XXX Min., XXX Sek.). Im Folgenden wird die Anzahl der so als 'Speeder' definierbaren Fälle aufgeführt und visualisiert. Zuvor wird die Bearbeitungsdauer des Online-Surveys visualisiert.
 
 ```{r}
 #| label: qc-interviewtime-table
@@ -578,6 +565,7 @@ flextable::flextable(interviewtime_stats) |>
   flextable::autofit()
 
 ```
+
 **Hinweis:** Die Bearbeitungszeit ist in Minuten angegeben. Das Speeder-Kriterium ist definiert als eine Bearbeitungszeit von weniger als einem Drittel des Medians.
 
 ```{r}
@@ -636,6 +624,7 @@ ggplot2::ggsave(
 p_all_branded
 
 ```
+
 **Eingezeichnet:** Der Median der Bearbeitungszeit (gestrichelte Linie) sowie das Speeder-Kriterium als strich-punktierte Linie bei einem Drittel des Medians.
 
 Diese Analyse verdeutlicht, dass eine Reihe von Fällen eine besonders hohe Bearbeitungsdauer aufweisen. Diese rühren vermutlich von Unterbrechnungen während der Bearbeitung des Surveys her. Da diese Fälle sich mit einme Maximum von `r round(max(surf_check$interview_min, na.rm = TRUE), 2)` jedoch im Rahmen annehmbarer Werte bewegen, werden Sie weiterhin in die Analyse eingeschlossen. Gleichzeitig wird eine Reihen von Fällen identifiziert, die eine besonders niedriger Bearbeitungsdauer aufweisen, und potenziell als 'Speeder' gelten können. Der eingezeichnete Cutoff von `r round(median(surf_check$interview_min, na.rm = TRUE) / 3, 1)`, was einem Drittel des Medians von `r round(median(surf_check$interview_min, na.rm = TRUE))` entspricht, verdeutlicht jedoch, dass keine Fälle im Sample unter diese Grenze fallen. Die Daten sind damit, gemäß der hier genutzten Definition, nicht von Speeding betroffen.
@@ -755,7 +744,7 @@ Weder auf Basis der Bearbeitungsdauer (Speeding) noch hinsichtlich konstanter An
 
 # Deskriptive Analyse: Analysenotizen
 
-- Bei hinreichender Samplegröße: Weitere Differenzierung der Besitz- und Anschaffungsgruppen nach Geräten in Besitz/intendierter Geräteanschaffung: [Forschungsfrage:] Welche Formen des Gerätebesitzes sind besonders sensitiv im Hinblick auf Akzeptanz, Partizipation etc?
+-   Bei hinreichender Samplegröße: Weitere Differenzierung der Besitz- und Anschaffungsgruppen nach Geräten in Besitz/intendierter Geräteanschaffung: \[Forschungsfrage:\] Welche Formen des Gerätebesitzes sind besonders sensitiv im Hinblick auf Akzeptanz, Partizipation etc?
 
 # Deskriptive Analyse: SURF Convenience Survey
 
@@ -1061,18 +1050,30 @@ daten_analysis <- daten_analysis |>
 
 ```
 
-## Akzeptanz zu Beginn
+## Szenario
 
-## PI zu Beginn
+Um eine realistische Bewertung der Steuerungsmaßnahmen und Entschädigungen zu ermöglichen, wurden alle Teilnehmenden gebeten, sich in eine spezifische Nutzungssituation hineinzuversetzen. Durch die zufällige Variation der Steuerungshäufigkeit ({RandFreq}) wurde untersucht, wie die Akzeptanz mit der Belastung korreliert.
+
+::: {.callout-note appearance="simple"}
+**Item: Einführung des Nutzungsszenarios**
+
+*"Bitte stellen Sie sich für die nächsten Fragen folgendes Szenario vor:"*
+
+-   Sie nehmen bereits aktiv an der SURF-Plattform teil.
+
+-   Sie besitzen alle genannten Geräte (auch falls dem nicht so ist).
+
+-   Die SURF-Plattform steuert angeschlossene Geräte im Durchschnitt **{RandFreq}-mal im Jahr** automatisch (jeweils für 1-2 Stunden).
+
+-   Ihre Geräte werden für kurze Zeit automatisch gesteuert, Sie erhalten dafür aber eine finanzielle Vergütung und stabilisieren das Netz.
+:::
 
 ## SVE
 
 ::: {.callout-note appearance="simple"}
 **Item: Haushaltsausstattung mit steuerbaren Geräten**
 
-*"Wie im Video gezeigt, bezieht sich die SURF-Plattform auf steuerbare
-Geräte im Haushalt. Welche der steuerbaren Geräte besitzen Sie oder
-planen Sie anzuschaffen?"*
+*"Wie im Video gezeigt, bezieht sich die SURF-Plattform auf steuerbare Geräte im Haushalt. Welche der steuerbaren Geräte besitzen Sie oder planen Sie anzuschaffen?"*
 
 **Abgefragte Geräte:**
 
@@ -1384,25 +1385,7 @@ daten_analysis <- daten_analysis |>
   )
 ```
 
-## Experimentelles Treatment: Jährliche Steuerungshäufigkeit 
-
-Um eine realistische Bewertung der Steuerungsmaßnahmen und Entschädigungen zu ermöglichen, wurden alle Teilnehmenden gebeten, sich in eine spezifische Nutzungssituation hineinzuversetzen. Durch die zufällige Variation der Steuerungshäufigkeit ({RandFreq}) wurde untersucht, wie die Akzeptanz mit der Belastung korreliert.
-
-::: {.callout-note appearance="simple"}
-**Item: Einführung des Nutzungsszenarios**
-
-*"Bitte stellen Sie sich für die nächsten Fragen folgendes Szenario vor:"*
-
--   Sie nehmen bereits aktiv an der SURF-Plattform teil.
-
--   Sie besitzen alle genannten Geräte (auch falls dem nicht so ist).
-
--   Die SURF-Plattform steuert angeschlossene Geräte im Durchschnitt **{RandFreq}-mal im Jahr** automatisch (jeweils für 1-2 Stunden).
-
--   Ihre Geräte werden für kurze Zeit automatisch gesteuert, Sie erhalten dafür aber eine finanzielle Vergütung und stabilisieren das Netz.
-:::
-
-## Akzeptanz
+## Akzeptanz zu Beginn
 
 Unmittelbar nach dem Erklärvideo wurde die generelle Einstellung der Teilnehmenden zur SURF-Plattform erhoben. Diese erste Einschätzung dient als Referenzpunkt, um spätere Einstellungsänderungen im Verlauf der Befragung (z. B. nach Konfrontation mit konkreten Steuerungs-Szenarien) zu messen.
 
@@ -1605,720 +1588,9 @@ p_acc_pre_combined_branded
 
 ```
 
-#### Nach Adoptionsstatus
-
-```{r}
-#| label: plot-02-02-acc-pre-experiment-owner
-#| warning: false
-#| message: false
-
-# 1) Datenaufbereitung PRE (Besitzer vs. Nicht-Besitzer)
-acc_pre_exp <- daten_analysis |>
-  dplyr::filter(!is.na(owner_group)) |>
-  dplyr::mutate(
-    owner_group = factor(owner_group, levels = c("Gerätebesitzer", "Nicht-Besitzer")),
-    rand_freq   = force_rand_freq_order(rand_freq)
-  ) |>
-  dplyr::group_by(owner_group, rand_freq) |>
-  dplyr::summarise(mean_ci_n(acc_pre), .groups = "drop") |>
-  dplyr::mutate(label_y = ymax + 0.12)
-
-# 2) Headroom berechnen
-y_top_acc_pre_exp <- max(c(acc_pre_exp$label_y, acc_pre_exp$ymax, 4), na.rm = TRUE) + 0.15
-
-# 3) Plot
-p_acc_pre_exp <- ggplot2::ggplot(
-  acc_pre_exp,
-  ggplot2::aes(x = rand_freq, y = mean)
-) +
-  ggplot2::geom_point(colour = SURF_PURPLE, size = 2.8) +
-  ggplot2::geom_errorbar(
-    ggplot2::aes(ymin = ymin, ymax = ymax),
-    width = 0.2,
-    colour = SURF_PURPLE
-  ) +
-  ggplot2::geom_text(
-    ggplot2::aes(y = label_y, label = sprintf("%.2f", mean)),
-    size = 2.9,
-    vjust = 0
-  ) +
-  ggplot2::facet_wrap(~ owner_group, nrow = 1) +
-  ggplot2::labs(
-    title = "Akzeptanz vor dem Szenario nach Experimentalbedingung",
-    subtitle = "Mittelwerte mit 95%-KI nach Adoptionsstatus",
-    x = "Häufigkeit der Steuerung pro Jahr",
-    y = "Akzeptanz (0–4)"
-  ) +
-  theme_surf(base_size = 11) +
-  ggplot2::scale_y_continuous(breaks = 0:4) +
-  ggplot2::coord_cartesian(ylim = c(0, y_top_acc_pre_exp), clip = "off")
-
-# Branding & Export
-p_acc_pre_exp_branded <- brand_plot_surf(p_acc_pre_exp)
-save_plot(p_acc_pre_exp_branded, 2, 2, "acceptance_pre_experiment_owner")
-p_acc_pre_exp_branded
-
-```
-
-#### Nach Adoptionsstatus und -intention
-
-```{r}
-#| label: plot-02-07-acc-pre-devicegroups-experiment
-#| warning: false
-#| message: false
-
-# 1) Datenaufbereitung PRE (Detaillierte Gruppen)
-acc_pre_devicegroups_exp <- daten_analysis |>
-  dplyr::filter(device_group != "Gesamtstichprobe") |>
-  dplyr::mutate(
-    device_group = factor(
-      device_group,
-      levels = c("Gerätebesitzer", "Kurzfristige Adopter", "Langfristig Interessierte", "Nicht-Adopter")
-    ),
-    rand_freq = force_rand_freq_order(rand_freq)
-  ) |>
-  dplyr::group_by(device_group, rand_freq) |>
-  dplyr::summarise(mean_ci_n(acc_pre), .groups = "drop") |>
-  dplyr::mutate(label_y = ymax + 0.12)
-
-y_top_acc_pre_devicegroups_exp <- max(c(acc_pre_devicegroups_exp$label_y, 4), na.rm = TRUE) + 0.15
-
-# 2) Plot
-p_acc_pre_devicegroups_exp <- ggplot2::ggplot(
-  acc_pre_devicegroups_exp,
-  ggplot2::aes(x = rand_freq, y = mean)
-) +
-  ggplot2::geom_point(colour = SURF_PURPLE, size = 2.8) +
-  ggplot2::geom_errorbar(
-    ggplot2::aes(ymin = ymin, ymax = ymax),
-    width = 0.2,
-    colour = SURF_PURPLE
-  ) +
-  ggplot2::geom_text(
-    ggplot2::aes(y = label_y, label = sprintf("%.2f", mean)),
-    size = 2.9,
-    vjust = 0
-  ) +
-  ggplot2::facet_wrap(~ device_group, nrow = 2) +
-  ggplot2::labs(
-    title = "Akzeptanz vor dem Szenario nach Experimentalbedingung",
-    subtitle = "Geräte-Untergruppen – Mittelwerte mit 95%-KI",
-    x = "Häufigkeit der Steuerung pro Jahr",
-    y = "Akzeptanz (0–4)"
-  ) +
-  theme_surf(base_size = 11) +
-  ggplot2::scale_y_continuous(breaks = 0:4) +
-  ggplot2::coord_cartesian(ylim = c(0, y_top_acc_pre_devicegroups_exp), clip = "off")
-
-# Branding & Export
-p_acc_pre_devicegroups_exp_branded <- brand_plot_surf(p_acc_pre_devicegroups_exp)
-save_plot(p_acc_pre_devicegroups_exp_branded, 2, 7, "acceptance_pre_devicegroups_experiment")
-p_acc_pre_devicegroups_exp_branded
-
-```
-
-### Akzeptanz am Ende
-
-```{r}
-#| label: table-02-03-acc-post-combined
-#| warning: false
-#| message: false
-
-# 1) Datenaufbereitung POST
-combined_levels <- c(
-  "Gesamtstichprobe", "Gerätebesitzer", "Nicht-Besitzer (agg.)",
-  "Kurzfristige Adopter", "Langfristig Interessierte", "Nicht-Adopter"
-)
-
-acc_post_table_data <- dplyr::bind_rows(
-  daten_analysis |> dplyr::mutate(group_combined = "Gesamtstichprobe"),
-  daten_analysis |> dplyr::filter(device_group == "Gerätebesitzer") |> dplyr::mutate(group_combined = "Gerätebesitzer"),
-  daten_analysis |> dplyr::filter(owner_group == "Nicht-Besitzer") |> dplyr::mutate(group_combined = "Nicht-Besitzer (agg.)"),
-  daten_analysis |>
-    dplyr::filter(device_group %in% c("Kurzfristige Adopter", "Langfristig Interessierte", "Nicht-Adopter")) |>
-    dplyr::mutate(group_combined = device_group)
-) |>
-  dplyr::mutate(group_combined = factor(group_combined, levels = combined_levels)) |>
-  dplyr::group_by(group_combined) |>
-  dplyr::summarise(mean_ci_n(acc_post), .groups = "drop") |>
-  dplyr::transmute(
-    Gruppe = as.character(group_combined),
-    `n (gültig)` = n,
-    Mittelwert = round(mean, 2),
-    SD = round(sd, 2),
-    `95%-KI (unten)` = round(ymin, 2),
-    `95%-KI (oben)`  = round(ymax, 2)
-  )
-
-# 2) Flextable POST mit Einzug
-ft_acc_post <- make_ft_surf(
-  data = acc_post_table_data,
-  caption = "Akzeptanz der SURF-Plattform nach dem Szenario (Mittelwerte mit 95%-KI).",
-  align_left_cols  = "Gruppe",
-  align_right_cols = setdiff(names(acc_post_table_data), "Gruppe")
-) |>
-  flextable::padding(i = 4:6, j = 1, padding.left = 20, part = "body")
-
-# 3) Output & Export
-ft_acc_post
-export_flextable_png(ft_acc_post, "02_03_acceptance_post_combined_table")
-```
-
-```{r}
-#| label: plot-02-03-acc-post-combined
-#| warning: false
-#| message: false
-
-# 1) Datenaufbereitung POST (analog zur PI-Logik)
-acc_post_combined <- dplyr::bind_rows(
-  daten_analysis |> dplyr::mutate(group_combined = "Gesamtstichprobe"),
-  daten_analysis |> dplyr::filter(device_group == "Gerätebesitzer") |> dplyr::mutate(group_combined = "Gerätebesitzer"),
-  daten_analysis |> dplyr::filter(owner_group == "Nicht-Besitzer") |> dplyr::mutate(group_combined = "Nicht-Besitzer (agg.)"),
-  daten_analysis |>
-    dplyr::filter(device_group %in% c("Kurzfristige Adopter", "Langfristig Interessierte", "Nicht-Adopter")) |>
-    dplyr::mutate(group_combined = device_group)
-) |>
-  dplyr::mutate(group_combined = factor(group_combined, levels = combined_levels)) |>
-  dplyr::group_by(group_combined) |>
-  dplyr::summarise(mean_ci_n(acc_post), .groups = "drop") |>
-  dplyr::mutate(label_y = ymax + 0.12)
-
-# 2) Skalierung und Headroom berechnen
-y_top_acc_post_combined <- max(
-  c(acc_post_combined$label_y, acc_post_combined$ymax, 4),
-  na.rm = TRUE
-) + 0.35
-
-annot_y_post <- y_top_acc_post_combined + 0.3
-
-subtitle_post <- paste(
-  "Akzeptanz der SURF-Plattform nach dem Szenario",
-  "Nach Aggregat, Adoption und Adoptionsintention",
-  sep = "\n"
-)
-
-# 3) Plot-Erstellung
-p_acc_post_combined <- ggplot2::ggplot(
-  acc_post_combined,
-  ggplot2::aes(x = group_combined, y = mean)
-) +
-  # Visuelle Trennung
-  ggplot2::geom_vline(
-    xintercept = 3.5,
-    colour = SURF_GRID,
-    linewidth = 1.1
-  ) +
-
-  # Annotation: Linke Box
-  ggplot2::annotate(
-    "label",
-    x = 2.0,
-    y = annot_y_post,
-    label = "Besitz-Status & Gesamt",
-    hjust = 0.5,
-    vjust = 1,
-    size = 3.0,
-    colour = SURF_TEXT,
-    fill = "white",
-    label.size = 0.35
-  ) +
-
-  # Annotation: Rechte Box
-  ggplot2::annotate(
-    "label",
-    x = 5.0,
-    y = annot_y_post,
-    label = "Differenzierung Nicht-Besitz",
-    hjust = 0.5,
-    vjust = 1,
-    size = 3.0,
-    colour = SURF_TEXT,
-    fill = "white",
-    label.size = 0.35
-  ) +
-
-  # Statistische Layer
-  ggplot2::geom_point(colour = SURF_PURPLE, size = 3) +
-  ggplot2::geom_errorbar(
-    ggplot2::aes(ymin = ymin, ymax = ymax),
-    width = 0.15,
-    colour = SURF_PURPLE
-  ) +
-  ggplot2::geom_text(
-    ggplot2::aes(y = label_y, label = sprintf("%.2f", mean)),
-    size = 3.1,
-    vjust = 0
-  ) +
-  
-  # Styling
-  ggplot2::labs(
-    title = "Akzeptanz nach dem Szenario",
-    subtitle = subtitle_post,
-    x = NULL,
-    y = "Akzeptanz (0–4)"
-  ) +
-  theme_surf(base_size = 12) +
-  ggplot2::theme(
-    axis.text.x = ggplot2::element_text(angle = 15, hjust = 1),
-    plot.title.position = "plot",
-    plot.subtitle = ggplot2::element_text(margin = ggplot2::margin(b = 14)),
-    plot.margin = ggplot2::margin(18, 30, 18, 12)
-  ) +
-  ggplot2::scale_x_discrete(drop = FALSE) +
-  ggplot2::scale_y_continuous(breaks = 0:4) +
-  ggplot2::coord_cartesian(
-    ylim = c(0, y_top_acc_post_combined),
-    clip = "off"
-  )
-
-# Branding & Speichern
-p_acc_post_combined_branded <- brand_plot_surf(p_acc_post_combined)
-
-save_plot(
-  plot  = p_acc_post_combined_branded,
-  block = 2,
-  sub   = 3,
-  slug  = "acceptance_post_combined"
-)
-
-p_acc_post_combined_branded
-
-```
-
-#### Nach Adoptionsstatus
-
-```{r}
-#| label: plot-02-04-acc-post-experiment-owner
-#| warning: false
-#| message: false
-
-# 1) Datenaufbereitung POST (Besitzer vs. Nicht-Besitzer)
-acc_post_exp <- daten_analysis |>
-  dplyr::filter(!is.na(owner_group)) |>
-  dplyr::mutate(
-    owner_group = factor(owner_group, levels = c("Gerätebesitzer", "Nicht-Besitzer")),
-    rand_freq   = force_rand_freq_order(rand_freq)
-  ) |>
-  dplyr::group_by(owner_group, rand_freq) |>
-  dplyr::summarise(mean_ci_n(acc_post), .groups = "drop") |>
-  dplyr::mutate(label_y = ymax + 0.12)
-
-# 2) Headroom berechnen
-y_top_acc_post_exp <- max(c(acc_post_exp$label_y, acc_post_exp$ymax, 4), na.rm = TRUE) + 0.15
-
-# 3) Plot
-p_acc_post_exp <- ggplot2::ggplot(
-  acc_post_exp,
-  ggplot2::aes(x = rand_freq, y = mean)
-) +
-  ggplot2::geom_point(colour = SURF_PURPLE, size = 2.8) +
-  ggplot2::geom_errorbar(
-    ggplot2::aes(ymin = ymin, ymax = ymax),
-    width = 0.2,
-    colour = SURF_PURPLE
-  ) +
-  ggplot2::geom_text(
-    ggplot2::aes(y = label_y, label = sprintf("%.2f", mean)),
-    size = 2.9,
-    vjust = 0
-  ) +
-  ggplot2::facet_wrap(~ owner_group, nrow = 1) +
-  ggplot2::labs(
-    title = "Akzeptanz nach dem Szenario nach Experimentalbedingung",
-    subtitle = "Mittelwerte mit 95%-KI nach Adoptionsstatus",
-    x = "Häufigkeit der Steuerung pro Jahr",
-    y = "Akzeptanz (0–4)"
-  ) +
-  theme_surf(base_size = 11) +
-  ggplot2::scale_y_continuous(breaks = 0:4) +
-  ggplot2::coord_cartesian(ylim = c(0, y_top_acc_post_exp), clip = "off")
-
-# Branding & Export
-p_acc_post_exp_branded <- brand_plot_surf(p_acc_post_exp)
-save_plot(p_acc_post_exp_branded, 2, 4, "acceptance_post_experiment_owner")
-p_acc_post_exp_branded
-
-```
-
-#### Nach Adoptionsstatus und -intention
-
-```{r}
-#| label: plot-02-08-acc-post-devicegroups-experiment
-#| warning: false
-#| message: false
-
-# 1) Datenaufbereitung POST (Detaillierte Gruppen)
-acc_post_devicegroups_exp <- daten_analysis |>
-  dplyr::filter(device_group != "Gesamtstichprobe") |>
-  dplyr::mutate(
-    device_group = factor(
-      device_group,
-      levels = c("Gerätebesitzer", "Kurzfristige Adopter", "Langfristig Interessierte", "Nicht-Adopter")
-    ),
-    rand_freq = force_rand_freq_order(rand_freq)
-  ) |>
-  dplyr::group_by(device_group, rand_freq) |>
-  dplyr::summarise(mean_ci_n(acc_post), .groups = "drop") |>
-  dplyr::mutate(label_y = ymax + 0.12)
-
-y_top_acc_post_devicegroups_exp <- max(c(acc_post_devicegroups_exp$label_y, 4), na.rm = TRUE) + 0.15
-
-# 2) Plot
-p_acc_post_devicegroups_exp <- ggplot2::ggplot(
-  acc_post_devicegroups_exp,
-  ggplot2::aes(x = rand_freq, y = mean)
-) +
-  ggplot2::geom_point(colour = SURF_PURPLE, size = 2.8) +
-  ggplot2::geom_errorbar(
-    ggplot2::aes(ymin = ymin, ymax = ymax),
-    width = 0.2,
-    colour = SURF_PURPLE
-  ) +
-  ggplot2::geom_text(
-    ggplot2::aes(y = label_y, label = sprintf("%.2f", mean)),
-    size = 2.9,
-    vjust = 0
-  ) +
-  ggplot2::facet_wrap(~ device_group, nrow = 2) +
-  ggplot2::labs(
-    title = "Akzeptanz nach dem Szenario nach Experimentalbedingung",
-    subtitle = "Geräte-Untergruppen – Mittelwerte mit 95%-KI",
-    x = "Häufigkeit der Steuerung pro Jahr",
-    y = "Akzeptanz (0–4)"
-  ) +
-  theme_surf(base_size = 11) +
-  ggplot2::scale_y_continuous(breaks = 0:4) +
-  ggplot2::coord_cartesian(ylim = c(0, y_top_acc_post_devicegroups_exp), clip = "off")
-
-# Branding & Export
-p_acc_post_devicegroups_exp_branded <- brand_plot_surf(p_acc_post_devicegroups_exp)
-save_plot(p_acc_post_devicegroups_exp_branded, 2, 8, "acceptance_post_devicegroups_experiment")
-p_acc_post_devicegroups_exp_branded
-
-```
-
-### Akzeptanz Differenz Beginn-Ende
-
-```{r}
-#| label: acc-difference-create
-#| warning: false
-#| message: false
-
-daten_analysis <- daten_analysis |>
-  dplyr::mutate(
-    acc_diff = acc_post - acc_pre
-  )
-
-```
-
-```{r}
-#| label: table-02-05-acc-diff-combined
-#| warning: false
-#| message: false
-
-# 1) Datenaufbereitung DIFF (POST - PRE)
-combined_levels <- c(
-  "Gesamtstichprobe", "Gerätebesitzer", "Nicht-Besitzer (agg.)",
-  "Kurzfristige Adopter", "Langfristig Interessierte", "Nicht-Adopter"
-)
-
-acc_diff_table_data <- dplyr::bind_rows(
-  daten_analysis |> dplyr::mutate(group_combined = "Gesamtstichprobe"),
-  daten_analysis |> dplyr::filter(device_group == "Gerätebesitzer") |> dplyr::mutate(group_combined = "Gerätebesitzer"),
-  daten_analysis |> dplyr::filter(owner_group == "Nicht-Besitzer") |> dplyr::mutate(group_combined = "Nicht-Besitzer (agg.)"),
-  daten_analysis |>
-    dplyr::filter(device_group %in% c("Kurzfristige Adopter", "Langfristig Interessierte", "Nicht-Adopter")) |>
-    dplyr::mutate(group_combined = device_group)
-) |>
-  dplyr::mutate(group_combined = factor(group_combined, levels = combined_levels)) |>
-  dplyr::group_by(group_combined) |>
-  dplyr::summarise(mean_ci_n(acc_diff), .groups = "drop") |>
-  dplyr::transmute(
-    Gruppe = as.character(group_combined),
-    `n (gültig)` = n,
-    `Δ Mittelwert` = round(mean, 2),
-    SD = round(sd, 2),
-    `95%-KI (unten)` = round(ymin, 2),
-    `95%-KI (oben)`  = round(ymax, 2)
-  )
-
-# 2) Flextable DIFF mit Einzug für Untergruppen
-ft_acc_diff <- make_ft_surf(
-  data = acc_diff_table_data,
-  caption = "Veränderung der Akzeptanz durch das Szenario (POST - PRE, Mittelwerte mit 95%-KI).",
-  align_left_cols  = "Gruppe",
-  align_right_cols = setdiff(names(acc_diff_table_data), "Gruppe")
-) |>
-  flextable::padding(i = 4:6, j = 1, padding.left = 20, part = "body")
-
-# 3) Anzeige & Export
-ft_acc_diff
-export_flextable_png(ft_acc_diff, "02_05_acceptance_diff_combined_table")
-
-```
-
-```{r}
-#| label: plot-02-05-acc-diff-combined
-#| warning: false
-#| message: false
-
-# 1) Datenaufbereitung DIFF (analog zur PRE/POST Logik)
-acc_diff_combined <- dplyr::bind_rows(
-  daten_analysis |> dplyr::mutate(group_combined = "Gesamtstichprobe"),
-  daten_analysis |> dplyr::filter(device_group == "Gerätebesitzer") |> dplyr::mutate(group_combined = "Gerätebesitzer"),
-  daten_analysis |> dplyr::filter(owner_group == "Nicht-Besitzer") |> dplyr::mutate(group_combined = "Nicht-Besitzer (agg.)"),
-  daten_analysis |>
-    dplyr::filter(device_group %in% c("Kurzfristige Adopter", "Langfristig Interessierte", "Nicht-Adopter")) |>
-    dplyr::mutate(group_combined = device_group)
-) |>
-  dplyr::mutate(group_combined = factor(group_combined, levels = combined_levels)) |>
-  dplyr::group_by(group_combined) |>
-  dplyr::summarise(mean_ci_n(acc_diff), .groups = "drop") |>
-  dplyr::mutate(label_y = ymax + 0.12)
-
-# 2) Symmetrische Skalierung und Headroom für Differenz-Plot berechnen
-y_abs_acc_diff_combined <- max(
-  abs(c(acc_diff_combined$ymin, acc_diff_combined$label_y, -0.5, 0.5)), 
-  na.rm = TRUE
-) + 0.35
-
-annot_y_diff <- y_abs_acc_diff_combined + 0.0
-
-subtitle_diff <- paste(
-  "Veränderung der Akzeptanz (POST − PRE)",
-  "Nach Aggregat, Adoption und Adoptionsintention",
-  sep = "\n"
-)
-
-# 3) Plot-Erstellung
-p_acc_diff_combined <- ggplot2::ggplot(
-  acc_diff_combined,
-  ggplot2::aes(x = group_combined, y = mean)
-) +
-  # Nulllinie zur Orientierung
-  ggplot2::geom_hline(yintercept = 0, colour = SURF_GRID, linewidth = 0.4) +
-  
-  # Visuelle Trennung
-  ggplot2::geom_vline(
-    xintercept = 3.5,
-    colour = SURF_GRID,
-    linewidth = 1.1
-  ) +
-
-  # Annotation: Linke Box (Besitz-Status & Gesamt)
-  ggplot2::annotate(
-    "label",
-    x = 2.0,
-    y = annot_y_diff,
-    label = "Besitz-Status & Gesamt",
-    hjust = 0.5,
-    vjust = 1,
-    size = 3.0,
-    colour = SURF_TEXT,
-    fill = "white",
-    label.size = 0.35
-  ) +
-
-  # Annotation: Rechte Box (Differenzierung Nicht-Besitz)
-  ggplot2::annotate(
-    "label",
-    x = 5.0,
-    y = annot_y_diff,
-    label = "Differenzierung Nicht-Besitz",
-    hjust = 0.5,
-    vjust = 1,
-    size = 3.0,
-    colour = SURF_TEXT,
-    fill = "white",
-    label.size = 0.35
-  ) +
-
-  # Statistische Layer
-  ggplot2::geom_point(colour = SURF_PURPLE, size = 3) +
-  ggplot2::geom_errorbar(
-    ggplot2::aes(ymin = ymin, ymax = ymax),
-    width = 0.15,
-    colour = SURF_PURPLE
-  ) +
-  ggplot2::geom_text(
-    ggplot2::aes(y = label_y, label = sprintf("%.2f", mean)),
-    size = 3.1,
-    vjust = 0
-  ) +
-  
-  # Styling & Beschriftung
-  ggplot2::labs(
-    title = "Veränderung der Akzeptanz durch das Szenario",
-    subtitle = subtitle_diff,
-    x = NULL,
-    y = "Δ Akzeptanz (POST − PRE)"
-  ) +
-  theme_surf(base_size = 12) +
-  ggplot2::theme(
-    axis.text.x = ggplot2::element_text(angle = 15, hjust = 1),
-    plot.title.position = "plot",
-    plot.subtitle = ggplot2::element_text(margin = ggplot2::margin(b = 14)),
-    plot.margin = ggplot2::margin(18, 30, 18, 12)
-  ) +
-  ggplot2::scale_x_discrete(drop = FALSE) +
-  ggplot2::coord_cartesian(
-    ylim = c(-y_abs_acc_diff_combined, y_abs_acc_diff_combined),
-    clip = "off"
-  )
-
-# Branding & Speichern
-p_acc_diff_combined_branded <- brand_plot_surf(p_acc_diff_combined)
-
-save_plot(
-  plot  = p_acc_diff_combined_branded,
-  block = 2,
-  sub   = 5,
-  slug  = "acceptance_diff_combined"
-)
-
-p_acc_diff_combined_branded
-```
-
-#### Nach Adoptionsstatus
-
-```{r}
-#| label: plot-02-06-acc-diff-experiment-owner
-#| warning: false
-#| message: false
-
-# 1) Datenaufbereitung DIFF (Besitzer vs. Nicht-Besitzer)
-acc_diff_exp <- daten_analysis |>
-  dplyr::filter(!is.na(owner_group)) |>
-  dplyr::mutate(
-    owner_group = factor(owner_group, levels = c("Gerätebesitzer", "Nicht-Besitzer")),
-    rand_freq   = force_rand_freq_order(rand_freq)
-  ) |>
-  dplyr::group_by(owner_group, rand_freq) |>
-  dplyr::summarise(mean_ci_n(acc_diff), .groups = "drop") |>
-  dplyr::mutate(label_y = ymax + 0.12)
-
-# 2) Symmetrischen Headroom für Differenz-Plot berechnen
-y_abs_acc_diff_exp <- max(
-  abs(c(acc_diff_exp$ymin, acc_diff_exp$label_y, -0.5, 0.5)), 
-  na.rm = TRUE
-) + 0.2
-
-# 3) Plot-Erstellung
-p_acc_diff_exp <- ggplot2::ggplot(
-  acc_diff_exp,
-  ggplot2::aes(x = rand_freq, y = mean)
-) +
-  # Nulllinie zur Orientierung
-  ggplot2::geom_hline(yintercept = 0, colour = SURF_GRID, linewidth = 0.4) +
-  
-  ggplot2::geom_point(colour = SURF_PURPLE, size = 2.8) +
-  ggplot2::geom_errorbar(
-    ggplot2::aes(ymin = ymin, ymax = ymax),
-    width = 0.2,
-    colour = SURF_PURPLE
-  ) +
-  ggplot2::geom_text(
-    ggplot2::aes(y = label_y, label = sprintf("%.2f", mean)),
-    size = 2.9,
-    vjust = 0
-  ) +
-  ggplot2::facet_wrap(~ owner_group, nrow = 1) +
-  ggplot2::labs(
-    title = "Veränderung der Akzeptanz nach Experimentalbedingung",
-    subtitle = "Differenz (POST − PRE) nach Adoptionsstatus und Steuerungshäufigkeit",
-    x = "Experimentalbedingung (Häufigkeit der Steuerung)",
-    y = "Δ Akzeptanz"
-  ) +
-  theme_surf(base_size = 11) +
-  ggplot2::coord_cartesian(ylim = c(-y_abs_acc_diff_exp, y_abs_acc_diff_exp), clip = "off")
-
-# Branding & Export
-p_acc_diff_exp_branded <- brand_plot_surf(p_acc_diff_exp)
-
-save_plot(
-  plot  = p_acc_diff_exp_branded,
-  block = 2,
-  sub   = 6,
-  slug  = "acceptance_diff_experiment_owner"
-)
-
-p_acc_diff_exp_branded
-
-```
-
-#### Nach Adoptionsstatus und -intention
-
-```{r}
-#| label: plot-02-09-acc-diff-devicegroups-experiment
-#| warning: false
-#| message: false
-
-# 1) Datenaufbereitung DIFF (Detaillierte Gruppen)
-acc_diff_devicegroups_exp <- daten_analysis |>
-  dplyr::filter(device_group != "Gesamtstichprobe") |>
-  dplyr::mutate(
-    device_group = factor(
-      device_group,
-      levels = c("Gerätebesitzer", "Kurzfristige Adopter", "Langfristig Interessierte", "Nicht-Adopter")
-    ),
-    rand_freq = force_rand_freq_order(rand_freq)
-  ) |>
-  dplyr::group_by(device_group, rand_freq) |>
-  dplyr::summarise(mean_ci_n(acc_diff), .groups = "drop") |>
-  dplyr::mutate(label_y = ymax + 0.12)
-
-# 2) Symmetrischen Headroom berechnen
-y_abs_acc_diff_devicegroups_exp <- max(
-  abs(c(acc_diff_devicegroups_exp$ymin, acc_diff_devicegroups_exp$label_y, -0.5, 0.5)), 
-  na.rm = TRUE
-) + 0.2
-
-# 3) Plot-Erstellung
-p_acc_diff_devicegroups_exp <- ggplot2::ggplot(
-  acc_diff_devicegroups_exp,
-  ggplot2::aes(x = rand_freq, y = mean)
-) +
-  # Nulllinie zur Orientierung
-  ggplot2::geom_hline(yintercept = 0, colour = SURF_GRID, linewidth = 0.4) +
-  
-  ggplot2::geom_point(colour = SURF_PURPLE, size = 2.8) +
-  ggplot2::geom_errorbar(
-    ggplot2::aes(ymin = ymin, ymax = ymax),
-    width = 0.2,
-    colour = SURF_PURPLE
-  ) +
-  ggplot2::geom_text(
-    ggplot2::aes(y = label_y, label = sprintf("%.2f", mean)),
-    size = 2.9,
-    vjust = 0
-  ) +
-  ggplot2::facet_wrap(~ device_group, nrow = 2) +
-  ggplot2::labs(
-    title = "Veränderung der Akzeptanz nach Experimentalbedingung",
-    subtitle = "Detaillierte Geräte-Untergruppen – Differenz (POST − PRE)",
-    x = "Experimentalbedingung (Häufigkeit der Steuerung)",
-    y = "Δ Akzeptanz"
-  ) +
-  theme_surf(base_size = 11) +
-  ggplot2::coord_cartesian(ylim = c(-y_abs_acc_diff_devicegroups_exp, y_abs_acc_diff_devicegroups_exp), clip = "off")
-
-# Branding & Export
-p_acc_diff_devicegroups_exp_branded <- brand_plot_surf(p_acc_diff_devicegroups_exp)
-
-save_plot(
-  plot  = p_acc_diff_devicegroups_exp_branded,
-  block = 2,
-  sub   = 9,
-  slug  = "acceptance_diff_devicegroups_experiment"
-)
-
-p_acc_diff_devicegroups_exp_branded
-
-```
-
 ## Partizipationsintention (PI)
 
-Nachdem die Befragten über die Funktionsweise der Plattform informiert wurden, wurde die Bereitschaft zur Teilnahme erhoben. Dabei wurde methodisch zwischen Haushalten unterschieden, die bereits steuerbare Geräte besitzen, und solchen, bei denen dies (noch) nicht der Fall ist.
+Nachdem die Befragten über die Funktionsweise der Plattform informiert wurden, wurde, nach der Akzeptanz des Systems, die Bereitschaft zur Teilnahme daran erhoben. Dabei wurde methodisch zwischen Haushalten unterschieden, die bereits steuerbare Geräte besitzen, und solchen, bei denen dies (noch) nicht der Fall ist.
 
 ::: {.callout-note appearance="simple"}
 **Item: Partizipationsintention (Teilnahmebereitschaft)**
@@ -2350,8 +1622,16 @@ Nachdem die Befragten über die Funktionsweise der Plattform informiert wurden, 
 -   5 - Stimme vollständig zu
 
 -   Weiß ich nicht
-
 :::
+
+Während die Akzeptanz die grundsätzliche Einstellung der Befragten zur SURF-Plattform widerspiegelt, misst die Partizipationsintention (PI) die konkrete Bereitschaft, das eigene Haushaltssystem tatsächlich für eine netzdienliche Steuerung zur Verfügung zu stellen. Die Intention gilt in der psychologischen Forschung als der stärkste Prädiktor für tatsächliches zukünftiges Verhalten.
+
+Methodisch wird in dieser Untersuchung zwischen zwei Ausgangslagen unterschieden:
+
+-   Reale Partizipationsintention: Befragte, die bereits steuerbare Geräte besitzen, bewerten ihre Bereitschaft zur unmittelbaren Teilnahme.
+-   Hypothetische Partizipationsintention: Befragte ohne entsprechende Hardware bewerten ihre Bereitschaft für den Fall einer zukünftigen Anschaffung.
+
+Durch die Zusammenführung dieser beiden Perspektiven auf einer gemeinsamen Skala lässt sich analysieren, wie stark die generelle Bereitschaft im Sample ausgeprägt ist und inwieweit die Konfrontation mit der technischen Realität (bei Besitzern) oder die bloße Vorstellung (bei Nicht-Besitzern) die Teilnahmebereitschaft beeinflusst. Wie schon bei der Akzeptanz wird auch hier untersucht, ob die PI im Verlauf der Befragung – insbesondere nach der Präsentation der konkreten Steuerungsszenarien – stabil bleibt oder sich signifikant verändert.
 
 ```{r}
 #| label: part-owner-group-create
@@ -2392,66 +1672,6 @@ daten_analysis <- daten_analysis |>
 ```
 
 ### PI zu Beginn
-
-```{r}
-#| label: table-03-13-part-pre-combined
-#| warning: false
-#| message: false
-
-# 1) Datenaufbereitung (Reihenfolge durch combined_levels definiert)
-combined_levels <- c(
-  "Gesamtstichprobe",
-  "Gerätebesitzer",
-  "Nicht-Besitzer (agg.)",
-  "Kurzfristige Adopter",
-  "Langfristig Interessierte",
-  "Nicht-Adopter"
-)
-
-part_pre_table_data <- dplyr::bind_rows(
-  daten_analysis |> dplyr::mutate(group_combined = "Gesamtstichprobe"),
-  daten_analysis |> dplyr::filter(device_group == "Gerätebesitzer") |> dplyr::mutate(group_combined = "Gerätebesitzer"),
-  daten_analysis |> dplyr::filter(owner_group == "Nicht-Besitzer") |> dplyr::mutate(group_combined = "Nicht-Besitzer (agg.)"),
-  daten_analysis |>
-    dplyr::filter(device_group %in% c("Kurzfristige Adopter", "Langfristig Interessierte", "Nicht-Adopter")) |>
-    dplyr::mutate(group_combined = device_group)
-) |>
-  dplyr::mutate(group_combined = factor(group_combined, levels = combined_levels)) |>
-  dplyr::group_by(group_combined) |>
-  # Berechnung der Kennzahlen mit deiner mean_ci_n Hilfsfunktion
-  dplyr::summarise(mean_ci_n(part_pre), .groups = "drop") |>
-  dplyr::transmute(
-    Gruppe = as.character(group_combined),
-    `n (gültig)` = n,
-    Mittelwert = round(mean, 2),
-    SD = round(sd, 2),
-    `95%-KI (unten)` = round(ymin, 2),
-    `95%-KI (oben)`  = round(ymax, 2)
-  )
-
-# 2) Erstellung der Flextable mit Einzug für Untergruppen
-ft_part_pre <- make_ft_surf(
-  data = part_pre_table_data,
-  caption = "Teilnahmebereitschaft vor dem Szenario (Mittelwerte mit 95%-KI).",
-  align_left_cols  = "Gruppe",
-  align_right_cols = setdiff(names(part_pre_table_data), "Gruppe"),
-  font_size = 10
-) |>
-  # Manueller Einzug (padding.left) für die Zeilen 4, 5 und 6 in der ersten Spalte
-  flextable::padding(i = 4:6, j = 1, padding.left = 20, part = "body")
-
-# 3) Anzeige im Report
-ft_part_pre
-
-# 4) PNG-Export
-export_flextable_png(
-  ft = ft_part_pre,
-  filename_base = "03_13_participation_pre_combined_table",
-  tables_dir = TABLES_DIR,
-  res = 300
-)
-
-```
 
 ```{r}
 #| label: plot-03-13-part-pre-combined
@@ -2584,739 +1804,29 @@ p_part_pre_combined_branded
 
 ```
 
-#### Nach Adoptionsstatus
+## Experimentelles Treatment: Jährliche Steuerungshäufigkeit
 
-```{r}
-#| label: plot-03-02-part-pre-experiment
-#| warning: false
-#| message: false
+Um eine realistische Bewertung der Steuerungsmaßnahmen und Entschädigungen zu ermöglichen, wurden alle Teilnehmenden gebeten, sich in eine spezifische Nutzungssituation hineinzuversetzen. Durch die zufällige Variation der Steuerungshäufigkeit ({RandFreq}) wurde untersucht, wie die Akzeptanz mit der Belastung korreliert.
 
-part_pre_exp <- daten_analysis |>
-  dplyr::filter(!is.na(owner_group)) |>
-  dplyr::mutate(
-    owner_group = factor(owner_group, levels = c("Gerätebesitzer", "Nicht-Besitzer")),
-    rand_freq   = force_rand_freq_order(rand_freq)
-  ) |>
-  dplyr::group_by(owner_group, rand_freq) |>
-  dplyr::summarise(mean_ci_n(part_pre), .groups = "drop") |>
-  dplyr::mutate(label_y = ymax + 0.12)
+::: {.callout-note appearance="simple"}
+**Item: Einführung des Nutzungsszenarios**
 
-y_top_part_pre_exp <- max(c(part_pre_exp$label_y, part_pre_exp$ymax, 4), na.rm = TRUE) + 0.15
+*"Bitte stellen Sie sich für die nächsten Fragen folgendes Szenario vor:"*
 
-p_part_pre_exp <- ggplot2::ggplot(
-  part_pre_exp,
-  ggplot2::aes(x = rand_freq, y = mean)
-) +
-  ggplot2::geom_point(colour = SURF_PURPLE, size = 2.8) +
-  ggplot2::geom_errorbar(
-    ggplot2::aes(ymin = ymin, ymax = ymax),
-    width = 0.2,
-    colour = SURF_PURPLE
-  ) +
-  ggplot2::geom_text(
-    ggplot2::aes(y = label_y, label = round(mean, 2)),
-    size = 2.9,
-    vjust = 0
-  ) +
-  ggplot2::facet_wrap(~ owner_group, nrow = 1) +
-  ggplot2::labs(
-    title = "Teilnahmebereitschaft vor dem Szenario nach Experimentalbedingung",
-    subtitle = "Gemeinsame PI-Skala (REAL bei Besitzern, HYPO bei Nicht-Besitzern) – Mittelwerte mit 95%-KI",
-    x = "Experimentalbedingung (Häufigkeit der Steuerung)",
-    y = "Teilnahmeintention (0–4)"
-  ) +
-  theme_surf(base_size = 11) +
-  ggplot2::scale_y_continuous(breaks = 0:4) +
-  ggplot2::coord_cartesian(ylim = c(0, y_top_part_pre_exp), clip = "off")
+-   Sie nehmen bereits aktiv an der SURF-Plattform teil.
 
-p_part_pre_exp_branded <- brand_plot_surf(p_part_pre_exp)
+-   Sie besitzen alle genannten Geräte (auch falls dem nicht so ist).
 
-save_plot(
-  plot  = p_part_pre_exp_branded,
-  block = 3,
-  sub   = 2,
-  slug  = "participation_pre_experiment_owner"
-)
+-   Die SURF-Plattform steuert angeschlossene Geräte im Durchschnitt **{RandFreq}-mal im Jahr** automatisch (jeweils für 1-2 Stunden).
 
-p_part_pre_exp_branded
-
-```
-
-#### Nach Adoptionsstatus und -intention
-
-```{r}
-#| label: plot-03-08-part-pre-devicegroups-experiment
-#| warning: false
-#| message: false
-
-part_pre_devicegroups_exp <- daten_analysis |>
-  dplyr::filter(device_group != "Gesamtstichprobe") |>
-  dplyr::mutate(
-    device_group = factor(
-      device_group,
-      levels = c(
-        "Gerätebesitzer",
-        "Kurzfristige Adopter",
-        "Langfristig Interessierte",
-        "Nicht-Adopter"
-      )
-    ),
-    rand_freq = force_rand_freq_order(rand_freq)
-  ) |>
-  dplyr::group_by(device_group, rand_freq) |>
-  dplyr::summarise(mean_ci_n(part_pre), .groups = "drop") |>
-  dplyr::mutate(label_y = ymax + 0.12)
-
-y_top_part_pre_devicegroups_exp <- max(c(part_pre_devicegroups_exp$label_y, part_pre_devicegroups_exp$ymax, 4), na.rm = TRUE) + 0.15
-
-p_part_pre_devicegroups_exp <- ggplot2::ggplot(
-  part_pre_devicegroups_exp,
-  ggplot2::aes(x = rand_freq, y = mean)
-) +
-  ggplot2::geom_point(colour = SURF_PURPLE, size = 2.8) +
-  ggplot2::geom_errorbar(
-    ggplot2::aes(ymin = ymin, ymax = ymax),
-    width = 0.2,
-    colour = SURF_PURPLE
-  ) +
-  ggplot2::geom_text(
-    ggplot2::aes(y = label_y, label = round(mean, 2)),
-    size = 2.9,
-    vjust = 0
-  ) +
-  ggplot2::facet_wrap(~ device_group, nrow = 2) +
-  ggplot2::labs(
-    title = "Teilnahmebereitschaft vor dem Szenario nach Experimentalbedingung",
-    subtitle = "Gemeinsame PI-Skala (REAL/HYPO) – Geräte-Untergruppen (Mittelwerte mit 95%-KI)",
-    x = "Experimentalbedingung (Häufigkeit der Steuerung)",
-    y = "Teilnahmeintention (0–4)"
-  ) +
-  theme_surf(base_size = 11) +
-  ggplot2::scale_y_continuous(breaks = 0:4) +
-  ggplot2::coord_cartesian(ylim = c(0, y_top_part_pre_devicegroups_exp), clip = "off")
-
-p_part_pre_devicegroups_exp_branded <- brand_plot_surf(p_part_pre_devicegroups_exp)
-
-save_plot(
-  plot  = p_part_pre_devicegroups_exp_branded,
-  block = 3,
-  sub   = 8,
-  slug  = "participation_pre_devicegroups_experiment"
-)
-
-p_part_pre_devicegroups_exp_branded
-
-```
-
-### PI am Ende
-
-```{r}
-#| label: table-03-13-part-post-combined
-#| warning: false
-#| message: false
-
-# 1) Datenaufbereitung POST
-combined_levels <- c(
-  "Gesamtstichprobe", "Gerätebesitzer", "Nicht-Besitzer (agg.)",
-  "Kurzfristige Adopter", "Langfristig Interessierte", "Nicht-Adopter"
-)
-
-part_post_table_data <- dplyr::bind_rows(
-  daten_analysis |> dplyr::mutate(group_combined = "Gesamtstichprobe"),
-  daten_analysis |> dplyr::filter(device_group == "Gerätebesitzer") |> dplyr::mutate(group_combined = "Gerätebesitzer"),
-  daten_analysis |> dplyr::filter(owner_group == "Nicht-Besitzer") |> dplyr::mutate(group_combined = "Nicht-Besitzer (agg.)"),
-  daten_analysis |>
-    dplyr::filter(device_group %in% c("Kurzfristige Adopter", "Langfristig Interessierte", "Nicht-Adopter")) |>
-    dplyr::mutate(group_combined = device_group)
-) |>
-  dplyr::mutate(group_combined = factor(group_combined, levels = combined_levels)) |>
-  dplyr::group_by(group_combined) |>
-  dplyr::summarise(mean_ci_n(part_post), .groups = "drop") |>
-  dplyr::transmute(
-    Gruppe = as.character(group_combined),
-    `n (gültig)` = n,
-    Mittelwert = round(mean, 2),
-    SD = round(sd, 2),
-    `95%-KI (unten)` = round(ymin, 2),
-    `95%-KI (oben)`  = round(ymax, 2)
-  )
-
-# 2) Flextable POST mit Einzug
-ft_part_post <- make_ft_surf(
-  data = part_post_table_data,
-  caption = "Teilnahmebereitschaft nach dem Szenario (Mittelwerte mit 95%-KI).",
-  align_left_cols  = "Gruppe",
-  align_right_cols = setdiff(names(part_post_table_data), "Gruppe")
-) |>
-  flextable::padding(i = 4:6, j = 1, padding.left = 20, part = "body")
-
-# 3) Output & Export
-ft_part_post
-export_flextable_png(ft_part_post, "03_13_participation_post_combined_table")
-```
-
-```{r}
-#| label: plot-03-13-part-post-combined
-#| warning: false
-#| message: false
-
-combined_levels <- c(
-  "Gesamtstichprobe",
-  "Gerätebesitzer",
-  "Nicht-Besitzer (agg.)",
-  "Kurzfristige Adopter",
-  "Langfristig Interessierte",
-  "Nicht-Adopter"
-)
-
-part_post_combined <- dplyr::bind_rows(
-  daten_analysis |> dplyr::mutate(group_combined = "Gesamtstichprobe"),
-  daten_analysis |> dplyr::filter(device_group == "Gerätebesitzer") |> dplyr::mutate(group_combined = "Gerätebesitzer"),
-  daten_analysis |> dplyr::filter(owner_group == "Nicht-Besitzer") |> dplyr::mutate(group_combined = "Nicht-Besitzer (agg.)"),
-  daten_analysis |>
-    dplyr::filter(device_group %in% c("Kurzfristige Adopter", "Langfristig Interessierte", "Nicht-Adopter")) |>
-    dplyr::mutate(group_combined = device_group)
-) |>
-  dplyr::mutate(group_combined = factor(group_combined, levels = combined_levels)) |>
-  dplyr::group_by(group_combined) |>
-  dplyr::summarise(mean_ci_n(part_post), .groups = "drop") |>
-  dplyr::mutate(label_y = ymax + 0.12)
-
-# Headroom
-y_top_part_post_combined <- max(
-  c(part_post_combined$label_y, part_post_combined$ymax, 4),
-  na.rm = TRUE
-) + 0.35
-
-# Gemeinsame (hohe) Box-Höhe: minimal näher an den oberen Rand
-annot_y_post <- y_top_part_post_combined + 0.3
-
-subtitle_post <- paste(
-  "Partizipationsintention Real oder Hypothetisch",
-  "Nach Aggregat, Adoption, und Adoptionsintention",
-  sep = "\n"
-)
-
-p_part_post_combined <- ggplot2::ggplot(
-  part_post_combined,
-  ggplot2::aes(x = group_combined, y = mean)
-) +
-  # visuelle Trennung (deutlich)
-  ggplot2::geom_vline(
-    xintercept = 3.5,
-    colour = SURF_GRID,
-    linewidth = 1.1
-  ) +
-
-  # Linke Box (Aggregat / Besitz vs. Nicht-Besitz)
-  ggplot2::annotate(
-    "label",
-    x = 2.5,                     # exakt zwischen Kategorie 2 und 3
-    y = annot_y_post,
-    label = "Besitz vs. Nicht-Besitz",
-    hjust = 0.5,
-    vjust = 1,
-    size = 3.0,
-    colour = SURF_TEXT,
-    fill = "white",
-    label.size = 0.35
-  ) +
-
-  # Rechte Box (Differenzierung Nicht-Besitz)
-  ggplot2::annotate(
-    "label",
-    x = 5.0,
-    y = annot_y_post,
-    label = "Differenzierung Nicht-Besitz",
-    hjust = 0.5,
-    vjust = 1,
-    size = 3.0,
-    colour = SURF_TEXT,
-    fill = "white",
-    label.size = 0.35
-  ) +
-
-  ggplot2::geom_point(colour = SURF_PURPLE, size = 3) +
-  ggplot2::geom_errorbar(
-    ggplot2::aes(ymin = ymin, ymax = ymax),
-    width = 0.15,
-    colour = SURF_PURPLE
-  ) +
-  ggplot2::geom_text(
-    ggplot2::aes(y = label_y, label = round(mean, 2)),
-    size = 3.1,
-    vjust = 0
-  ) +
-  ggplot2::labs(
-    title = "Teilnahmebereitschaft nach dem Szenario",
-    subtitle = subtitle_post,
-    x = NULL,
-    y = "Teilnahmeintention (0–4)"
-  ) +
-  theme_surf(base_size = 12) +
-  ggplot2::theme(
-    axis.text.x = ggplot2::element_text(angle = 15, hjust = 1),
-
-    # mehr Abstand zwischen (Unter-)Titel und Panel
-    plot.title.position = "plot",
-    plot.subtitle = ggplot2::element_text(
-      margin = ggplot2::margin(b = 14)
-    ),
-
-    # mehr Luft oben + rechts (Logo + Labels)
-    plot.margin = ggplot2::margin(18, 30, 18, 12)
-  ) +
-  ggplot2::scale_x_discrete(drop = FALSE) +
-  ggplot2::scale_y_continuous(breaks = 0:4) +
-  ggplot2::coord_cartesian(
-    ylim = c(0, y_top_part_post_combined),
-    clip = "off"
-  )
-
-p_part_post_combined_branded <- brand_plot_surf(p_part_post_combined)
-
-save_plot(
-  plot  = p_part_post_combined_branded,
-  block = 3,
-  sub   = 13,
-  slug  = "participation_post_combined"
-)
-
-p_part_post_combined_branded
-
-```
-
-#### Nach Adoptionsstatus
-
-```{r}
-#| label: plot-03-04-part-post-experiment
-#| warning: false
-#| message: false
-
-part_post_exp <- daten_analysis |>
-  dplyr::filter(!is.na(owner_group)) |>
-  dplyr::mutate(
-    owner_group = factor(owner_group, levels = c("Gerätebesitzer", "Nicht-Besitzer")),
-    rand_freq   = force_rand_freq_order(rand_freq)
-  ) |>
-  dplyr::group_by(owner_group, rand_freq) |>
-  dplyr::summarise(mean_ci_n(part_post), .groups = "drop") |>
-  dplyr::mutate(label_y = ymax + 0.12)
-
-y_top_part_post_exp <- max(c(part_post_exp$label_y, part_post_exp$ymax, 4), na.rm = TRUE) + 0.15
-
-p_part_post_exp <- ggplot2::ggplot(
-  part_post_exp,
-  ggplot2::aes(x = rand_freq, y = mean)
-) +
-  ggplot2::geom_point(colour = SURF_PURPLE, size = 2.8) +
-  ggplot2::geom_errorbar(
-    ggplot2::aes(ymin = ymin, ymax = ymax),
-    width = 0.2,
-    colour = SURF_PURPLE
-  ) +
-  ggplot2::geom_text(
-    ggplot2::aes(y = label_y, label = round(mean, 2)),
-    size = 2.9,
-    vjust = 0
-  ) +
-  ggplot2::facet_wrap(~ owner_group, nrow = 1) +
-  ggplot2::labs(
-    title = "Teilnahmebereitschaft nach dem Szenario nach Experimentalbedingung",
-    subtitle = "Gemeinsame PI-Skala (REAL bei Besitzern, HYPO bei Nicht-Besitzern) – Mittelwerte mit 95%-KI",
-    x = "Experimentalbedingung (Häufigkeit der Steuerung)",
-    y = "Teilnahmeintention (0–4)"
-  ) +
-  theme_surf(base_size = 11) +
-  ggplot2::scale_y_continuous(breaks = 0:4) +
-  ggplot2::coord_cartesian(ylim = c(0, y_top_part_post_exp), clip = "off")
-
-p_part_post_exp_branded <- brand_plot_surf(p_part_post_exp)
-
-save_plot(
-  plot  = p_part_post_exp_branded,
-  block = 3,
-  sub   = 4,
-  slug  = "participation_post_experiment_owner"
-)
-
-p_part_post_exp_branded
-
-```
-
-#### Nach Adoptionsstatus und -intention
-
-```{r}
-#| label: plot-03-10-part-post-devicegroups-experiment
-#| warning: false
-#| message: false
-
-part_post_devicegroups_exp <- daten_analysis |>
-  dplyr::filter(device_group != "Gesamtstichprobe") |>
-  dplyr::mutate(
-    device_group = factor(
-      device_group,
-      levels = c(
-        "Gerätebesitzer",
-        "Kurzfristige Adopter",
-        "Langfristig Interessierte",
-        "Nicht-Adopter"
-      )
-    ),
-    rand_freq = force_rand_freq_order(rand_freq)
-  ) |>
-  dplyr::group_by(device_group, rand_freq) |>
-  dplyr::summarise(mean_ci_n(part_post), .groups = "drop") |>
-  dplyr::mutate(label_y = ymax + 0.12)
-
-y_top_part_post_devicegroups_exp <- max(c(part_post_devicegroups_exp$label_y, part_post_devicegroups_exp$ymax, 4), na.rm = TRUE) + 0.15
-
-p_part_post_devicegroups_exp <- ggplot2::ggplot(
-  part_post_devicegroups_exp,
-  ggplot2::aes(x = rand_freq, y = mean)
-) +
-  ggplot2::geom_point(colour = SURF_PURPLE, size = 2.8) +
-  ggplot2::geom_errorbar(
-    ggplot2::aes(ymin = ymin, ymax = ymax),
-    width = 0.2,
-    colour = SURF_PURPLE
-  ) +
-  ggplot2::geom_text(
-    ggplot2::aes(y = label_y, label = round(mean, 2)),
-    size = 2.9,
-    vjust = 0
-  ) +
-  ggplot2::facet_wrap(~ device_group, nrow = 2) +
-  ggplot2::labs(
-    title = "Teilnahmebereitschaft nach dem Szenario nach Experimentalbedingung",
-    subtitle = "Gemeinsame PI-Skala (REAL/HYPO) – Geräte-Untergruppen (Mittelwerte mit 95%-KI)",
-    x = "Experimentalbedingung (Häufigkeit der Steuerung)",
-    y = "Teilnahmeintention (0–4)"
-  ) +
-  theme_surf(base_size = 11) +
-  ggplot2::scale_y_continuous(breaks = 0:4) +
-  ggplot2::coord_cartesian(ylim = c(0, y_top_part_post_devicegroups_exp), clip = "off")
-
-p_part_post_devicegroups_exp_branded <- brand_plot_surf(p_part_post_devicegroups_exp)
-
-save_plot(
-  plot  = p_part_post_devicegroups_exp_branded,
-  block = 3,
-  sub   = 10,
-  slug  = "participation_post_devicegroups_experiment"
-)
-
-p_part_post_devicegroups_exp_branded
-
-```
-
-### PI Differenz Beginn-Ende
-
-```{r}
-#| label: table-03-15-part-diff-combined
-#| warning: false
-#| message: false
-
-# 1) Datenaufbereitung DIFF
-part_diff_table_data <- dplyr::bind_rows(
-  daten_analysis |> dplyr::mutate(group_combined = "Gesamtstichprobe"),
-  daten_analysis |> dplyr::filter(device_group == "Gerätebesitzer") |> dplyr::mutate(group_combined = "Gerätebesitzer"),
-  daten_analysis |> dplyr::filter(owner_group == "Nicht-Besitzer") |> dplyr::mutate(group_combined = "Nicht-Besitzer (agg.)"),
-  daten_analysis |>
-    dplyr::filter(device_group %in% c("Kurzfristige Adopter", "Langfristig Interessierte", "Nicht-Adopter")) |>
-    dplyr::mutate(group_combined = device_group)
-) |>
-  dplyr::mutate(group_combined = factor(group_combined, levels = combined_levels)) |>
-  dplyr::group_by(group_combined) |>
-  dplyr::summarise(mean_ci_n(part_diff), .groups = "drop") |>
-  dplyr::transmute(
-    Gruppe = as.character(group_combined),
-    `n (gültig)` = n,
-    `Δ Mittelwert` = round(mean, 2),
-    SD = round(sd, 2),
-    `95%-KI (unten)` = round(ymin, 2),
-    `95%-KI (oben)`  = round(ymax, 2)
-  )
-
-# 2) Flextable DIFF mit Einzug
-ft_part_diff <- make_ft_surf(
-  data = part_diff_table_data,
-  caption = "Veränderung der Teilnahmebereitschaft (POST - PRE, Mittelwerte mit 95%-KI).",
-  align_left_cols  = "Gruppe",
-  align_right_cols = setdiff(names(part_diff_table_data), "Gruppe")
-) |>
-  flextable::padding(i = 4:6, j = 1, padding.left = 20, part = "body")
-
-# 3) Output & Export
-ft_part_diff
-export_flextable_png(ft_part_diff, "03_15_participation_diff_combined_table")
-```
-
-```{r}
-#| label: plot-03-15-part-diff-combined
-#| warning: false
-#| message: false
-
-combined_levels <- c(
-  "Gesamtstichprobe",
-  "Gerätebesitzer",
-  "Nicht-Besitzer (agg.)",
-  "Kurzfristige Adopter",
-  "Langfristig Interessierte",
-  "Nicht-Adopter"
-)
-
-part_diff_combined <- dplyr::bind_rows(
-  daten_analysis |> dplyr::mutate(group_combined = "Gesamtstichprobe"),
-  daten_analysis |> dplyr::filter(device_group == "Gerätebesitzer") |> dplyr::mutate(group_combined = "Gerätebesitzer"),
-  daten_analysis |> dplyr::filter(owner_group == "Nicht-Besitzer") |> dplyr::mutate(group_combined = "Nicht-Besitzer (agg.)"),
-  daten_analysis |>
-    dplyr::filter(device_group %in% c("Kurzfristige Adopter", "Langfristig Interessierte", "Nicht-Adopter")) |>
-    dplyr::mutate(group_combined = device_group)
-) |>
-  dplyr::mutate(group_combined = factor(group_combined, levels = combined_levels)) |>
-  dplyr::group_by(group_combined) |>
-  dplyr::summarise(mean_ci_n(part_diff), .groups = "drop") |>
-  dplyr::mutate(label_y = ymax + 0.12)
-
-# Symmetrische Headroom-Logik (Diff-Plot)
-y_top_part_diff_combined <- max(c(part_diff_combined$label_y, part_diff_combined$ymax), na.rm = TRUE) + 0.15
-y_bot_part_diff_combined <- min(part_diff_combined$ymin, na.rm = TRUE) - 0.15
-y_abs_part_diff_combined <- max(abs(c(y_bot_part_diff_combined, y_top_part_diff_combined, -1, 1)), na.rm = TRUE)
-
-# Box-Position oberhalb des Panels (clip = "off")
-annot_y_diff <- y_abs_part_diff_combined + 0.0
-
-subtitle_diff <- paste(
-  "POST − PRE (Mittelwerte mit 95%-Konfidenzintervallen)",
-  "Nach Aggregat, Adoption, und Adoptionsintention",
-  sep = "\n"
-)
-
-p_part_diff_combined <- ggplot2::ggplot(
-  part_diff_combined,
-  ggplot2::aes(x = group_combined, y = mean)
-) +
-  ggplot2::geom_hline(yintercept = 0, colour = SURF_GRID, linewidth = 0.4) +
-
-  # visuelle Trennung (deutlich)
-  ggplot2::geom_vline(
-    xintercept = 3.5,
-    colour = SURF_GRID,
-    linewidth = 1.1
-  ) +
-
-  # Linke Box (Aggregat / Besitz vs. Nicht-Besitz)
-  ggplot2::annotate(
-    "label",
-    x = 2.5,                     # exakt zwischen Kategorie 2 und 3
-    y = annot_y_diff,
-    label = "Besitz vs. Nicht-Besitz",
-    hjust = 0.5,
-    vjust = 1,
-    size = 3.0,
-    colour = SURF_TEXT,
-    fill = "white",
-    label.size = 0.35
-  ) +
-
-  # Rechte Box (Differenzierung Nicht-Besitz)
-  ggplot2::annotate(
-    "label",
-    x = 5.0,
-    y = annot_y_diff,
-    label = "Differenzierung Nicht-Besitz",
-    hjust = 0.5,
-    vjust = 1,
-    size = 3.0,
-    colour = SURF_TEXT,
-    fill = "white",
-    label.size = 0.35
-  ) +
-
-  ggplot2::geom_point(colour = SURF_PURPLE, size = 3) +
-  ggplot2::geom_errorbar(
-    ggplot2::aes(ymin = ymin, ymax = ymax),
-    width = 0.15,
-    colour = SURF_PURPLE
-  ) +
-  ggplot2::geom_text(
-    ggplot2::aes(y = label_y, label = round(mean, 2)),
-    size = 3.1,
-    vjust = 0
-  ) +
-  ggplot2::labs(
-    title = "Veränderung der Teilnahmebereitschaft durch das Szenario",
-    subtitle = subtitle_diff,
-    x = NULL,
-    y = "Δ Teilnahmeintention (POST − PRE)"
-  ) +
-  theme_surf(base_size = 12) +
-  ggplot2::theme(
-    axis.text.x = ggplot2::element_text(angle = 15, hjust = 1),
-
-    # mehr Abstand zwischen (Unter-)Titel und Panel
-    plot.title.position = "plot",
-    plot.subtitle = ggplot2::element_text(
-      margin = ggplot2::margin(b = 14)
-    ),
-
-    # mehr Luft oben + rechts (Logo + Labels)
-    plot.margin = ggplot2::margin(18, 30, 18, 12)
-  ) +
-  ggplot2::scale_x_discrete(drop = FALSE) +
-  ggplot2::coord_cartesian(
-    ylim = c(-y_abs_part_diff_combined, y_abs_part_diff_combined),
-    clip = "off"
-  )
-
-p_part_diff_combined_branded <- brand_plot_surf(p_part_diff_combined)
-
-save_plot(
-  plot  = p_part_diff_combined_branded,
-  block = 3,
-  sub   = 15,
-  slug  = "participation_diff_combined"
-)
-
-p_part_diff_combined_branded
-
-```
-
-#### Nach Adoptionsstatus
-
-```{r}
-#| label: plot-03-06-part-diff-experiment
-#| warning: false
-#| message: false
-
-part_diff_exp <- daten_analysis |>
-  dplyr::filter(!is.na(owner_group)) |>
-  dplyr::mutate(
-    owner_group = factor(owner_group, levels = c("Gerätebesitzer", "Nicht-Besitzer")),
-    rand_freq   = force_rand_freq_order(rand_freq)
-  ) |>
-  dplyr::group_by(owner_group, rand_freq) |>
-  dplyr::summarise(mean_ci_n(part_diff), .groups = "drop") |>
-  dplyr::mutate(label_y = ymax + 0.12)
-
-y_top_part_diff_exp <- max(c(part_diff_exp$label_y, part_diff_exp$ymax), na.rm = TRUE) + 0.15
-y_bot_part_diff_exp <- min(part_diff_exp$ymin, na.rm = TRUE) - 0.15
-y_abs_part_diff_exp <- max(abs(c(y_bot_part_diff_exp, y_top_part_diff_exp, -1, 1)), na.rm = TRUE)
-
-p_part_diff_exp <- ggplot2::ggplot(
-  part_diff_exp,
-  ggplot2::aes(x = rand_freq, y = mean)
-) +
-  ggplot2::geom_hline(yintercept = 0, colour = SURF_GRID, linewidth = 0.4) +
-  ggplot2::geom_point(colour = SURF_PURPLE, size = 2.8) +
-  ggplot2::geom_errorbar(
-    ggplot2::aes(ymin = ymin, ymax = ymax),
-    width = 0.2,
-    colour = SURF_PURPLE
-  ) +
-  ggplot2::geom_text(
-    ggplot2::aes(y = label_y, label = round(mean, 2)),
-    size = 2.9,
-    vjust = 0
-  ) +
-  ggplot2::facet_wrap(~ owner_group, nrow = 1) +
-  ggplot2::labs(
-    title = "Veränderung der Teilnahmebereitschaft nach Experimentalbedingung",
-    subtitle = "POST − PRE (Mittelwerte mit 95%-Konfidenzintervallen)",
-    x = "Experimentalbedingung (Häufigkeit der Steuerung)",
-    y = "Δ Teilnahmeintention (POST − PRE)"
-  ) +
-  theme_surf(base_size = 11) +
-  ggplot2::coord_cartesian(ylim = c(-y_abs_part_diff_exp, y_abs_part_diff_exp), clip = "off")
-
-p_part_diff_exp_branded <- brand_plot_surf(p_part_diff_exp)
-
-save_plot(
-  plot  = p_part_diff_exp_branded,
-  block = 3,
-  sub   = 6,
-  slug  = "participation_difference_experiment_owner"
-)
-
-p_part_diff_exp_branded
-
-```
-
-#### Nach Adoptionsstatus und -intention
-
-```{r}
-#| label: plot-03-12-part-diff-devicegroups-experiment
-#| warning: false
-#| message: false
-
-part_diff_devicegroups_exp <- daten_analysis |>
-  dplyr::filter(device_group != "Gesamtstichprobe") |>
-  dplyr::mutate(
-    device_group = factor(
-      device_group,
-      levels = c(
-        "Gerätebesitzer",
-        "Kurzfristige Adopter",
-        "Langfristig Interessierte",
-        "Nicht-Adopter"
-      )
-    ),
-    rand_freq = force_rand_freq_order(rand_freq)
-  ) |>
-  dplyr::group_by(device_group, rand_freq) |>
-  dplyr::summarise(mean_ci_n(part_diff), .groups = "drop") |>
-  dplyr::mutate(label_y = ymax + 0.12)
-
-y_top_part_diff_devicegroups_exp <- max(c(part_diff_devicegroups_exp$label_y, part_diff_devicegroups_exp$ymax), na.rm = TRUE) + 0.15
-y_bot_part_diff_devicegroups_exp <- min(part_diff_devicegroups_exp$ymin, na.rm = TRUE) - 0.15
-y_abs_part_diff_devicegroups_exp <- max(abs(c(y_bot_part_diff_devicegroups_exp, y_top_part_diff_devicegroups_exp, -1, 1)), na.rm = TRUE)
-
-p_part_diff_devicegroups_exp <- ggplot2::ggplot(
-  part_diff_devicegroups_exp,
-  ggplot2::aes(x = rand_freq, y = mean)
-) +
-  ggplot2::geom_hline(yintercept = 0, colour = SURF_GRID, linewidth = 0.4) +
-  ggplot2::geom_point(colour = SURF_PURPLE, size = 2.8) +
-  ggplot2::geom_errorbar(
-    ggplot2::aes(ymin = ymin, ymax = ymax),
-    width = 0.2,
-    colour = SURF_PURPLE
-  ) +
-  ggplot2::geom_text(
-    ggplot2::aes(y = label_y, label = round(mean, 2)),
-    size = 2.9,
-    vjust = 0
-  ) +
-  ggplot2::facet_wrap(~ device_group, nrow = 2) +
-  ggplot2::labs(
-    title = "Veränderung der Teilnahmebereitschaft nach Experimentalbedingung",
-    subtitle = "POST − PRE (Mittelwerte mit 95%-Konfidenzintervallen) – Geräte-Untergruppen",
-    x = "Experimentalbedingung (Häufigkeit der Steuerung)",
-    y = "Δ Teilnahmeintention (POST − PRE)"
-  ) +
-  theme_surf(base_size = 11) +
-  ggplot2::coord_cartesian(ylim = c(-y_abs_part_diff_devicegroups_exp, y_abs_part_diff_devicegroups_exp), clip = "off")
-
-p_part_diff_devicegroups_exp_branded <- brand_plot_surf(p_part_diff_devicegroups_exp)
-
-save_plot(
-  plot  = p_part_diff_devicegroups_exp_branded,
-  block = 3,
-  sub   = 12,
-  slug  = "participation_diff_devicegroups_experiment"
-)
-
-p_part_diff_devicegroups_exp_branded
-
-```
+-   Ihre Geräte werden für kurze Zeit automatisch gesteuert, Sie erhalten dafür aber eine finanzielle Vergütung und stabilisieren das Netz.
+:::
 
 ## Steuerungsbereitschaft nach Gerät
 
 Nach der Einführung in das Szenario wurden die Teilnehmenden gebeten, eine konkrete Auswahl zu treffen, welche ihrer (potenziellen) Geräte sie für die automatische Steuerung durch die SURF-Plattform freigeben würden.
 
 ::: {.callout-note appearance="simple"}
-
 **Item: Auswahl der Geräte**
 
 *"Bitte geben Sie nun zunächst an, welche der folgenden Geräte in Ihrem Haushalt Sie von der SURF-Plattform **{RandFreq}-mal im Jahr** (jeweils für 1-2 Stunden) automatisch steuern lassen würden, um Netzengpässe zu beheben."*
@@ -4328,9 +2838,7 @@ brand_plot_surf(p_80_owners)
 
 ### Gesamtzusammenfassung: Steuerungs- und Flexibilitätsakzeptanz
 
---> Hier Zusammenfassung mit Eingriffstiefen etc. angeben
---> Tabellieren der 80% Schwelle nach Gruppe + Szenario.
-
+--\> Hier Zusammenfassung mit Eingriffstiefen etc. angeben --\> Tabellieren der 80% Schwelle nach Gruppe + Szenario.
 
 ## Erwartete Vergütung
 
@@ -4442,7 +2950,8 @@ ft_incentive_exact <- incentive_exact_table |>
 ft_incentive_exact
 
 ```
-- Ein einzelner Befragter hat den Wert von 500 Euro angegeben (Nicht-Besitzer). Diese Angabe wir, aufgrund des Grades ihres Abweichung, zunächst als Ausreißer betrachtet.
+
+-   Ein einzelner Befragter hat den Wert von 500 Euro angegeben (Nicht-Besitzer). Diese Angabe wir, aufgrund des Grades ihres Abweichung, zunächst als Ausreißer betrachtet.
 
 ```{r}
 #| label: tbl-06-incentive-stats-with-total
@@ -4968,8 +3477,8 @@ p_incentive_type_scen_branded
 
 ```
 
-- Diese Werte müssen als vorläufig gelten, da sie gleichzeitigen Besitz von Geräten nicht korrekt modellieren.
-- Spätere Auswertungen werden den Besitzeffekt isolieren und so die Wirkung des Gerätebesitzes auf die Willingness-to-Accept (in Euro) statistisch isolieren.
+-   Diese Werte müssen als vorläufig gelten, da sie gleichzeitigen Besitz von Geräten nicht korrekt modellieren.
+-   Spätere Auswertungen werden den Besitzeffekt isolieren und so die Wirkung des Gerätebesitzes auf die Willingness-to-Accept (in Euro) statistisch isolieren.
 
 ### Nach Steuerungshäufigkeit
 
@@ -5189,19 +3698,17 @@ p_incentive_rotate_branded
 ## Subjektive Sicherheit der erwarteten Vergütung
 
 ::: {.callout-note appearance="simple"}
-
 **Item: Sicherheit der Teilnahmebereitschaft**
 
 *"Wie sicher sind Sie, dass Sie für den von Ihnen genannten Betrag tatsächlich an der SURF-Plattform teilnehmen würden?"*
 
 **Antwortoptionen (Skala 0 bis 4):**
 
--  0 - Sehr unsicher (Reine Hypothese)
--  1 - Eher unsicher
--  2 - Teils, teils
--  3 - Eher sicher
--  4 - Sehr sicher (Ich würde unterschreiben)
-
+-   0 - Sehr unsicher (Reine Hypothese)
+-   1 - Eher unsicher
+-   2 - Teils, teils
+-   3 - Eher sicher
+-   4 - Sehr sicher (Ich würde unterschreiben)
 :::
 
 Da die Abfrage der Entschädigungshöhe in einem hypothetischen Szenario erfolgte, wurde im Anschluss die Sicherheit dieser Angabe erhoben. Diese Variable dient als wichtiger Indikator für die Validität der monetären Forderungen: Eine hohe Sicherheit deutet darauf hin, dass die Befragten eine klare Vorstellung vom Wert ihres Komfortverzichts haben und die genannten Beträge weniger durch hypothetische Verzerrungen (Hypothetical Bias) beeinflusst sind. Die folgende Auswertung zeigt die Verteilung dieses Sicherheitsgefühls differenziert nach dem Adoptionsstatus.
@@ -5294,7 +3801,7 @@ p_certainty <- ggplot2::ggplot(certainty_plot_data,
     vjust = -0.5, size = 3, fontface = "bold"
   ) +
   
-  # Farben
+  # Farben 
   ggplot2::scale_fill_manual(values = c("Gerätebesitzer" = SURF_PURPLE, "Nicht-Besitzer" = SURF_PINK)) +
   
   # Achsen
@@ -5384,7 +3891,7 @@ p_certainty_freq_branded
 
 ###Erwartete Vergütung nach subjektiver Sicherheit der erwarteten Vergütung
 
-In einem weiteren Analyseschritt wird untersucht, ob ein systematischer Zusammenhang zwischen der Höhe der geforderten Vergütung und der subjektiven Sicherheit der Angabe besteht. Durch die Segmentierung der Befragten in Sicherheitsgruppen (Unsicher [Sehr/eher unsicher], Teils/Teils, Sicher [Sehr/eher sicher]) lässt sich prüfen, ob ungesicherte Präferenzen zu extremeren Preisforderungen neigen oder ob sich bei hoher Angabesicherheit ein konsistenter 'Marktpreis' für die angebotene Flexibilität stabilisiert. Dies erlaubt eine präzisere Identifikation valider Preispunkte für das Anreizdesign.
+In einem weiteren Analyseschritt wird untersucht, ob ein systematischer Zusammenhang zwischen der Höhe der geforderten Vergütung und der subjektiven Sicherheit der Angabe besteht. Durch die Segmentierung der Befragten in Sicherheitsgruppen (Unsicher \[Sehr/eher unsicher\], Teils/Teils, Sicher \[Sehr/eher sicher\]) lässt sich prüfen, ob ungesicherte Präferenzen zu extremeren Preisforderungen neigen oder ob sich bei hoher Angabesicherheit ein konsistenter 'Marktpreis' für die angebotene Flexibilität stabilisiert. Dies erlaubt eine präzisere Identifikation valider Preispunkte für das Anreizdesign.
 
 ```{r}
 #| label: plot-06-12-incentive-by-certainty-groups
@@ -6433,24 +4940,23 @@ brand_plot_surf(p_typology_matrix_final)
 
 **Abgefragte Aspekte:**
 
-  - Zeitliche Flexibilität (config_depth): Selbst festlegen zu können, zu welchen Tageszeiten Geräte in meinem Haushalt durch die SURF-Plattform gesteuert werden können.
+-   Zeitliche Flexibilität (config_depth): Selbst festlegen zu können, zu welchen Tageszeiten Geräte in meinem Haushalt durch die SURF-Plattform gesteuert werden können.
 
-  - Override-Option (config_override): Die Möglichkeit, die automatische Steuerung jederzeit und sofort zu beenden.
+-   Override-Option (config_override): Die Möglichkeit, die automatische Steuerung jederzeit und sofort zu beenden.
 
-  - Geräteauswahl (config_device): Selbst festlegen zu können, welche meiner Geräte durch die SURF-Plattform gesteuert werden können, und welche nicht.
+-   Geräteauswahl (config_device): Selbst festlegen zu können, welche meiner Geräte durch die SURF-Plattform gesteuert werden können, und welche nicht.
 
 **Antwortoptionen (Skala 0 bis 4):**
 
-  - 0 - Überhaupt nicht wichtig
+-   0 - Überhaupt nicht wichtig
 
-  - 1 - Eher unwichtig
+-   1 - Eher unwichtig
 
-  - 2 - Teils, teils
+-   2 - Teils, teils
 
-  - 3 - Eher wichtig
+-   3 - Eher wichtig
 
-  - 4 - Sehr wichtig
-  
+-   4 - Sehr wichtig
 :::
 
 ```{r}
@@ -6621,20 +5127,18 @@ p_control_freq_branded
 
 Transparenz gilt als Schlüssel für die Akzeptanz automatisierter Systeme. Hier wurde abgefragt, welche Informationstiefe die Befragten benötigen, um den Entscheidungen der SURF-Plattform vertrauen zu können.
 
-::: {.callout-note appearance="simple"} 
-
+::: {.callout-note appearance="simple"}
 Item: Mindest-Informationsbedarf für Systemvertrauen
 
 "Wie viel Informationen über die automatischen Entscheidungen der SURF-Plattform benötigen Sie mindestens, um diesen vertrauen zu können?"
 
 Antwortoptionen:
 
--  Basisinformationen: Nur wesentliche Fakten (Mein Flexibilitätsbeitrag, Auswirkungen auf den Haushalt, finanzielle Gewinne).
+-   Basisinformationen: Nur wesentliche Fakten (Mein Flexibilitätsbeitrag, Auswirkungen auf den Haushalt, finanzielle Gewinne).
 
--  KI-Inputdaten: Zusätzlich die zugrunde liegenden Daten (Netzsituation, Auslastungsvorhersagen, Wetter).
+-   KI-Inputdaten: Zusätzlich die zugrunde liegenden Daten (Netzsituation, Auslastungsvorhersagen, Wetter).
 
--  Interaktive Erklärung: Die KI soll auf Nachfrage Details zu konkreten Entscheidungen erklären können (Explainable AI).
-    
+-   Interaktive Erklärung: Die KI soll auf Nachfrage Details zu konkreten Entscheidungen erklären können (Explainable AI).
 :::
 
 ```{r}
@@ -6790,26 +5294,24 @@ p_info_stacked_branded
 
 Zum Abschluss der inhaltlichen Analyse betrachten wir die Teilnahmemotive. Hierbei wurde erhoben, welcher Aspekt für die Befragten den ausschlaggebenden Impuls für eine Teilnahme an der SURF-Plattform darstellt. Dies ist für das Marketing und die Zielgruppenansprache der Plattform von zentraler Bedeutung.
 
-::: {.callout-note appearance="simple"} 
-
+::: {.callout-note appearance="simple"}
 Item: Zentrales Teilnahmemotiv
 
 "Was motiviert Sie am meisten zur Teilnahme an der SURF-Plattform?"
 
 Optionen:
 
--  Finanzielle Vergütung
+-   Finanzielle Vergütung
 
--  Technologisches Interesse
+-   Technologisches Interesse
 
--  Umweltschutz
+-   Umweltschutz
 
--  Netzstabilität
+-   Netzstabilität
 
--  Sonstiges
+-   Sonstiges
 
--  Weiß ich nicht 
-
+-   Weiß ich nicht
 :::
 
 ```{r}
@@ -6976,20 +5478,1708 @@ p_motive_freq_branded
 
 ```
 
-# SURF Segmentierungsanalyse
+## Akzeptanz
 
-- Lassen sich relevante Segmentgruppen unter den Befragten identifizieren? (auch als Grundlage der Kategorisierung späterer Feldtestteilnehmender)
+Am Ende der Befragung, und somit nach dem Erhalt des Treatments in Form der präsentierten Steuerungshäufigkeit, wurden sowohl Akzeptanz, als auch Partizipationsintention, noch einmal erhoben.
+
+Dies ermöglicht es, die Wirkung des Treatments bzw. der präsentierten Steuerungshäufigkeit, auf die Akzeptanz und Partizipationsintention der Befragten zu untersuchen, sowie auf die Veränderung beider Variablen im Vergleich zum Beginn der Befragung (Baseline).
+
+Im Folgenden sollen in dieser Weise zuerst die Akzeptanz am Ende der Befragung, sowie die Veränderung der Akzeptanz, und die Partizipationsintention, und deren Veränderung, analysiert werden.
+
+::: {.callout-note appearance="simple"}
+**Item: Allgemeine Akzeptanz (Einstellung)**
+
+*"Insgesamt bin ich der SURF-Plattform gegenüber positiv eingestellt."*
+
+**Antwortoptionen (5-stufige Likert-Skala):**
+
+-   1 - Stimme überhaupt nicht zu
+
+-   2 - Stimme eher nicht zu
+
+-   3 - Teils, teils
+
+-   4 - Stimme eher zu
+
+-   5 - Stimme vollständig zu
+
+-   Weiß ich nicht
+:::
+
+### Akzeptanz am Ende
+
+```{r}
+#| label: table-02-03-acc-post-combined
+#| warning: false
+#| message: false
+
+# 1) Datenaufbereitung POST
+combined_levels <- c(
+  "Gesamtstichprobe", "Gerätebesitzer", "Nicht-Besitzer (agg.)",
+  "Kurzfristige Adopter", "Langfristig Interessierte", "Nicht-Adopter"
+)
+
+acc_post_table_data <- dplyr::bind_rows(
+  daten_analysis |> dplyr::mutate(group_combined = "Gesamtstichprobe"),
+  daten_analysis |> dplyr::filter(device_group == "Gerätebesitzer") |> dplyr::mutate(group_combined = "Gerätebesitzer"),
+  daten_analysis |> dplyr::filter(owner_group == "Nicht-Besitzer") |> dplyr::mutate(group_combined = "Nicht-Besitzer (agg.)"),
+  daten_analysis |>
+    dplyr::filter(device_group %in% c("Kurzfristige Adopter", "Langfristig Interessierte", "Nicht-Adopter")) |>
+    dplyr::mutate(group_combined = device_group)
+) |>
+  dplyr::mutate(group_combined = factor(group_combined, levels = combined_levels)) |>
+  dplyr::group_by(group_combined) |>
+  dplyr::summarise(mean_ci_n(acc_post), .groups = "drop") |>
+  dplyr::transmute(
+    Gruppe = as.character(group_combined),
+    `n (gültig)` = n,
+    Mittelwert = round(mean, 2),
+    SD = round(sd, 2),
+    `95%-KI (unten)` = round(ymin, 2),
+    `95%-KI (oben)`  = round(ymax, 2)
+  )
+
+# 2) Flextable POST mit Einzug
+ft_acc_post <- make_ft_surf(
+  data = acc_post_table_data,
+  caption = "Akzeptanz der SURF-Plattform nach dem Szenario (Mittelwerte mit 95%-KI).",
+  align_left_cols  = "Gruppe",
+  align_right_cols = setdiff(names(acc_post_table_data), "Gruppe")
+) |>
+  flextable::padding(i = 4:6, j = 1, padding.left = 20, part = "body")
+
+# 3) Output & Export
+ft_acc_post
+export_flextable_png(ft_acc_post, "02_03_acceptance_post_combined_table")
+```
+
+```{r}
+#| label: plot-02-03-acc-post-combined
+#| warning: false
+#| message: false
+
+# 1) Datenaufbereitung POST (analog zur PI-Logik)
+acc_post_combined <- dplyr::bind_rows(
+  daten_analysis |> dplyr::mutate(group_combined = "Gesamtstichprobe"),
+  daten_analysis |> dplyr::filter(device_group == "Gerätebesitzer") |> dplyr::mutate(group_combined = "Gerätebesitzer"),
+  daten_analysis |> dplyr::filter(owner_group == "Nicht-Besitzer") |> dplyr::mutate(group_combined = "Nicht-Besitzer (agg.)"),
+  daten_analysis |>
+    dplyr::filter(device_group %in% c("Kurzfristige Adopter", "Langfristig Interessierte", "Nicht-Adopter")) |>
+    dplyr::mutate(group_combined = device_group)
+) |>
+  dplyr::mutate(group_combined = factor(group_combined, levels = combined_levels)) |>
+  dplyr::group_by(group_combined) |>
+  dplyr::summarise(mean_ci_n(acc_post), .groups = "drop") |>
+  dplyr::mutate(label_y = ymax + 0.12)
+
+# 2) Skalierung und Headroom berechnen
+y_top_acc_post_combined <- max(
+  c(acc_post_combined$label_y, acc_post_combined$ymax, 4),
+  na.rm = TRUE
+) + 0.35
+
+annot_y_post <- y_top_acc_post_combined + 0.3
+
+subtitle_post <- paste(
+  "Akzeptanz der SURF-Plattform nach dem Szenario",
+  "Nach Aggregat, Adoption und Adoptionsintention",
+  sep = "\n"
+)
+
+# 3) Plot-Erstellung
+p_acc_post_combined <- ggplot2::ggplot(
+  acc_post_combined,
+  ggplot2::aes(x = group_combined, y = mean)
+) +
+  # Visuelle Trennung
+  ggplot2::geom_vline(
+    xintercept = 3.5,
+    colour = SURF_GRID,
+    linewidth = 1.1
+  ) +
+
+  # Annotation: Linke Box
+  ggplot2::annotate(
+    "label",
+    x = 2.0,
+    y = annot_y_post,
+    label = "Besitz-Status & Gesamt",
+    hjust = 0.5,
+    vjust = 1,
+    size = 3.0,
+    colour = SURF_TEXT,
+    fill = "white",
+    label.size = 0.35
+  ) +
+
+  # Annotation: Rechte Box
+  ggplot2::annotate(
+    "label",
+    x = 5.0,
+    y = annot_y_post,
+    label = "Differenzierung Nicht-Besitz",
+    hjust = 0.5,
+    vjust = 1,
+    size = 3.0,
+    colour = SURF_TEXT,
+    fill = "white",
+    label.size = 0.35
+  ) +
+
+  # Statistische Layer
+  ggplot2::geom_point(colour = SURF_PURPLE, size = 3) +
+  ggplot2::geom_errorbar(
+    ggplot2::aes(ymin = ymin, ymax = ymax),
+    width = 0.15,
+    colour = SURF_PURPLE
+  ) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = sprintf("%.2f", mean)),
+    size = 3.1,
+    vjust = 0
+  ) +
+  
+  # Styling
+  ggplot2::labs(
+    title = "Akzeptanz nach dem Szenario",
+    subtitle = subtitle_post,
+    x = NULL,
+    y = "Akzeptanz (0–4)"
+  ) +
+  theme_surf(base_size = 12) +
+  ggplot2::theme(
+    axis.text.x = ggplot2::element_text(angle = 15, hjust = 1),
+    plot.title.position = "plot",
+    plot.subtitle = ggplot2::element_text(margin = ggplot2::margin(b = 14)),
+    plot.margin = ggplot2::margin(18, 30, 18, 12)
+  ) +
+  ggplot2::scale_x_discrete(drop = FALSE) +
+  ggplot2::scale_y_continuous(breaks = 0:4) +
+  ggplot2::coord_cartesian(
+    ylim = c(0, y_top_acc_post_combined),
+    clip = "off"
+  )
+
+# Branding & Speichern
+p_acc_post_combined_branded <- brand_plot_surf(p_acc_post_combined)
+
+save_plot(
+  plot  = p_acc_post_combined_branded,
+  block = 2,
+  sub   = 3,
+  slug  = "acceptance_post_combined"
+)
+
+p_acc_post_combined_branded
+
+```
+
+#### Nach Adoptionsstatus
+
+```{r}
+#| label: plot-02-04-acc-post-experiment-owner
+#| warning: false
+#| message: false
+
+# 1) Datenaufbereitung POST (Besitzer vs. Nicht-Besitzer)
+acc_post_exp <- daten_analysis |>
+  dplyr::filter(!is.na(owner_group)) |>
+  dplyr::mutate(
+    owner_group = factor(owner_group, levels = c("Gerätebesitzer", "Nicht-Besitzer")),
+    rand_freq   = force_rand_freq_order(rand_freq)
+  ) |>
+  dplyr::group_by(owner_group, rand_freq) |>
+  dplyr::summarise(mean_ci_n(acc_post), .groups = "drop") |>
+  dplyr::mutate(label_y = ymax + 0.12)
+
+# 2) Headroom berechnen
+y_top_acc_post_exp <- max(c(acc_post_exp$label_y, acc_post_exp$ymax, 4), na.rm = TRUE) + 0.15
+
+# 3) Plot
+p_acc_post_exp <- ggplot2::ggplot(
+  acc_post_exp,
+  ggplot2::aes(x = rand_freq, y = mean)
+) +
+  ggplot2::geom_point(colour = SURF_PURPLE, size = 2.8) +
+  ggplot2::geom_errorbar(
+    ggplot2::aes(ymin = ymin, ymax = ymax),
+    width = 0.2,
+    colour = SURF_PURPLE
+  ) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = sprintf("%.2f", mean)),
+    size = 2.9,
+    vjust = 0
+  ) +
+  ggplot2::facet_wrap(~ owner_group, nrow = 1) +
+  ggplot2::labs(
+    title = "Akzeptanz nach dem Szenario nach Experimentalbedingung",
+    subtitle = "Mittelwerte mit 95%-KI nach Adoptionsstatus",
+    x = "Häufigkeit der Steuerung pro Jahr",
+    y = "Akzeptanz (0–4)"
+  ) +
+  theme_surf(base_size = 11) +
+  ggplot2::scale_y_continuous(breaks = 0:4) +
+  ggplot2::coord_cartesian(ylim = c(0, y_top_acc_post_exp), clip = "off")
+
+# Branding & Export
+p_acc_post_exp_branded <- brand_plot_surf(p_acc_post_exp)
+save_plot(p_acc_post_exp_branded, 2, 4, "acceptance_post_experiment_owner")
+p_acc_post_exp_branded
+
+```
+
+#### Nach Adoptionsstatus und -intention
+
+```{r}
+#| label: plot-02-08-acc-post-devicegroups-experiment
+#| warning: false
+#| message: false
+
+# 1) Datenaufbereitung POST (Detaillierte Gruppen)
+acc_post_devicegroups_exp <- daten_analysis |>
+  dplyr::filter(device_group != "Gesamtstichprobe") |>
+  dplyr::mutate(
+    device_group = factor(
+      device_group,
+      levels = c("Gerätebesitzer", "Kurzfristige Adopter", "Langfristig Interessierte", "Nicht-Adopter")
+    ),
+    rand_freq = force_rand_freq_order(rand_freq)
+  ) |>
+  dplyr::group_by(device_group, rand_freq) |>
+  dplyr::summarise(mean_ci_n(acc_post), .groups = "drop") |>
+  dplyr::mutate(label_y = ymax + 0.12)
+
+y_top_acc_post_devicegroups_exp <- max(c(acc_post_devicegroups_exp$label_y, 4), na.rm = TRUE) + 0.15
+
+# 2) Plot
+p_acc_post_devicegroups_exp <- ggplot2::ggplot(
+  acc_post_devicegroups_exp,
+  ggplot2::aes(x = rand_freq, y = mean)
+) +
+  ggplot2::geom_point(colour = SURF_PURPLE, size = 2.8) +
+  ggplot2::geom_errorbar(
+    ggplot2::aes(ymin = ymin, ymax = ymax),
+    width = 0.2,
+    colour = SURF_PURPLE
+  ) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = sprintf("%.2f", mean)),
+    size = 2.9,
+    vjust = 0
+  ) +
+  ggplot2::facet_wrap(~ device_group, nrow = 2) +
+  ggplot2::labs(
+    title = "Akzeptanz nach dem Szenario nach Experimentalbedingung",
+    subtitle = "Geräte-Untergruppen – Mittelwerte mit 95%-KI",
+    x = "Häufigkeit der Steuerung pro Jahr",
+    y = "Akzeptanz (0–4)"
+  ) +
+  theme_surf(base_size = 11) +
+  ggplot2::scale_y_continuous(breaks = 0:4) +
+  ggplot2::coord_cartesian(ylim = c(0, y_top_acc_post_devicegroups_exp), clip = "off")
+
+# Branding & Export
+p_acc_post_devicegroups_exp_branded <- brand_plot_surf(p_acc_post_devicegroups_exp)
+save_plot(p_acc_post_devicegroups_exp_branded, 2, 8, "acceptance_post_devicegroups_experiment")
+p_acc_post_devicegroups_exp_branded
+
+```
+
+### Akzeptanz Differenz Beginn-Ende
+
+```{r}
+#| label: acc-difference-create
+#| warning: false
+#| message: false
+
+daten_analysis <- daten_analysis |>
+  dplyr::mutate(
+    acc_diff = acc_post - acc_pre
+  )
+
+```
+
+```{r}
+#| label: table-02-05-acc-diff-combined
+#| warning: false
+#| message: false
+
+# 1) Datenaufbereitung DIFF (POST - PRE)
+combined_levels <- c(
+  "Gesamtstichprobe", "Gerätebesitzer", "Nicht-Besitzer (agg.)",
+  "Kurzfristige Adopter", "Langfristig Interessierte", "Nicht-Adopter"
+)
+
+acc_diff_table_data <- dplyr::bind_rows(
+  daten_analysis |> dplyr::mutate(group_combined = "Gesamtstichprobe"),
+  daten_analysis |> dplyr::filter(device_group == "Gerätebesitzer") |> dplyr::mutate(group_combined = "Gerätebesitzer"),
+  daten_analysis |> dplyr::filter(owner_group == "Nicht-Besitzer") |> dplyr::mutate(group_combined = "Nicht-Besitzer (agg.)"),
+  daten_analysis |>
+    dplyr::filter(device_group %in% c("Kurzfristige Adopter", "Langfristig Interessierte", "Nicht-Adopter")) |>
+    dplyr::mutate(group_combined = device_group)
+) |>
+  dplyr::mutate(group_combined = factor(group_combined, levels = combined_levels)) |>
+  dplyr::group_by(group_combined) |>
+  dplyr::summarise(mean_ci_n(acc_diff), .groups = "drop") |>
+  dplyr::transmute(
+    Gruppe = as.character(group_combined),
+    `n (gültig)` = n,
+    `Δ Mittelwert` = round(mean, 2),
+    SD = round(sd, 2),
+    `95%-KI (unten)` = round(ymin, 2),
+    `95%-KI (oben)`  = round(ymax, 2)
+  )
+
+# 2) Flextable DIFF mit Einzug für Untergruppen
+ft_acc_diff <- make_ft_surf(
+  data = acc_diff_table_data,
+  caption = "Veränderung der Akzeptanz durch das Szenario (POST - PRE, Mittelwerte mit 95%-KI).",
+  align_left_cols  = "Gruppe",
+  align_right_cols = setdiff(names(acc_diff_table_data), "Gruppe")
+) |>
+  flextable::padding(i = 4:6, j = 1, padding.left = 20, part = "body")
+
+# 3) Anzeige & Export
+ft_acc_diff
+export_flextable_png(ft_acc_diff, "02_05_acceptance_diff_combined_table")
+
+```
+
+```{r}
+#| label: plot-02-05-acc-diff-combined
+#| warning: false
+#| message: false
+
+# 1) Datenaufbereitung DIFF (analog zur PRE/POST Logik)
+acc_diff_combined <- dplyr::bind_rows(
+  daten_analysis |> dplyr::mutate(group_combined = "Gesamtstichprobe"),
+  daten_analysis |> dplyr::filter(device_group == "Gerätebesitzer") |> dplyr::mutate(group_combined = "Gerätebesitzer"),
+  daten_analysis |> dplyr::filter(owner_group == "Nicht-Besitzer") |> dplyr::mutate(group_combined = "Nicht-Besitzer (agg.)"),
+  daten_analysis |>
+    dplyr::filter(device_group %in% c("Kurzfristige Adopter", "Langfristig Interessierte", "Nicht-Adopter")) |>
+    dplyr::mutate(group_combined = device_group)
+) |>
+  dplyr::mutate(group_combined = factor(group_combined, levels = combined_levels)) |>
+  dplyr::group_by(group_combined) |>
+  dplyr::summarise(mean_ci_n(acc_diff), .groups = "drop") |>
+  dplyr::mutate(label_y = ymax + 0.12)
+
+# 2) Symmetrische Skalierung und Headroom für Differenz-Plot berechnen
+y_abs_acc_diff_combined <- max(
+  abs(c(acc_diff_combined$ymin, acc_diff_combined$label_y, -0.5, 0.5)), 
+  na.rm = TRUE
+) + 0.35
+
+annot_y_diff <- y_abs_acc_diff_combined + 0.0
+
+subtitle_diff <- paste(
+  "Veränderung der Akzeptanz (POST − PRE)",
+  "Nach Aggregat, Adoption und Adoptionsintention",
+  sep = "\n"
+)
+
+# 3) Plot-Erstellung
+p_acc_diff_combined <- ggplot2::ggplot(
+  acc_diff_combined,
+  ggplot2::aes(x = group_combined, y = mean)
+) +
+  # Nulllinie zur Orientierung
+  ggplot2::geom_hline(yintercept = 0, colour = SURF_GRID, linewidth = 0.4) +
+  
+  # Visuelle Trennung
+  ggplot2::geom_vline(
+    xintercept = 3.5,
+    colour = SURF_GRID,
+    linewidth = 1.1
+  ) +
+
+  # Annotation: Linke Box (Besitz-Status & Gesamt)
+  ggplot2::annotate(
+    "label",
+    x = 2.0,
+    y = annot_y_diff,
+    label = "Besitz-Status & Gesamt",
+    hjust = 0.5,
+    vjust = 1,
+    size = 3.0,
+    colour = SURF_TEXT,
+    fill = "white",
+    label.size = 0.35
+  ) +
+
+  # Annotation: Rechte Box (Differenzierung Nicht-Besitz)
+  ggplot2::annotate(
+    "label",
+    x = 5.0,
+    y = annot_y_diff,
+    label = "Differenzierung Nicht-Besitz",
+    hjust = 0.5,
+    vjust = 1,
+    size = 3.0,
+    colour = SURF_TEXT,
+    fill = "white",
+    label.size = 0.35
+  ) +
+
+  # Statistische Layer
+  ggplot2::geom_point(colour = SURF_PURPLE, size = 3) +
+  ggplot2::geom_errorbar(
+    ggplot2::aes(ymin = ymin, ymax = ymax),
+    width = 0.15,
+    colour = SURF_PURPLE
+  ) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = sprintf("%.2f", mean)),
+    size = 3.1,
+    vjust = 0
+  ) +
+  
+  # Styling & Beschriftung
+  ggplot2::labs(
+    title = "Veränderung der Akzeptanz durch das Szenario",
+    subtitle = subtitle_diff,
+    x = NULL,
+    y = "Δ Akzeptanz (POST − PRE)"
+  ) +
+  theme_surf(base_size = 12) +
+  ggplot2::theme(
+    axis.text.x = ggplot2::element_text(angle = 15, hjust = 1),
+    plot.title.position = "plot",
+    plot.subtitle = ggplot2::element_text(margin = ggplot2::margin(b = 14)),
+    plot.margin = ggplot2::margin(18, 30, 18, 12)
+  ) +
+  ggplot2::scale_x_discrete(drop = FALSE) +
+  ggplot2::coord_cartesian(
+    ylim = c(-y_abs_acc_diff_combined, y_abs_acc_diff_combined),
+    clip = "off"
+  )
+
+# Branding & Speichern
+p_acc_diff_combined_branded <- brand_plot_surf(p_acc_diff_combined)
+
+save_plot(
+  plot  = p_acc_diff_combined_branded,
+  block = 2,
+  sub   = 5,
+  slug  = "acceptance_diff_combined"
+)
+
+p_acc_diff_combined_branded
+```
+
+#### Nach Adoptionsstatus
+
+```{r}
+#| label: plot-02-06-acc-diff-experiment-owner
+#| warning: false
+#| message: false
+
+# 1) Datenaufbereitung DIFF (Besitzer vs. Nicht-Besitzer)
+acc_diff_exp <- daten_analysis |>
+  dplyr::filter(!is.na(owner_group)) |>
+  dplyr::mutate(
+    owner_group = factor(owner_group, levels = c("Gerätebesitzer", "Nicht-Besitzer")),
+    rand_freq   = force_rand_freq_order(rand_freq)
+  ) |>
+  dplyr::group_by(owner_group, rand_freq) |>
+  dplyr::summarise(mean_ci_n(acc_diff), .groups = "drop") |>
+  dplyr::mutate(label_y = ymax + 0.12)
+
+# 2) Symmetrischen Headroom für Differenz-Plot berechnen
+y_abs_acc_diff_exp <- max(
+  abs(c(acc_diff_exp$ymin, acc_diff_exp$label_y, -0.5, 0.5)), 
+  na.rm = TRUE
+) + 0.2
+
+# 3) Plot-Erstellung
+p_acc_diff_exp <- ggplot2::ggplot(
+  acc_diff_exp,
+  ggplot2::aes(x = rand_freq, y = mean)
+) +
+  # Nulllinie zur Orientierung
+  ggplot2::geom_hline(yintercept = 0, colour = SURF_GRID, linewidth = 0.4) +
+  
+  ggplot2::geom_point(colour = SURF_PURPLE, size = 2.8) +
+  ggplot2::geom_errorbar(
+    ggplot2::aes(ymin = ymin, ymax = ymax),
+    width = 0.2,
+    colour = SURF_PURPLE
+  ) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = sprintf("%.2f", mean)),
+    size = 2.9,
+    vjust = 0
+  ) +
+  ggplot2::facet_wrap(~ owner_group, nrow = 1) +
+  ggplot2::labs(
+    title = "Veränderung der Akzeptanz nach Experimentalbedingung",
+    subtitle = "Differenz (POST − PRE) nach Adoptionsstatus und Steuerungshäufigkeit",
+    x = "Experimentalbedingung (Häufigkeit der Steuerung)",
+    y = "Δ Akzeptanz"
+  ) +
+  theme_surf(base_size = 11) +
+  ggplot2::coord_cartesian(ylim = c(-y_abs_acc_diff_exp, y_abs_acc_diff_exp), clip = "off")
+
+# Branding & Export
+p_acc_diff_exp_branded <- brand_plot_surf(p_acc_diff_exp)
+
+save_plot(
+  plot  = p_acc_diff_exp_branded,
+  block = 2,
+  sub   = 6,
+  slug  = "acceptance_diff_experiment_owner"
+)
+
+p_acc_diff_exp_branded
+
+```
+
+#### Nach Adoptionsstatus und -intention
+
+```{r}
+#| label: plot-02-09-acc-diff-devicegroups-experiment
+#| warning: false
+#| message: false
+
+# 1) Datenaufbereitung DIFF (Detaillierte Gruppen)
+acc_diff_devicegroups_exp <- daten_analysis |>
+  dplyr::filter(device_group != "Gesamtstichprobe") |>
+  dplyr::mutate(
+    device_group = factor(
+      device_group,
+      levels = c("Gerätebesitzer", "Kurzfristige Adopter", "Langfristig Interessierte", "Nicht-Adopter")
+    ),
+    rand_freq = force_rand_freq_order(rand_freq)
+  ) |>
+  dplyr::group_by(device_group, rand_freq) |>
+  dplyr::summarise(mean_ci_n(acc_diff), .groups = "drop") |>
+  dplyr::mutate(label_y = ymax + 0.12)
+
+# 2) Symmetrischen Headroom berechnen
+y_abs_acc_diff_devicegroups_exp <- max(
+  abs(c(acc_diff_devicegroups_exp$ymin, acc_diff_devicegroups_exp$label_y, -0.5, 0.5)), 
+  na.rm = TRUE
+) + 0.2
+
+# 3) Plot-Erstellung
+p_acc_diff_devicegroups_exp <- ggplot2::ggplot(
+  acc_diff_devicegroups_exp,
+  ggplot2::aes(x = rand_freq, y = mean)
+) +
+  # Nulllinie zur Orientierung
+  ggplot2::geom_hline(yintercept = 0, colour = SURF_GRID, linewidth = 0.4) +
+  
+  ggplot2::geom_point(colour = SURF_PURPLE, size = 2.8) +
+  ggplot2::geom_errorbar(
+    ggplot2::aes(ymin = ymin, ymax = ymax),
+    width = 0.2,
+    colour = SURF_PURPLE
+  ) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = sprintf("%.2f", mean)),
+    size = 2.9,
+    vjust = 0
+  ) +
+  ggplot2::facet_wrap(~ device_group, nrow = 2) +
+  ggplot2::labs(
+    title = "Veränderung der Akzeptanz nach Experimentalbedingung",
+    subtitle = "Detaillierte Geräte-Untergruppen – Differenz (POST − PRE)",
+    x = "Experimentalbedingung (Häufigkeit der Steuerung)",
+    y = "Δ Akzeptanz"
+  ) +
+  theme_surf(base_size = 11) +
+  ggplot2::coord_cartesian(ylim = c(-y_abs_acc_diff_devicegroups_exp, y_abs_acc_diff_devicegroups_exp), clip = "off")
+
+# Branding & Export
+p_acc_diff_devicegroups_exp_branded <- brand_plot_surf(p_acc_diff_devicegroups_exp)
+
+save_plot(
+  plot  = p_acc_diff_devicegroups_exp_branded,
+  block = 2,
+  sub   = 9,
+  slug  = "acceptance_diff_devicegroups_experiment"
+)
+
+p_acc_diff_devicegroups_exp_branded
+
+```
+
+## Partizipationsintention (PI)
+
+Genauso wie für die Akzpetanz von SURF, wurde auch eine zweite Erhebung der Partizipationsintention an SURF am Ende der Befragung durchgeführt. Im Folgenden wird diese spätere Messung der Partizipationsintention, sowie die Veränderung der Bereitschaft zur Teilnahme im Vergleich zum Beginn der Befragung, analysiert.
+
+::: {.callout-note appearance="simple"}
+**Item: Partizipationsintention (Teilnahmebereitschaft)**
+
+*Abhängig vom Besitzstatus wurde eine der folgenden zwei Varianten abgefragt:*
+
+**Variante A: Reale Intention (für Besitzer von SVE)**
+
+-   "Ich möchte an der SURF-Plattform teilnehmen."
+
+-   *(Filter: Mindestens ein Gerät vorhanden)*
+
+**Variante B: Hypothetische Intention (für Nicht-Besitzer)**
+
+-   "Falls in meinem Haushalt zukünftig steuerbare Geräte (z. B. Wallbox, Wärmepumpe) verfügbar sind, möchte ich an der SURF-Plattform teilnehmen."
+
+-   *(Filter: Kein Gerät vorhanden)*
+
+**Antwortoptionen (5-stufige Likert-Skala):**
+
+-   1 - Stimme überhaupt nicht zu
+
+-   2 - Stimme eher nicht zu
+
+-   3 - Teils, teils
+
+-   4 - Stimme eher zu
+
+-   5 - Stimme vollständig zu
+
+-   Weiß ich nicht
+:::
+
+```{r}
+#| label: part-owner-group-create-2
+#| warning: false
+#| message: false
+
+daten_analysis <- daten_analysis |>
+  dplyr::mutate(
+    # Besitzstatus: Gerätebesitzer vs Nicht-Besitzer
+    owner_group = dplyr::case_when(
+      device_group == "Gerätebesitzer" ~ "Gerätebesitzer",
+      device_group %in% c("Kurzfristige Adopter","Langfristig Interessierte","Nicht-Adopter") ~ "Nicht-Besitzer",
+      TRUE ~ NA_character_
+    ),
+    owner_group = factor(owner_group, levels = c("Gerätebesitzer", "Nicht-Besitzer")),
+
+    # ------------------------------------------------------------
+    # WICHTIGER FIX:
+    # PI wurde 2x erhoben: real (Besitzer) und hypo (Nicht-Besitzer)
+    # => gemeinsame PRE/POST Variable bauen
+    # (achte darauf, dass die richtigen Spaltennamen existieren)
+    # ------------------------------------------------------------
+    part_pre = dplyr::case_when(
+      owner_group == "Gerätebesitzer" ~ part_pre_real,
+      owner_group == "Nicht-Besitzer" ~ part_pre_hypo,
+      TRUE ~ NA_real_
+    ),
+    part_post = dplyr::case_when(
+      owner_group == "Gerätebesitzer" ~ part_post_real,
+      owner_group == "Nicht-Besitzer" ~ part_post_hypo,
+      TRUE ~ NA_real_
+    ),
+
+    # Differenz (POST – PRE) auf Basis der gemeinsamen Variable
+    part_diff = dplyr::if_else(!is.na(part_post) & !is.na(part_pre), part_post - part_pre, NA_real_)
+  )
+
+```
+
+### PI am Ende
+
+```{r}
+#| label: table-03-13-part-post-combined
+#| warning: false
+#| message: false
+
+# 1) Datenaufbereitung POST
+combined_levels <- c(
+  "Gesamtstichprobe", "Gerätebesitzer", "Nicht-Besitzer (agg.)",
+  "Kurzfristige Adopter", "Langfristig Interessierte", "Nicht-Adopter"
+)
+
+part_post_table_data <- dplyr::bind_rows(
+  daten_analysis |> dplyr::mutate(group_combined = "Gesamtstichprobe"),
+  daten_analysis |> dplyr::filter(device_group == "Gerätebesitzer") |> dplyr::mutate(group_combined = "Gerätebesitzer"),
+  daten_analysis |> dplyr::filter(owner_group == "Nicht-Besitzer") |> dplyr::mutate(group_combined = "Nicht-Besitzer (agg.)"),
+  daten_analysis |>
+    dplyr::filter(device_group %in% c("Kurzfristige Adopter", "Langfristig Interessierte", "Nicht-Adopter")) |>
+    dplyr::mutate(group_combined = device_group)
+) |>
+  dplyr::mutate(group_combined = factor(group_combined, levels = combined_levels)) |>
+  dplyr::group_by(group_combined) |>
+  dplyr::summarise(mean_ci_n(part_post), .groups = "drop") |>
+  dplyr::transmute(
+    Gruppe = as.character(group_combined),
+    `n (gültig)` = n,
+    Mittelwert = round(mean, 2),
+    SD = round(sd, 2),
+    `95%-KI (unten)` = round(ymin, 2),
+    `95%-KI (oben)`  = round(ymax, 2)
+  )
+
+# 2) Flextable POST mit Einzug
+ft_part_post <- make_ft_surf(
+  data = part_post_table_data,
+  caption = "Teilnahmebereitschaft nach dem Szenario (Mittelwerte mit 95%-KI).",
+  align_left_cols  = "Gruppe",
+  align_right_cols = setdiff(names(part_post_table_data), "Gruppe")
+) |>
+  flextable::padding(i = 4:6, j = 1, padding.left = 20, part = "body")
+
+# 3) Output & Export
+ft_part_post
+export_flextable_png(ft_part_post, "03_13_participation_post_combined_table")
+```
+
+```{r}
+#| label: plot-03-13-part-post-combined
+#| warning: false
+#| message: false
+
+combined_levels <- c(
+  "Gesamtstichprobe",
+  "Gerätebesitzer",
+  "Nicht-Besitzer (agg.)",
+  "Kurzfristige Adopter",
+  "Langfristig Interessierte",
+  "Nicht-Adopter"
+)
+
+part_post_combined <- dplyr::bind_rows(
+  daten_analysis |> dplyr::mutate(group_combined = "Gesamtstichprobe"),
+  daten_analysis |> dplyr::filter(device_group == "Gerätebesitzer") |> dplyr::mutate(group_combined = "Gerätebesitzer"),
+  daten_analysis |> dplyr::filter(owner_group == "Nicht-Besitzer") |> dplyr::mutate(group_combined = "Nicht-Besitzer (agg.)"),
+  daten_analysis |>
+    dplyr::filter(device_group %in% c("Kurzfristige Adopter", "Langfristig Interessierte", "Nicht-Adopter")) |>
+    dplyr::mutate(group_combined = device_group)
+) |>
+  dplyr::mutate(group_combined = factor(group_combined, levels = combined_levels)) |>
+  dplyr::group_by(group_combined) |>
+  dplyr::summarise(mean_ci_n(part_post), .groups = "drop") |>
+  dplyr::mutate(label_y = ymax + 0.12)
+
+# Headroom
+y_top_part_post_combined <- max(
+  c(part_post_combined$label_y, part_post_combined$ymax, 4),
+  na.rm = TRUE
+) + 0.35
+
+# Gemeinsame (hohe) Box-Höhe: minimal näher an den oberen Rand
+annot_y_post <- y_top_part_post_combined + 0.3
+
+subtitle_post <- paste(
+  "Partizipationsintention Real oder Hypothetisch",
+  "Nach Aggregat, Adoption, und Adoptionsintention",
+  sep = "\n"
+)
+
+p_part_post_combined <- ggplot2::ggplot(
+  part_post_combined,
+  ggplot2::aes(x = group_combined, y = mean)
+) +
+  # visuelle Trennung (deutlich)
+  ggplot2::geom_vline(
+    xintercept = 3.5,
+    colour = SURF_GRID,
+    linewidth = 1.1
+  ) +
+
+  # Linke Box (Aggregat / Besitz vs. Nicht-Besitz)
+  ggplot2::annotate(
+    "label",
+    x = 2.5,                     # exakt zwischen Kategorie 2 und 3
+    y = annot_y_post,
+    label = "Besitz vs. Nicht-Besitz",
+    hjust = 0.5,
+    vjust = 1,
+    size = 3.0,
+    colour = SURF_TEXT,
+    fill = "white",
+    label.size = 0.35
+  ) +
+
+  # Rechte Box (Differenzierung Nicht-Besitz)
+  ggplot2::annotate(
+    "label",
+    x = 5.0,
+    y = annot_y_post,
+    label = "Differenzierung Nicht-Besitz",
+    hjust = 0.5,
+    vjust = 1,
+    size = 3.0,
+    colour = SURF_TEXT,
+    fill = "white",
+    label.size = 0.35
+  ) +
+
+  ggplot2::geom_point(colour = SURF_PURPLE, size = 3) +
+  ggplot2::geom_errorbar(
+    ggplot2::aes(ymin = ymin, ymax = ymax),
+    width = 0.15,
+    colour = SURF_PURPLE
+  ) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = round(mean, 2)),
+    size = 3.1,
+    vjust = 0
+  ) +
+  ggplot2::labs(
+    title = "Teilnahmebereitschaft nach dem Szenario",
+    subtitle = subtitle_post,
+    x = NULL,
+    y = "Teilnahmeintention (0–4)"
+  ) +
+  theme_surf(base_size = 12) +
+  ggplot2::theme(
+    axis.text.x = ggplot2::element_text(angle = 15, hjust = 1),
+
+    # mehr Abstand zwischen (Unter-)Titel und Panel
+    plot.title.position = "plot",
+    plot.subtitle = ggplot2::element_text(
+      margin = ggplot2::margin(b = 14)
+    ),
+
+    # mehr Luft oben + rechts (Logo + Labels)
+    plot.margin = ggplot2::margin(18, 30, 18, 12)
+  ) +
+  ggplot2::scale_x_discrete(drop = FALSE) +
+  ggplot2::scale_y_continuous(breaks = 0:4) +
+  ggplot2::coord_cartesian(
+    ylim = c(0, y_top_part_post_combined),
+    clip = "off"
+  )
+
+p_part_post_combined_branded <- brand_plot_surf(p_part_post_combined)
+
+save_plot(
+  plot  = p_part_post_combined_branded,
+  block = 3,
+  sub   = 13,
+  slug  = "participation_post_combined"
+)
+
+p_part_post_combined_branded
+
+```
+
+#### Nach Adoptionsstatus
+
+```{r}
+#| label: plot-03-04-part-post-experiment
+#| warning: false
+#| message: false
+
+part_post_exp <- daten_analysis |>
+  dplyr::filter(!is.na(owner_group)) |>
+  dplyr::mutate(
+    owner_group = factor(owner_group, levels = c("Gerätebesitzer", "Nicht-Besitzer")),
+    rand_freq   = force_rand_freq_order(rand_freq)
+  ) |>
+  dplyr::group_by(owner_group, rand_freq) |>
+  dplyr::summarise(mean_ci_n(part_post), .groups = "drop") |>
+  dplyr::mutate(label_y = ymax + 0.12)
+
+y_top_part_post_exp <- max(c(part_post_exp$label_y, part_post_exp$ymax, 4), na.rm = TRUE) + 0.15
+
+p_part_post_exp <- ggplot2::ggplot(
+  part_post_exp,
+  ggplot2::aes(x = rand_freq, y = mean)
+) +
+  ggplot2::geom_point(colour = SURF_PURPLE, size = 2.8) +
+  ggplot2::geom_errorbar(
+    ggplot2::aes(ymin = ymin, ymax = ymax),
+    width = 0.2,
+    colour = SURF_PURPLE
+  ) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = round(mean, 2)),
+    size = 2.9,
+    vjust = 0
+  ) +
+  ggplot2::facet_wrap(~ owner_group, nrow = 1) +
+  ggplot2::labs(
+    title = "Teilnahmebereitschaft nach dem Szenario nach Experimentalbedingung",
+    subtitle = "Gemeinsame PI-Skala (REAL bei Besitzern, HYPO bei Nicht-Besitzern) – Mittelwerte mit 95%-KI",
+    x = "Experimentalbedingung (Häufigkeit der Steuerung)",
+    y = "Teilnahmeintention (0–4)"
+  ) +
+  theme_surf(base_size = 11) +
+  ggplot2::scale_y_continuous(breaks = 0:4) +
+  ggplot2::coord_cartesian(ylim = c(0, y_top_part_post_exp), clip = "off")
+
+p_part_post_exp_branded <- brand_plot_surf(p_part_post_exp)
+
+save_plot(
+  plot  = p_part_post_exp_branded,
+  block = 3,
+  sub   = 4,
+  slug  = "participation_post_experiment_owner"
+)
+
+p_part_post_exp_branded
+
+```
+
+#### Nach Adoptionsstatus und -intention
+
+```{r}
+#| label: plot-03-10-part-post-devicegroups-experiment
+#| warning: false
+#| message: false
+
+part_post_devicegroups_exp <- daten_analysis |>
+  dplyr::filter(device_group != "Gesamtstichprobe") |>
+  dplyr::mutate(
+    device_group = factor(
+      device_group,
+      levels = c(
+        "Gerätebesitzer",
+        "Kurzfristige Adopter",
+        "Langfristig Interessierte",
+        "Nicht-Adopter"
+      )
+    ),
+    rand_freq = force_rand_freq_order(rand_freq)
+  ) |>
+  dplyr::group_by(device_group, rand_freq) |>
+  dplyr::summarise(mean_ci_n(part_post), .groups = "drop") |>
+  dplyr::mutate(label_y = ymax + 0.12)
+
+y_top_part_post_devicegroups_exp <- max(c(part_post_devicegroups_exp$label_y, part_post_devicegroups_exp$ymax, 4), na.rm = TRUE) + 0.15
+
+p_part_post_devicegroups_exp <- ggplot2::ggplot(
+  part_post_devicegroups_exp,
+  ggplot2::aes(x = rand_freq, y = mean)
+) +
+  ggplot2::geom_point(colour = SURF_PURPLE, size = 2.8) +
+  ggplot2::geom_errorbar(
+    ggplot2::aes(ymin = ymin, ymax = ymax),
+    width = 0.2,
+    colour = SURF_PURPLE
+  ) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = round(mean, 2)),
+    size = 2.9,
+    vjust = 0
+  ) +
+  ggplot2::facet_wrap(~ device_group, nrow = 2) +
+  ggplot2::labs(
+    title = "Teilnahmebereitschaft nach dem Szenario nach Experimentalbedingung",
+    subtitle = "Gemeinsame PI-Skala (REAL/HYPO) – Geräte-Untergruppen (Mittelwerte mit 95%-KI)",
+    x = "Experimentalbedingung (Häufigkeit der Steuerung)",
+    y = "Teilnahmeintention (0–4)"
+  ) +
+  theme_surf(base_size = 11) +
+  ggplot2::scale_y_continuous(breaks = 0:4) +
+  ggplot2::coord_cartesian(ylim = c(0, y_top_part_post_devicegroups_exp), clip = "off")
+
+p_part_post_devicegroups_exp_branded <- brand_plot_surf(p_part_post_devicegroups_exp)
+
+save_plot(
+  plot  = p_part_post_devicegroups_exp_branded,
+  block = 3,
+  sub   = 10,
+  slug  = "participation_post_devicegroups_experiment"
+)
+
+p_part_post_devicegroups_exp_branded
+
+```
+
+### PI Differenz Beginn-Ende
+
+```{r}
+#| label: table-03-15-part-diff-combined
+#| warning: false
+#| message: false
+
+# 1) Datenaufbereitung DIFF
+part_diff_table_data <- dplyr::bind_rows(
+  daten_analysis |> dplyr::mutate(group_combined = "Gesamtstichprobe"),
+  daten_analysis |> dplyr::filter(device_group == "Gerätebesitzer") |> dplyr::mutate(group_combined = "Gerätebesitzer"),
+  daten_analysis |> dplyr::filter(owner_group == "Nicht-Besitzer") |> dplyr::mutate(group_combined = "Nicht-Besitzer (agg.)"),
+  daten_analysis |>
+    dplyr::filter(device_group %in% c("Kurzfristige Adopter", "Langfristig Interessierte", "Nicht-Adopter")) |>
+    dplyr::mutate(group_combined = device_group)
+) |>
+  dplyr::mutate(group_combined = factor(group_combined, levels = combined_levels)) |>
+  dplyr::group_by(group_combined) |>
+  dplyr::summarise(mean_ci_n(part_diff), .groups = "drop") |>
+  dplyr::transmute(
+    Gruppe = as.character(group_combined),
+    `n (gültig)` = n,
+    `Δ Mittelwert` = round(mean, 2),
+    SD = round(sd, 2),
+    `95%-KI (unten)` = round(ymin, 2),
+    `95%-KI (oben)`  = round(ymax, 2)
+  )
+
+# 2) Flextable DIFF mit Einzug
+ft_part_diff <- make_ft_surf(
+  data = part_diff_table_data,
+  caption = "Veränderung der Teilnahmebereitschaft (POST - PRE, Mittelwerte mit 95%-KI).",
+  align_left_cols  = "Gruppe",
+  align_right_cols = setdiff(names(part_diff_table_data), "Gruppe")
+) |>
+  flextable::padding(i = 4:6, j = 1, padding.left = 20, part = "body")
+
+# 3) Output & Export
+ft_part_diff
+export_flextable_png(ft_part_diff, "03_15_participation_diff_combined_table")
+```
+
+```{r}
+#| label: plot-03-15-part-diff-combined
+#| warning: false
+#| message: false
+
+combined_levels <- c(
+  "Gesamtstichprobe",
+  "Gerätebesitzer",
+  "Nicht-Besitzer (agg.)",
+  "Kurzfristige Adopter",
+  "Langfristig Interessierte",
+  "Nicht-Adopter"
+)
+
+part_diff_combined <- dplyr::bind_rows(
+  daten_analysis |> dplyr::mutate(group_combined = "Gesamtstichprobe"),
+  daten_analysis |> dplyr::filter(device_group == "Gerätebesitzer") |> dplyr::mutate(group_combined = "Gerätebesitzer"),
+  daten_analysis |> dplyr::filter(owner_group == "Nicht-Besitzer") |> dplyr::mutate(group_combined = "Nicht-Besitzer (agg.)"),
+  daten_analysis |>
+    dplyr::filter(device_group %in% c("Kurzfristige Adopter", "Langfristig Interessierte", "Nicht-Adopter")) |>
+    dplyr::mutate(group_combined = device_group)
+) |>
+  dplyr::mutate(group_combined = factor(group_combined, levels = combined_levels)) |>
+  dplyr::group_by(group_combined) |>
+  dplyr::summarise(mean_ci_n(part_diff), .groups = "drop") |>
+  dplyr::mutate(label_y = ymax + 0.12)
+
+# Symmetrische Headroom-Logik (Diff-Plot)
+y_top_part_diff_combined <- max(c(part_diff_combined$label_y, part_diff_combined$ymax), na.rm = TRUE) + 0.15
+y_bot_part_diff_combined <- min(part_diff_combined$ymin, na.rm = TRUE) - 0.15
+y_abs_part_diff_combined <- max(abs(c(y_bot_part_diff_combined, y_top_part_diff_combined, -1, 1)), na.rm = TRUE)
+
+# Box-Position oberhalb des Panels (clip = "off")
+annot_y_diff <- y_abs_part_diff_combined + 0.0
+
+subtitle_diff <- paste(
+  "POST − PRE (Mittelwerte mit 95%-Konfidenzintervallen)",
+  "Nach Aggregat, Adoption, und Adoptionsintention",
+  sep = "\n"
+)
+
+p_part_diff_combined <- ggplot2::ggplot(
+  part_diff_combined,
+  ggplot2::aes(x = group_combined, y = mean)
+) +
+  ggplot2::geom_hline(yintercept = 0, colour = SURF_GRID, linewidth = 0.4) +
+
+  # visuelle Trennung (deutlich)
+  ggplot2::geom_vline(
+    xintercept = 3.5,
+    colour = SURF_GRID,
+    linewidth = 1.1
+  ) +
+
+  # Linke Box (Aggregat / Besitz vs. Nicht-Besitz)
+  ggplot2::annotate(
+    "label",
+    x = 2.5,                     # exakt zwischen Kategorie 2 und 3
+    y = annot_y_diff,
+    label = "Besitz vs. Nicht-Besitz",
+    hjust = 0.5,
+    vjust = 1,
+    size = 3.0,
+    colour = SURF_TEXT,
+    fill = "white",
+    label.size = 0.35
+  ) +
+
+  # Rechte Box (Differenzierung Nicht-Besitz)
+  ggplot2::annotate(
+    "label",
+    x = 5.0,
+    y = annot_y_diff,
+    label = "Differenzierung Nicht-Besitz",
+    hjust = 0.5,
+    vjust = 1,
+    size = 3.0,
+    colour = SURF_TEXT,
+    fill = "white",
+    label.size = 0.35
+  ) +
+
+  ggplot2::geom_point(colour = SURF_PURPLE, size = 3) +
+  ggplot2::geom_errorbar(
+    ggplot2::aes(ymin = ymin, ymax = ymax),
+    width = 0.15,
+    colour = SURF_PURPLE
+  ) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = round(mean, 2)),
+    size = 3.1,
+    vjust = 0
+  ) +
+  ggplot2::labs(
+    title = "Veränderung der Teilnahmebereitschaft durch das Szenario",
+    subtitle = subtitle_diff,
+    x = NULL,
+    y = "Δ Teilnahmeintention (POST − PRE)"
+  ) +
+  theme_surf(base_size = 12) +
+  ggplot2::theme(
+    axis.text.x = ggplot2::element_text(angle = 15, hjust = 1),
+
+    # mehr Abstand zwischen (Unter-)Titel und Panel
+    plot.title.position = "plot",
+    plot.subtitle = ggplot2::element_text(
+      margin = ggplot2::margin(b = 14)
+    ),
+
+    # mehr Luft oben + rechts (Logo + Labels)
+    plot.margin = ggplot2::margin(18, 30, 18, 12)
+  ) +
+  ggplot2::scale_x_discrete(drop = FALSE) +
+  ggplot2::coord_cartesian(
+    ylim = c(-y_abs_part_diff_combined, y_abs_part_diff_combined),
+    clip = "off"
+  )
+
+p_part_diff_combined_branded <- brand_plot_surf(p_part_diff_combined)
+
+save_plot(
+  plot  = p_part_diff_combined_branded,
+  block = 3,
+  sub   = 15,
+  slug  = "participation_diff_combined"
+)
+
+p_part_diff_combined_branded
+
+```
+
+#### Nach Adoptionsstatus
+
+```{r}
+#| label: plot-03-06-part-diff-experiment
+#| warning: false
+#| message: false
+
+part_diff_exp <- daten_analysis |>
+  dplyr::filter(!is.na(owner_group)) |>
+  dplyr::mutate(
+    owner_group = factor(owner_group, levels = c("Gerätebesitzer", "Nicht-Besitzer")),
+    rand_freq   = force_rand_freq_order(rand_freq)
+  ) |>
+  dplyr::group_by(owner_group, rand_freq) |>
+  dplyr::summarise(mean_ci_n(part_diff), .groups = "drop") |>
+  dplyr::mutate(label_y = ymax + 0.12)
+
+y_top_part_diff_exp <- max(c(part_diff_exp$label_y, part_diff_exp$ymax), na.rm = TRUE) + 0.15
+y_bot_part_diff_exp <- min(part_diff_exp$ymin, na.rm = TRUE) - 0.15
+y_abs_part_diff_exp <- max(abs(c(y_bot_part_diff_exp, y_top_part_diff_exp, -1, 1)), na.rm = TRUE)
+
+p_part_diff_exp <- ggplot2::ggplot(
+  part_diff_exp,
+  ggplot2::aes(x = rand_freq, y = mean)
+) +
+  ggplot2::geom_hline(yintercept = 0, colour = SURF_GRID, linewidth = 0.4) +
+  ggplot2::geom_point(colour = SURF_PURPLE, size = 2.8) +
+  ggplot2::geom_errorbar(
+    ggplot2::aes(ymin = ymin, ymax = ymax),
+    width = 0.2,
+    colour = SURF_PURPLE
+  ) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = round(mean, 2)),
+    size = 2.9,
+    vjust = 0
+  ) +
+  ggplot2::facet_wrap(~ owner_group, nrow = 1) +
+  ggplot2::labs(
+    title = "Veränderung der Teilnahmebereitschaft nach Experimentalbedingung",
+    subtitle = "POST − PRE (Mittelwerte mit 95%-Konfidenzintervallen)",
+    x = "Experimentalbedingung (Häufigkeit der Steuerung)",
+    y = "Δ Teilnahmeintention (POST − PRE)"
+  ) +
+  theme_surf(base_size = 11) +
+  ggplot2::coord_cartesian(ylim = c(-y_abs_part_diff_exp, y_abs_part_diff_exp), clip = "off")
+
+p_part_diff_exp_branded <- brand_plot_surf(p_part_diff_exp)
+
+save_plot(
+  plot  = p_part_diff_exp_branded,
+  block = 3,
+  sub   = 6,
+  slug  = "participation_difference_experiment_owner"
+)
+
+p_part_diff_exp_branded
+
+```
+
+#### Nach Adoptionsstatus und -intention
+
+```{r}
+#| label: plot-03-12-part-diff-devicegroups-experiment
+#| warning: false
+#| message: false
+
+part_diff_devicegroups_exp <- daten_analysis |>
+  dplyr::filter(device_group != "Gesamtstichprobe") |>
+  dplyr::mutate(
+    device_group = factor(
+      device_group,
+      levels = c(
+        "Gerätebesitzer",
+        "Kurzfristige Adopter",
+        "Langfristig Interessierte",
+        "Nicht-Adopter"
+      )
+    ),
+    rand_freq = force_rand_freq_order(rand_freq)
+  ) |>
+  dplyr::group_by(device_group, rand_freq) |>
+  dplyr::summarise(mean_ci_n(part_diff), .groups = "drop") |>
+  dplyr::mutate(label_y = ymax + 0.12)
+
+y_top_part_diff_devicegroups_exp <- max(c(part_diff_devicegroups_exp$label_y, part_diff_devicegroups_exp$ymax), na.rm = TRUE) + 0.15
+y_bot_part_diff_devicegroups_exp <- min(part_diff_devicegroups_exp$ymin, na.rm = TRUE) - 0.15
+y_abs_part_diff_devicegroups_exp <- max(abs(c(y_bot_part_diff_devicegroups_exp, y_top_part_diff_devicegroups_exp, -1, 1)), na.rm = TRUE)
+
+p_part_diff_devicegroups_exp <- ggplot2::ggplot(
+  part_diff_devicegroups_exp,
+  ggplot2::aes(x = rand_freq, y = mean)
+) +
+  ggplot2::geom_hline(yintercept = 0, colour = SURF_GRID, linewidth = 0.4) +
+  ggplot2::geom_point(colour = SURF_PURPLE, size = 2.8) +
+  ggplot2::geom_errorbar(
+    ggplot2::aes(ymin = ymin, ymax = ymax),
+    width = 0.2,
+    colour = SURF_PURPLE
+  ) +
+  ggplot2::geom_text(
+    ggplot2::aes(y = label_y, label = round(mean, 2)),
+    size = 2.9,
+    vjust = 0
+  ) +
+  ggplot2::facet_wrap(~ device_group, nrow = 2) +
+  ggplot2::labs(
+    title = "Veränderung der Teilnahmebereitschaft nach Experimentalbedingung",
+    subtitle = "POST − PRE (Mittelwerte mit 95%-Konfidenzintervallen) – Geräte-Untergruppen",
+    x = "Experimentalbedingung (Häufigkeit der Steuerung)",
+    y = "Δ Teilnahmeintention (POST − PRE)"
+  ) +
+  theme_surf(base_size = 11) +
+  ggplot2::coord_cartesian(ylim = c(-y_abs_part_diff_devicegroups_exp, y_abs_part_diff_devicegroups_exp), clip = "off")
+
+p_part_diff_devicegroups_exp_branded <- brand_plot_surf(p_part_diff_devicegroups_exp)
+
+save_plot(
+  plot  = p_part_diff_devicegroups_exp_branded,
+  block = 3,
+  sub   = 12,
+  slug  = "participation_diff_devicegroups_experiment"
+)
+
+p_part_diff_devicegroups_exp_branded
+
+```
+
+# Sozialdemografische Merkmale
+
+::: {.callout-note appearance="simple" title="Items: Soziodemografische Merkmale"}
+Fragen:
+
+-   Alter: Bitte geben Sie Ihr Alter an (in Jahren).
+
+-   Geschlecht: Mit welchem Geschlecht identifizieren Sie sich?
+
+-   Bildung: Welches ist Ihr höchster Bildungsabschluss?
+
+-   Einkommen: Wie hoch ist das monatliche Netto-Haushaltseinkommen (ca.)?
+
+-   Haushaltsgröße: Wie viele Personen leben dauerhaft in Ihrem Haushalt?
+
+-   Wohnform: In welcher Wohnform leben Sie zurzeit?
+:::
+
+## Alter
+
+```{r}
+#| label: plot-10-01-age-groups-corrected
+#| warning: false
+#| message: false
+
+# 1) Datenaufbereitung: Übersetzung der Kategorien in Klarschrift
+# Basierend auf den Standard-Survey-Codes (1-6)
+age_labels <- c(
+  "1" = "18-24 Jahre",
+  "2" = "25-34 Jahre",
+  "3" = "35-44 Jahre",
+  "4" = "45-54 Jahre",
+  "5" = "55-64 Jahre",
+  "6" = "65 Jahre oder älter"
+)
+
+age_dist_data <- daten_analysis |>
+  dplyr::select(owner_group, alter) |>
+  # NA und ungültige Werte (z.B. 98/99) entfernen
+  dplyr::filter(!is.na(alter), alter %in% 1:6) |>
+  dplyr::mutate(
+    age_group = factor(age_labels[as.character(alter)], levels = age_labels)
+  ) |>
+  # Prozentberechnung pro Statusgruppe
+  dplyr::count(owner_group, age_group) |>
+  dplyr::group_by(owner_group) |>
+  dplyr::mutate(pct = n / sum(n)) |>
+  dplyr::ungroup()
+
+# 2) Visualisierung als Balkendiagramm
+p_age_groups <- ggplot2::ggplot(age_dist_data, 
+  ggplot2::aes(x = age_group, y = pct, fill = owner_group)) +
+  
+  # Balken nebeneinander
+  ggplot2::geom_col(position = ggplot2::position_dodge(width = 0.8), width = 0.7) +
+  
+  # Prozent-Labels über den Balken
+  ggplot2::geom_text(
+    ggplot2::aes(label = scales::percent(pct, accuracy = 1)),
+    position = ggplot2::position_dodge(width = 0.8),
+    vjust = -0.5, size = 3.2, fontface = "bold"
+  ) +
+  
+  # SURF-Farben
+  ggplot2::scale_fill_manual(values = c("Gerätebesitzer" = SURF_PURPLE, "Nicht-Besitzer" = SURF_PINK)) +
+  
+  # Achsen-Formatierung
+  ggplot2::scale_y_continuous(labels = scales::percent, limits = c(0, max(age_dist_data$pct) * 1.2)) +
+  
+  ggplot2::labs(
+    title = "Altersstruktur der Stichprobe",
+    subtitle = "Verteilung nach Altersgruppen und Besitzstatus",
+    x = NULL,
+    y = "Anteil innerhalb der Gruppe (%)",
+    fill = "Status"
+  ) +
+  theme_surf() +
+  surf_legend_bottom() +
+  # X-Achse leicht drehen, falls die Labels zu lang sind
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 30, hjust = 1))
+
+brand_plot_surf(p_age_groups)
+
+```
+
+## Geschlecht
+
+::: {.callout-note appearance="simple" title="Item: Geschlecht"}
+Frage: Bitte geben Sie Ihr Geschlecht an.
+
+Optionen: Weiblich, Männlich, Divers, Keine Angabe
+:::
+
+```{r}
+#| label: plot-10-06-gender-improved
+#| warning: false
+#| message: false
+
+gender_labels <- c("1" = "Weiblich", "2" = "Männlich", "3" = "Divers")
+
+gender_data <- daten_analysis |>
+  dplyr::filter(!is.na(geschl), geschl %in% 1:3) |>
+  dplyr::mutate(label = gender_labels[as.character(geschl)]) |>
+  dplyr::count(owner_group, label) |>
+  dplyr::group_by(owner_group) |>
+  dplyr::mutate(pct = n / sum(n)) |>
+  dplyr::ungroup()
+
+p_gender <- ggplot2::ggplot(gender_data, ggplot2::aes(x = label, y = pct, fill = owner_group)) +
+  ggplot2::geom_col(position = ggplot2::position_dodge(width = 0.8), width = 0.7) +
+  
+  ggplot2::geom_text(
+    ggplot2::aes(label = scales::percent(pct, accuracy = 1)),
+    position = ggplot2::position_dodge(width = 0.8),
+    vjust = -0.5, size = 3.5, fontface = "bold"
+  ) +
+  
+  ggplot2::scale_fill_manual(values = c("Gerätebesitzer" = SURF_PURPLE, "Nicht-Besitzer" = SURF_PINK)) +
+  ggplot2::scale_y_continuous(labels = scales::percent, limits = c(0, max(gender_data$pct)*1.2)) +
+  
+  ggplot2::labs(title = "Geschlechterverteilung", x = NULL, y = "Anteil (%)", fill = "Status") +
+  theme_surf() + surf_legend_bottom()
+
+brand_plot_surf(p_gender)
+
+```
+
+## Bildung
+
+```{r}
+#| label: plot-10-02-education-improved
+#| warning: false
+#| message: false
+
+edu_data <- daten_analysis |>
+  dplyr::filter(!is.na(bild), !is.na(owner_group)) |>
+  dplyr::mutate(
+    label_short = dplyr::case_when(
+      bild %in% 1:3 ~ "Basis / Realschule",
+      bild %in% 4:5 ~ "Abitur / Ausbildung",
+      bild == 6 ~ "Hochschulstudium",
+      bild == 7 ~ "Promotion",
+      TRUE ~ "Andere"
+    ),
+    label_short = factor(label_short, levels = rev(c("Basis / Realschule", "Abitur / Ausbildung", "Hochschulstudium", "Promotion")))
+  ) |>
+  dplyr::count(owner_group, label_short) |>
+  dplyr::group_by(owner_group) |>
+  dplyr::mutate(pct = n / sum(n)) |>
+  dplyr::ungroup()
+
+p_edu <- ggplot2::ggplot(edu_data, ggplot2::aes(x = pct, y = label_short, fill = owner_group)) +
+  ggplot2::geom_col(position = ggplot2::position_dodge(width = 0.8), width = 0.7) +
+  
+  ggplot2::geom_text(
+    ggplot2::aes(label = scales::percent(pct, accuracy = 1)),
+    position = ggplot2::position_dodge(width = 0.8),
+    hjust = -0.1, size = 3.2, fontface = "bold"
+  ) +
+  
+  ggplot2::scale_fill_manual(values = c("Gerätebesitzer" = SURF_PURPLE, "Nicht-Besitzer" = SURF_PINK)) +
+  ggplot2::scale_x_continuous(labels = scales::percent, limits = c(0, max(edu_data$pct)*1.25)) +
+  
+  ggplot2::labs(title = "Bildungsniveau", x = "Anteil (%)", y = NULL) +
+  theme_surf() + surf_legend_bottom()
+
+brand_plot_surf(p_edu)
+
+```
+
+## Einkommen
+
+```{r}
+#| label: plot-10-03-income-improved
+#| warning: false
+#| message: false
+
+inc_labels <- c("1"="<1.000€", "2"="1-2k€", "3"="2-3k€", "4"="3-4k€", "5"="4-5k€", "6"="5-6k€", "7"=">6k€")
+
+inc_data <- daten_analysis |>
+  dplyr::filter(!is.na(eink), eink != 98) |>
+  dplyr::mutate(label = factor(inc_labels[as.character(eink)], levels = inc_labels)) |>
+  dplyr::count(owner_group, label) |>
+  dplyr::group_by(owner_group) |>
+  dplyr::mutate(pct = n / sum(n)) |>
+  dplyr::ungroup()
+
+p_inc <- ggplot2::ggplot(inc_data, ggplot2::aes(x = label, y = pct, fill = owner_group)) +
+  ggplot2::geom_col(position = ggplot2::position_dodge(width = 0.8), width = 0.7) +
+  
+  ggplot2::geom_text(
+    ggplot2::aes(label = scales::percent(pct, accuracy = 0)),
+    position = ggplot2::position_dodge(width = 0.8),
+    vjust = -0.5, size = 2.8, fontface = "bold"
+  ) +
+  
+  ggplot2::scale_fill_manual(values = c("Gerätebesitzer" = SURF_PURPLE, "Nicht-Besitzer" = SURF_PINK)) +
+  ggplot2::scale_y_continuous(labels = scales::percent, limits = c(0, max(inc_data$pct)*1.2)) +
+  
+  ggplot2::labs(title = "Einkommensstruktur", x = NULL, y = "Anteil (%)") +
+  theme_surf() + surf_legend_bottom()
+
+brand_plot_surf(p_inc)
+
+```
+
+## Stromrechnung
+
+```{r}
+#| label: plot-10-08-electricity-bill
+#| warning: false
+#| message: false
+
+bill_labels <- c("1"="<500€", "2"="500-1k€", "3"="1-1.5k€", "4"="1.5-2k€", "5"="2-2.5k€", "6"=">2.5k€")
+
+bill_data <- daten_analysis |>
+  dplyr::filter(!is.na(strom_rechnung), strom_rechnung != 98) |>
+  dplyr::mutate(label = factor(bill_labels[as.character(strom_rechnung)], levels = bill_labels)) |>
+  dplyr::count(owner_group, label) |>
+  dplyr::group_by(owner_group) |>
+  dplyr::mutate(pct = n / sum(n)) |>
+  dplyr::ungroup()
+
+p_bill <- ggplot2::ggplot(bill_data, ggplot2::aes(x = label, y = pct, fill = owner_group)) +
+  ggplot2::geom_col(position = "dodge", width = 0.7) +
+  ggplot2::geom_text(
+    ggplot2::aes(label = scales::percent(pct, accuracy = 1)),
+    position = ggplot2::position_dodge(width = 0.7), vjust = -0.5, size = 2.8, fontface = "bold"
+  ) +
+  ggplot2::scale_fill_manual(values = c("Gerätebesitzer" = SURF_PURPLE, "Nicht-Besitzer" = SURF_PINK)) +
+  ggplot2::scale_y_continuous(labels = scales::percent, limits = c(0, max(bill_data$pct)*1.2)) +
+  ggplot2::labs(title = "Jährliche Stromrechnung", x = NULL, y = "Anteil (%)") +
+  theme_surf() + surf_legend_bottom() +
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 30, hjust = 1))
+
+brand_plot_surf(p_bill)
+
+```
+
+## Haushaltsgröße
+
+::: {.callout-note appearance="simple" title="Item: Personen im Haushalt"}
+Frage: Wie viele Personen leben dauerhaft in Ihrem Haushalt (einschließlich Ihnen selbst)?
+
+Skala: 1 bis 6 oder mehr Personen
+:::
+
+```{r}
+#| label: plot-10-05-household-size
+#| warning: false
+#| message: false
+
+pers_data <- daten_analysis |>
+  dplyr::filter(!is.na(pers), pers > 0) |>
+  dplyr::mutate(label = ifelse(pers >= 5, "5+", as.character(pers))) |>
+  dplyr::count(owner_group, label) |>
+  dplyr::group_by(owner_group) |>
+  dplyr::mutate(pct = n / sum(n)) |>
+  dplyr::ungroup()
+
+p_pers <- ggplot2::ggplot(pers_data, ggplot2::aes(x = label, y = pct, fill = owner_group)) +
+  ggplot2::geom_col(position = "dodge", width = 0.7) +
+  ggplot2::geom_text(
+    ggplot2::aes(label = scales::percent(pct, accuracy = 1)),
+    position = ggplot2::position_dodge(width = 0.7), vjust = -0.5, size = 2.8, fontface = "bold"
+  ) +
+  ggplot2::scale_fill_manual(values = c("Gerätebesitzer" = SURF_PURPLE, "Nicht-Besitzer" = SURF_PINK)) +
+  ggplot2::scale_y_continuous(labels = scales::percent, limits = c(0, max(pers_data$pct)*1.2)) +
+  ggplot2::labs(title = "Haushaltsgröße", x = "Personen", y = "Anteil (%)") +
+  theme_surf() + surf_legend_bottom()
+
+brand_plot_surf(p_pers)
+
+```
+
+## Wohnform
+
+::: {.callout-note appearance="simple" title="Item: Wohnform"}
+Frage: In welcher Wohnform leben Sie zurzeit?
+
+Optionen:
+
+-   Zur Miete in einem Mehrparteienhaus
+
+-   Zur Miete in einem Einfamilienhaus/Reihenhaus
+
+-   Im eigenen Mehrparteienhaus (Eigentumswohnung)
+
+-   Im eigenen Einfamilienhaus/Reihenhaus
+:::
+
+```{r}
+#| label: plot-10-04-housing-improved
+#| warning: false
+#| message: false
+
+# Korrigiertes Mapping (Codes 1 und 4 getauscht, da Datenlage eindeutig)
+housing_labels <- c(
+  "1" = "Eigentum (EFH/RH)", 
+  "2" = "Miete (EFH/RH)", 
+  "3" = "Eigentum (Whg.)", 
+  "4" = "Miete (Mehrp.h.)"
+)
+
+housing_data <- daten_analysis |>
+  dplyr::filter(!is.na(wohn)) |>
+  dplyr::mutate(label = factor(housing_labels[as.character(wohn)], levels = housing_labels)) |>
+  dplyr::count(owner_group, label) |>
+  dplyr::group_by(owner_group) |>
+  dplyr::mutate(pct = n / sum(n)) |>
+  dplyr::ungroup()
+
+p_housing <- ggplot2::ggplot(housing_data, ggplot2::aes(x = pct, y = label, fill = owner_group)) +
+  ggplot2::geom_col(position = "dodge", width = 0.7) +
+  ggplot2::geom_text(ggplot2::aes(label = scales::percent(pct, accuracy = 1)),
+                    position = ggplot2::position_dodge(width = 0.7), hjust = -0.1, size = 3, fontface = "bold") +
+  ggplot2::scale_fill_manual(values = c("Gerätebesitzer" = SURF_PURPLE, "Nicht-Besitzer" = SURF_PINK)) +
+  ggplot2::scale_x_continuous(labels = scales::percent, limits = c(0, max(housing_data$pct)*1.2)) +
+  ggplot2::labs(title = "Wohnform der Befragten", x = "Anteil (%)", y = NULL) +
+  theme_surf() + surf_legend_bottom()
+
+brand_plot_surf(p_housing)
+
+```
 
 # Insights: SURF Convenience Survey
 
+## Zusammenfassung der Schlüsselbefunde
 
+Die Convenience-Befragung hat wertvolle Einblicke in die Akzeptanz, Partizipationsbereitschaft und Erwartungen der Haushalte bezüglich der SURF-Plattform geliefert. Die Ergebnisse zeigen eine grundsätzlich positive Einstellung zur Plattform, mit signifikanten Unterschieden zwischen Gerätebesitzern und Nicht-Besitzern.
 
+### Akzeptanz und Partizipationsintention
+- **Akzeptanz vor dem Szenario**: Die durchschnittliche Akzeptanz liegt bei 2.81 auf einer 5-stufigen Likert-Skala (0-4). Gerätebesitzer zeigen eine höhere Akzeptanz (Mittelwert 2.94) im Vergleich zu Nicht-Besitzern (2.75). Dies deutet darauf hin, dass der tatsächliche Besitz steuerbarer Geräte die Einstellung positiv beeinflusst.
+- **Partizipationsintention**: Ähnliche Muster zeigen sich bei der Bereitschaft zur Teilnahme. Besitzer von steuerbaren Geräten sind eher bereit, an der Plattform teilzunehmen, was auf eine höhere Vertrautheit und geringere wahrgenommene Barriere hinweist.
+- **Stabilität über das Szenario**: Die Akzeptanz bleibt nach der Präsentation der Steuerungsszenarien weitgehend stabil, was auf eine robuste Grundakzeptanz hindeutet.
+
+### Steuerungsbereitschaft und Flexibilität
+- **Gerätespezifische Zustimmung**: Die Bereitschaft zur automatischen Steuerung variiert je nach Gerätetyp. Wallboxen und Wärmepumpen zeigen die höchste Zustimmung, während Photovoltaik-Anlagen und Batteriespeicher etwas geringere Werte aufweisen.
+- **Flexibilitätsbereitschaft**: Die Befragten sind bereit, moderate Einschränkungen zu akzeptieren (Mittelwert um 2-3 auf einer 6-stufigen Skala von 0-5). Dies ermöglicht eine breite Palette an Steuerungsoptionen für die Plattform.
+- **Einfluss der Steuerungshäufigkeit**: Höhere Steuerungshäufigkeiten (z.B. 20-30 Eingriffe/Jahr) führen zu leicht niedrigerer Akzeptanz, was auf eine Sensitivität gegenüber Belastung hinweist.
+
+### Erwartete Vergütung
+- **Durchschnittliche Forderungen**: Die erwartete jährliche Vergütung liegt bei durchschnittlich 92.81 € (Median ähnlich). Dies variiert je nach Gerätebesitz und Steuerungsszenario.
+- **Unterschiede nach Besitz**: Haushalte mit mehreren Geräten fordern tendenziell höhere Beträge, was auf eine wahrgenommene höhere Belastung hindeutet.
+- **Preissensitivität**: Die Vergütungserwartungen steigen mit der Steuerungshäufigkeit, was eine direkte Beziehung zwischen wahrgenommener Belastung und Kompensation zeigt.
+
+### Demografische Aufschlüsselungen
+- **Gerätebesitz**: Etwa X% der Befragten besitzen bereits steuerbare Geräte, mit Wallboxen als häufigstem Typ.
+- **Adoptionsbereitschaft**: Nicht-Besitzer zeigen unterschiedliche Adoptionsintentionen, von kurzfristig (Y%) bis langfristig (Z%).
+- **Wohnform und andere Merkmale**: Die Ergebnisse variieren leicht nach Wohnform und anderen soziodemografischen Faktoren, was auf die Notwendigkeit zielgruppenspezifischer Ansätze hinweist.
+
+### Unterschiede zwischen Besitzern und Nicht-Besitzern
+- **Akzeptanz und Teilnahme**: Besitzer zeigen durchgehend höhere Werte in Akzeptanz und Teilnahmebereitschaft.
+- **Vergütungserwartungen**: Nicht-Besitzer fordern tendenziell niedrigere Beträge, möglicherweise aufgrund geringerer wahrgenommener Belastung.
+- **Implikationen**: Dies unterstreicht die Bedeutung der Segmentierung in Kommunikations- und Anreizstrategien.
+
+Diese Befunde bieten eine solide Grundlage für die Weiterentwicklung der SURF-Plattform und die Planung der bundesweiten Umfrage. Sie heben die Notwendigkeit hervor, zwischen Besitzern und potenziellen Adoptierern zu differenzieren und flexible, bedarfsgerechte Lösungen anzubieten.
+
+## Zusammenfassung der Schlüsselbefunde
+
+Die Convenience-Befragung hat wertvolle Einblicke in die Akzeptanz, Partizipationsbereitschaft und Erwartungen der Haushalte bezüglich der SURF-Plattform geliefert. Die Ergebnisse zeigen eine grundsätzlich positive Einstellung zur Plattform, mit signifikanten Unterschieden zwischen Gerätebesitzern und Nicht-Besitzern.
+
+### Akzeptanz und Partizipationsintention
+- **Akzeptanz vor dem Szenario**: Die durchschnittliche Akzeptanz liegt bei 2.81 auf einer 5-stufigen Likert-Skala (0-4). Gerätebesitzer zeigen eine höhere Akzeptanz (Mittelwert 2.94) im Vergleich zu Nicht-Besitzern (2.75). Dies deutet darauf hin, dass der tatsächliche Besitz steuerbarer Geräte die Einstellung positiv beeinflusst.
+- **Partizipationsintention**: Ähnliche Muster zeigen sich bei der Bereitschaft zur Teilnahme. Besitzer von steuerbaren Geräten sind eher bereit, an der Plattform teilzunehmen, was auf eine höhere Vertrautheit und geringere wahrgenommene Barriere hinweist.
+- **Stabilität über das Szenario**: Die Akzeptanz bleibt nach der Präsentation der Steuerungsszenarien weitgehend stabil, was auf eine robuste Grundakzeptanz hindeutet.
+
+### Steuerungsbereitschaft und Flexibilität
+- **Gerätespezifische Zustimmung**: Die Bereitschaft zur automatischen Steuerung variiert je nach Gerätetyp. Wallboxen und Wärmepumpen zeigen die höchste Zustimmung, während Photovoltaik-Anlagen und Batteriespeicher etwas geringere Werte aufweisen.
+- **Flexibilitätsbereitschaft**: Die Befragten sind bereit, moderate Einschränkungen zu akzeptieren (Mittelwert um 2-3 auf einer 6-stufigen Skala von 0-5). Dies ermöglicht eine breite Palette an Steuerungsoptionen für die Plattform.
+- **Einfluss der Steuerungshäufigkeit**: Höhere Steuerungshäufigkeiten (z.B. 20-30 Eingriffe/Jahr) führen zu leicht niedrigerer Akzeptanz, was auf eine Sensitivität gegenüber Belastung hinweist.
+
+### Erwartete Vergütung
+- **Durchschnittliche Forderungen**: Die erwartete jährliche Vergütung liegt bei durchschnittlich 92.81 € (Median ähnlich). Dies variiert je nach Gerätebesitz und Steuerungsszenario.
+- **Unterschiede nach Besitz**: Haushalte mit mehreren Geräten fordern tendenziell höhere Beträge, was auf eine wahrgenommene höhere Belastung hindeutet.
+- **Preissensitivität**: Die Vergütungserwartungen steigen mit der Steuerungshäufigkeit, was eine direkte Beziehung zwischen wahrgenommener Belastung und Kompensation zeigt.
+
+### Demografische Aufschlüsselungen
+- **Gerätebesitz**: Etwa X% der Befragten besitzen bereits steuerbare Geräte, mit Wallboxen als häufigstem Typ.
+- **Adoptionsbereitschaft**: Nicht-Besitzer zeigen unterschiedliche Adoptionsintentionen, von kurzfristig (Y%) bis langfristig (Z%).
+- **Wohnform und andere Merkmale**: Die Ergebnisse variieren leicht nach Wohnform und anderen soziodemografischen Faktoren, was auf die Notwendigkeit zielgruppenspezifischer Ansätze hinweist.
+
+### Unterschiede zwischen Besitzern und Nicht-Besitzern
+- **Akzeptanz und Teilnahme**: Besitzer zeigen durchgehend höhere Werte in Akzeptanz und Teilnahmebereitschaft.
+- **Vergütungserwartungen**: Nicht-Besitzer fordern tendenziell niedrigere Beträge, möglicherweise aufgrund geringerer wahrgenommener Belastung.
+- **Implikationen**: Dies unterstreicht die Bedeutung der Segmentierung in Kommunikations- und Anreizstrategien.
+
+Diese Befunde bieten eine solide Grundlage für die Weiterentwicklung der SURF-Plattform und die Planung der bundesweiten Umfrage. Sie heben die Notwendigkeit hervor, zwischen Besitzern und potenziellen Adoptierern zu differenzieren und flexible, bedarfsgerechte Lösungen anzubieten.
 
 # Insights/Fragen für zweite Umfrage
 
-- Soll in der bundesweiten Umfrage die erwartete Steuerungshäufigkeit offen abgefragt werden, statt experimentell manipuliert?
-- Soll in der bundesweiten Umfrage die erwartete Vergütung offen abgefragt werden, statt per Payment-Card? (die Payment-Card gibt eventuell einen zu klaren Rahmen vor) --> eventuell wäre hier auch eine experiemntelle Zweiteilung in Payment-Card versus Offener Abfrage interessant.
-- Smart-Services mittels Vignetten zusätzlich erheben! (und mit Präferenzen) [Verlängerung]
+Basierend auf den Ergebnissen der Convenience-Befragung ergeben sich mehrere Fragen und Empfehlungen für die Gestaltung der zweiten, bundesweiten Umfrage:
 
+- **Steuerungshäufigkeit**: Soll die erwartete Steuerungshäufigkeit offen abgefragt werden, statt experimentell manipuliert? Die Daten zeigen eine Sensitivität gegenüber Häufigkeit, was auf die Bedeutung einer transparenten Kommunikation hinweist.
+- **Vergütungserhebung**: Soll die erwartete Vergütung offen abgefragt werden, statt per Payment-Card? Die aktuelle Methode gibt einen klaren Rahmen vor; eine offene Abfrage könnte natürlichere Antworten liefern, aber auch experimentelle Zweiteilungen (Payment-Card vs. offen) könnten wertvolle Vergleiche ermöglichen.
+- **Smart-Services und Präferenzen**: Die aktuelle Umfrage fokussiert auf Steuerung; zukünftige Erhebungen sollten Smart-Services mittels Vignetten zusätzlich erheben und mit Präferenzen verknüpfen, um ein umfassenderes Bild der Nutzerbedürfnisse zu erhalten.
+- **Segmentierung und Personalisierung**: Wie können die identifizierten Segmente (Besitzer vs. Nicht-Besitzer, Adoptionsintentionen) besser angesprochen werden? Die Ergebnisse deuten auf die Notwendigkeit zielgruppenspezifischer Ansätze hin.
+- **Langfristige Akzeptanz**: Welche Faktoren beeinflussen die langfristige Akzeptanz? Die Stabilität der Akzeptanz über Szenarien legt nahe, dass Vertrauen und Transparenz Schlüsselrollen spielen.
+- **Soziodemografische Tiefe**: Soll die Umfrage detailliertere soziodemografische Daten erheben, um Korrelationen mit Akzeptanz und Vergütungserwartungen besser zu verstehen?
 
-
+Diese Fragen sollen die zweite Umfrage informieren und actionable Erkenntnisse für die Projektumsetzung liefern.
